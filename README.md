@@ -1,10 +1,10 @@
-# FamilySync
+# test-project
 
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
 ✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
 
 ## Run tasks
 
@@ -29,6 +29,7 @@ These targets are either [inferred automatically](https://nx.dev/concepts/inferr
 While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
 
 To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
+
 ```sh
 npx nx add @nx/react
 ```
@@ -80,16 +81,58 @@ Nx Console is an editor extension that enriches your developer experience. It le
 
 [Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
+## AI / MCP Setup
+
+This project ships MCP (Model Context Protocol) servers for **Nx**, **Jira**, and **Figma** so AI assistants can interact with the workspace, tickets, and designs.
+
+### Prerequisites
+
+The Jira MCP server runs via `uvx` (Python). Install `uv` once:
+
+```sh
+brew install uv
+```
+
+Export these environment variables in your shell profile (`~/.zshrc` or `~/.bashrc`). They are required for Jira and Figma — Nx needs no secrets.
+
+```sh
+export JIRA_URL="https://yourcompany.atlassian.net"
+export JIRA_USERNAME="you@yourcompany.com"
+export JIRA_API_TOKEN="your-jira-api-token"   # https://id.atlassian.com/manage-profile/security/api-tokens
+export FIGMA_ACCESS_TOKEN="your-figma-token"  # https://www.figma.com/settings → Personal access tokens
+```
+
+### VS Code (GitHub Copilot)
+
+The config is already in `.vscode/mcp.json` and committed to the repo — nothing to do. When you open a Copilot chat session, VS Code will start the MCP servers automatically. It will prompt you for Jira and Figma credentials interactively (values are never stored on disk).
+
+### Claude Code
+
+The config is in `.mcp.json` at the repo root, which Claude Code picks up automatically. Make sure the environment variables above are exported before launching Claude Code. Then verify the servers are running:
+
+```sh
+claude mcp list
+```
+
+### JetBrains (WebStorm / IntelliJ with AI Assistant)
+
+JetBrains AI Assistant also reads `.mcp.json` from the project root automatically. Make sure the environment variables above are exported before opening the IDE. Enable MCP support in:
+
+> **Settings → Tools → AI Assistant → Model Context Protocol (MCP)**
+
+The servers will appear there once the plugin detects `.mcp.json`.
+
 ## Useful links
 
 Learn more:
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
+- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 - [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 - [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 - [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
 And join the Nx community:
+
 - [Discord](https://go.nx.dev/community)
 - [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
 - [Our Youtube channel](https://www.youtube.com/@nxdevtools)

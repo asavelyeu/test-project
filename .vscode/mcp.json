@@ -1,0 +1,51 @@
+{
+  "servers": {
+    "nx": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "nx-mcp@latest"]
+    },
+    "jira": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "${input:jiraUrl}",
+        "JIRA_USERNAME": "${input:jiraUsername}",
+        "JIRA_API_TOKEN": "${input:jiraApiToken}"
+      }
+    },
+    "figma": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "figma-mcp"],
+      "env": {
+        "FIGMA_ACCESS_TOKEN": "${input:figmaAccessToken}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "jiraUrl",
+      "type": "promptString",
+      "description": "Jira instance URL (e.g. https://yourcompany.atlassian.net)"
+    },
+    {
+      "id": "jiraUsername",
+      "type": "promptString",
+      "description": "Jira username (email)"
+    },
+    {
+      "id": "jiraApiToken",
+      "type": "promptString",
+      "description": "Jira API Token",
+      "password": true
+    },
+    {
+      "id": "figmaAccessToken",
+      "type": "promptString",
+      "description": "Figma Personal Access Token",
+      "password": true
+    }
+  ]
+}
