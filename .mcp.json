@@ -13,6 +13,14 @@
         "JIRA_API_TOKEN": "$JIRA_API_TOKEN"
       }
     },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
     "figma": {
       "command": "npx",
       "args": ["-y", "figma-mcp"],
