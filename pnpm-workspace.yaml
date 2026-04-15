@@ -1,0 +1,6 @@
+allowBuilds:
+  '@swc/core': true
+  detox: true
+  dtrace-provider: true
+  nx: true
+  unrs-resolver: true
