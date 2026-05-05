@@ -56,6 +56,8 @@ When two artifacts disagree, the **authoritative source** wins. This table shows
 | Figma component quality baseline                      | Base Figma Data Table Component Checklist (pageId `8519686`)         | none — fetch only when reviewing UX                                                                             |
 | WCAG-ready Figma checklist                            | WCAG-ready Figma Data Table Component Checklist (pageId `8421381`)   | none — fetch when validating accessibility                                                                      |
 | Iteration 1 — user stories & acceptance criteria      | Iteration 1 — User Stories & Acceptance Criteria (pageId `11960322`) | **`docs/claude/iterations/iteration-1.md`** (condensed mirror)                                                  |
+| Atomic component inventory                            | Atomic Components (pageId `13271041`)                                | referenced from `docs/claude/project-structure.md` §6; full inventory only on Confluence                        |
+| Project structure & component architecture            | n/a — internal architecture decision                                 | **`docs/claude/project-structure.md`** (folder layout, layer purposes, placement rules)                         |
 | Findings & lessons learned (index)                    | Findings Section Overview (pageId `9928708`)                         | none — fetch when adding or referencing a finding                                                               |
 | Finding template                                      | Finding Template (pageId `10485761`)                                 | none — fetch when writing a new finding                                                                         |
 
@@ -130,7 +132,7 @@ Before writing code, ask:
 - Will this couple the core to a specific framework, styling library, or runtime where it doesn't have to? If yes, isolate that coupling behind a clear seam.
 
 **5. Implement using canonical terms.**
-File names, component names, type names, prop names, variant names, comments, and any column-config `type` value must use the canonical term as their root name (Section 4).
+File names, component names, type names, prop names, variant names, comments, and any column-config `type` value must use the canonical term as their root name (Section 4). For where each component physically lives in the repo (folder layout, layer purposes, placement rules), consult `docs/claude/project-structure.md`.
 
 **6. Validate against UX expectations.**
 For any UI work, check the relevant table states — Default, Hover, Loading, Empty, No Results, Error, Disabled — and the accessibility expectations from Design Requirements §10 (contrast, focus, color independence, hit areas). Don't ship UI that defines fewer states than the spec requires.
