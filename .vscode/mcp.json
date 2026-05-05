@@ -32,6 +32,10 @@
       "env": {
         "FIGMA_ACCESS_TOKEN": "${input:figmaAccessToken}"
       }
+    },
+    "angular-cli": {
+      "command": "npx",
+      "args": ["-y", "@angular/cli", "mcp"]
     }
   },
   "inputs": [

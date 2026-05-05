@@ -27,6 +27,10 @@
       "env": {
         "FIGMA_ACCESS_TOKEN": "$FIGMA_ACCESS_TOKEN"
       }
+    },
+    "angular-cli": {
+      "command": "npx",
+      "args": ["-y", "@angular/cli", "mcp"]
     }
   }
 }
