@@ -27,10 +27,15 @@ This file guides the agent through the _BA/UX/Front_ pilot project: a cross-func
 
 The work is delivered in defined iterations. Each iteration has its own goal, in-scope items, out-of-scope items, deliverables, acceptance criteria, and demo scenario.
 
+> **Active iteration:** Iteration 1 — MVP Table with Extended Cell Types
+> **Local mirror:** `docs/claude/iterations/iteration-1.md`
+>
+> This pointer is the **single source of iteration truth for all agents**. When the iteration changes, update only this block — agents read it from here. Do not hardcode iteration numbers or mirror filenames in agent prompts; agents resolve the active iteration from this block at task time.
+
 **Two questions the AI agent must be able to answer before touching code:**
 
-1. _Which iteration is currently active?_ Source of truth: the **Development Current Status** page in Confluence. Look for the iteration marked `In Development` (or, if none yet, the next `Planned`).
-2. _What is in and out of scope for that iteration?_ Source of truth: the **Iterations** page in Confluence. Read the matching iteration block — both the **Scope** and the **Out of scope** lists.
+1. _Which iteration is currently active?_ The pointer above. Confluence source of truth: the **Development Current Status** page. `team-manager` is responsible for confirming the local pointer matches Confluence at the start of a cycle.
+2. _What is in and out of scope for that iteration?_ Source of truth: the **Iterations** page in Confluence. Read the matching iteration block — both the **Scope** and the **Out of scope** lists. The local mirror named by the Active iteration pointer reflects this.
 
 **Rules.**
 
