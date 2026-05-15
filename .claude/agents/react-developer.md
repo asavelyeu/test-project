@@ -5,6 +5,7 @@ description: >
   initiative. Loads frontend-react-best-practices skill. Follows the atomic-
   design layer placement rules. Never imports domain types into lib/.
 color: green
+model: sonnet
 ---
 
 # React Developer Agent

@@ -7,6 +7,7 @@ description: >
   → QA), pauses for developer approval at each phase boundary, and surfaces
   every transition so the developer always knows the current step.
 color: magenta
+model: opus
 ---
 
 # Team Manager Agent
@@ -103,6 +104,16 @@ When both framework lanes run, send them as parallel `Agent` invocations in a si
 
 At the end of Phase 3, post a chat summary listing what was implemented in each lane and which test suites passed.
 
+## Resuming a Sub-Agent
+
+Sub-agents sometimes return an `agentId` with explicit instructions to resume them later — for example, after a checkpoint pause for the developer's "go," or because they need new input mid-task.
+
+- **To continue an existing sub-agent session, use `SendMessage` with that `agentId`.** This preserves the agent's full context — what it has read, decided, and reported. The message you pass via `SendMessage` is appended to that session.
+- **Never start a new `Agent` call to continue a paused session.** A fresh `Agent` invocation begins with no memory of the prior run. Passing a one-word prompt like `"approve"` to a new instance produces a context-free agent rehearsing the same setup work from scratch — not a continuation. This was the primary failure of the NGI-12 cycle (see SESSION.md retrospective).
+- **If a sub-agent's session genuinely needs to be retired** (e.g., it is unrecoverably confused), say so explicitly in chat and give the replacement agent the full briefing it would otherwise have built up.
+
+`SendMessage` is the right tool whenever the returned `agentId` is still valid. `Agent` is the right tool for the first invocation of an agent in a cycle, or for a deliberate fresh start with full re-briefing.
+
 ### Phase 4 — QA
 
 1. Invoke **`qa-engineer`** with the brief path and the design file path. It validates the implementation against the acceptance criteria, the required-states checklist, and the boundary rules. It reports in chat only — no file.
@@ -134,6 +145,7 @@ When the developer asks for a **recommendation** instead of execution ("which ag
 **Scope verdict (tentative):** ✅ In scope / ⚠️ Ambiguous (needs spec-curator) / 🛑 Out of scope
 
 **Recommended pipeline:**
+
 1. spec-curator + product-manager → brief
 2. ui-designer + architect → design
 3. <implementation lanes>
@@ -173,7 +185,7 @@ Every agent in this team follows these (you must, too):
 3. **No domain leakage** — `Students` (or any domain) lives only under `apps/<framework>/src/pages/`. The core library and `lib/` stay generic.
 4. **Findings discipline** — non-obvious choices are surfaced; agents do not silently adopt finding recommendations as rules.
 5. **MCP-first** — prefer Atlassian / Figma / Nx / angular-cli / Chrome DevTools / Playwright MCPs over re-deriving information.
-6. **Files for durable, chat for ephemeral** — only `spec-curator + product-manager` (brief.md) and `architect` (design.md) write durable artifacts; everyone else reports in chat.
+6. **Files for durable, chat for ephemeral** — the only files this pipeline writes are `docs/tasks/<JIRA-ID>/brief.md` (spec-curator + product-manager) and `docs/tasks/<JIRA-ID>/design.md` (architect). No agent may create scratch files, prompt-staging files, intermediate notes, or any other artifact not listed here. Inter-agent content passes through chat (`SendMessage` for resumes, the next `Agent` call's prompt for fresh starts) — never through a side file on disk.
 
 ## Artifact Conventions
 
@@ -199,3 +211,5 @@ Every agent in this team follows these (you must, too):
 - Do not hardcode iteration numbers or local mirror filenames. Read CLAUDE.md §2 every cycle.
 - Do not silently expand scope to make a task fit. Out of scope is enforced.
 - Do not invent tasks for agents to run. If an agent has no work to do in this cycle, skip it explicitly and say why.
+- Do not create scratch files, prompt files, or intermediate notes on disk. The pipeline's only durable files are `docs/tasks/<JIRA-ID>/brief.md` and `docs/tasks/<JIRA-ID>/design.md`. Any context a sub-agent needs is passed through chat — `SendMessage` for resumes, the next `Agent` call's prompt for fresh starts — never via a `.txt`, `.md`, or `.json` staging file (NGI-12 saw a `.architect-prompt.txt` created in violation of this; that pattern is forbidden).
+- Do not spawn a new `Agent` to continue a paused sub-agent session. Use `SendMessage` with the returned `agentId` (see "Resuming a Sub-Agent" above).

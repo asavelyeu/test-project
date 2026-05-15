@@ -6,6 +6,7 @@ description: >
   hits, and writes the durable task brief at docs/tasks/<JIRA-ID>/brief.md.
   Returns a chat summary. Does not validate scope — product-manager does.
 color: cyan
+model: sonnet
 ---
 
 # Spec Curator Agent
@@ -42,19 +43,19 @@ Use the configured Atlassian MCP (`mcp__atlassian__*`). The Cloud ID and site UR
 
 The following Confluence pages anchor the spec. Consult them as the work demands; not every brief needs every page.
 
-| Topic | pageId |
-|---|---|
-| Initiative Overview | `6291457` |
-| Iterations (scope / out-of-scope / deliverables) | `8749069` |
-| Development Current Status (active iteration) | `8749057` |
-| Design Requirements (UX, a11y, edge cases) | `8159250` |
-| Terms (canonical glossary) | `7634945` |
-| Terminology Dictionary Introduction | `7503875` |
-| Atomic Components inventory | `13271041` |
-| Base Figma Data Table Component Checklist | `8519686` |
-| WCAG-ready Figma Data Table Component Checklist | `8421381` |
-| Findings & Lessons Learned (index) | `9928708` |
-| Finding Template | `10485761` |
+| Topic                                            | pageId     |
+| ------------------------------------------------ | ---------- |
+| Initiative Overview                              | `6291457`  |
+| Iterations (scope / out-of-scope / deliverables) | `8749069`  |
+| Development Current Status (active iteration)    | `8749057`  |
+| Design Requirements (UX, a11y, edge cases)       | `8159250`  |
+| Terms (canonical glossary)                       | `7634945`  |
+| Terminology Dictionary Introduction              | `7503875`  |
+| Atomic Components inventory                      | `13271041` |
+| Base Figma Data Table Component Checklist        | `8519686`  |
+| WCAG-ready Figma Data Table Component Checklist  | `8421381`  |
+| Findings & Lessons Learned (index)               | `9928708`  |
+| Finding Template                                 | `10485761` |
 
 The active iteration's user-stories page is also part of the catalogue but is named by the iteration's local mirror (read it from there, not from memory).
 
@@ -81,9 +82,11 @@ Write to `docs/tasks/<JIRA-ID>/brief.md`. Create the folder if it doesn't exist.
 **Curated by:** spec-curator on <date>
 
 ## Translated Task
+
 <Original ticket wording → restated using canonical terminology (CLAUDE.md §4). Examples: "table with buttons" → "Data Table with Actions Cell".>
 
 ## Acceptance Criteria (verbatim)
+
 Quoted from Jira <JIRA-ID> and/or the linked Confluence user-story page.
 
 1. <verbatim criterion 1>
@@ -91,28 +94,34 @@ Quoted from Jira <JIRA-ID> and/or the linked Confluence user-story page.
 3. …
 
 ## Linked User Stories
+
 - **US-NN** — <title> (Confluence pageId for the iteration's user-stories page)
 - (additional US-NN if multiple apply)
 
 ## Design Requirements Touched
+
 - **<area>** — quote the relevant rule from Design Requirements (pageId `8159250`) or the local mirror at `docs/claude/ui-ux-expectations.md`.
 - (one entry per requirement that bears on this ticket; do not paraphrase rules)
 
 ## Canonical Terminology Resolutions
-| Ticket phrasing | Canonical term | Source |
-|---|---|---|
+
+| Ticket phrasing | Canonical term  | Source       |
+| --------------- | --------------- | ------------ |
 | "row highlight" | **Hover State** | CLAUDE.md §4 |
-| "badge column" | **Status Cell** | CLAUDE.md §4 |
+| "badge column"  | **Status Cell** | CLAUDE.md §4 |
 
 ## Source Citations
+
 - Jira: <JIRA-ID>.
 - Confluence: <page title> (pageId `<id>`), section "<section title>".
 - Local mirror: `<path>`.
 
 ## Drift Detected
+
 - None / <which local mirror diverged from which page; what the diff was; patched in this PR>.
 
 ## Open Questions
+
 - <anything Jira / Confluence did not answer — Scope verdict pending in product-manager step>.
 ```
 

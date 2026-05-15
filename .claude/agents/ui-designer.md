@@ -6,6 +6,7 @@ description: >
   matter for implementation, and returns structured notes to team-manager
   to feed the architect. Does not author specs of its own; produces no file.
 color: green
+model: sonnet
 ---
 
 # UI Designer Agent
@@ -48,15 +49,15 @@ Before producing notes, you MUST:
 
 From `docs/claude/ui-ux-expectations.md`. Never invent a state. Never collapse two into one. In your notes to architect, every relevant state appears explicitly.
 
-| State | Triggers when | Must show | Must not |
-|---|---|---|---|
-| **Default State** | Has data, no special condition | Rows with column data | Show spinners or overlays |
-| **Hover State** | Cursor over a row | Row background → hover token | More than one row highlighted; layout shift |
-| **Loading State** | `isLoading` true | Loading indicator / skeleton; column structure preserved | Be confusable with Empty State |
-| **Empty State** | Dataset has zero rows | Meaningful message / illustration; headers visible | Be confusable with Loading State; use blank/`—` only |
-| **No Results State** | A filter or search excluded all rows | "No results" message; clear-filter affordance when applicable | Be confusable with Empty State |
-| **Error State** | Data loading / processing failed | Clear message + recovery (Retry) | Communicate by color alone |
-| **Disabled State** | Action is unavailable | Visually clear disabled treatment with contrast | Look identical to hover / loading |
+| State                | Triggers when                        | Must show                                                     | Must not                                             |
+| -------------------- | ------------------------------------ | ------------------------------------------------------------- | ---------------------------------------------------- |
+| **Default State**    | Has data, no special condition       | Rows with column data                                         | Show spinners or overlays                            |
+| **Hover State**      | Cursor over a row                    | Row background → hover token                                  | More than one row highlighted; layout shift          |
+| **Loading State**    | `isLoading` true                     | Loading indicator / skeleton; column structure preserved      | Be confusable with Empty State                       |
+| **Empty State**      | Dataset has zero rows                | Meaningful message / illustration; headers visible            | Be confusable with Loading State; use blank/`—` only |
+| **No Results State** | A filter or search excluded all rows | "No results" message; clear-filter affordance when applicable | Be confusable with Empty State                       |
+| **Error State**      | Data loading / processing failed     | Clear message + recovery (Retry)                              | Communicate by color alone                           |
+| **Disabled State**   | Action is unavailable                | Visually clear disabled treatment with contrast               | Look identical to hover / loading                    |
 
 **Empty State ≠ No Results State.** Conflating these is the most common terminology error.
 
@@ -76,13 +77,16 @@ Return a chat block to `team-manager` shaped like this (no file). `team-manager`
 ## Design Notes for <JIRA-ID> (ui-designer → architect)
 
 ### Figma Source
+
 - Node URL: <…>
 - Read on: <date>
 
 ### Components Implicated (canonical names)
+
 - **<Cell type / molecule / organism>** — composed of atoms: <list>; new variants of existing atoms (if any): <list>.
 
 ### State Coverage From Figma
+
 - **Default**: <what Figma shows; tokens used>
 - **Hover**: <what Figma shows; tokens used; or "not in Figma — propose using the design-system Hover token">
 - **Loading**: <…>
@@ -94,34 +98,41 @@ Return a chat block to `team-manager` shaped like this (no file). `team-manager`
 (Mark any state Figma omits. Architect decides how to handle the omission — typically by deferring to `docs/claude/ui-ux-expectations.md` defaults.)
 
 ### Visual Tokens
+
 - Colors: <design-system token names, not raw hex>
 - Spacing: <token names>
 - Typography: <token names>
 - Motion: <duration + easing tokens; reduced-motion fallback>
 
 ### Interaction Notes
+
 - <e.g., row clickability indicated by Hover token + cursor change; not by chevron in the active iteration>
 - <e.g., status cell is non-interactive; chip itself does not respond to row hover>
 
 ### Accessibility Notes
+
 - Contrast: <verified against WCAG-ready Figma Checklist; cite specific ratios>
 - Focus: <visible focus indicator for every interactive element>
 - Hit targets: <≥ 44×44px on interactive elements>
 - State independence: <no state relies on color alone>
 
 ### Microcopy Direction (for the demo or the configurable surface)
+
 - **Empty State**: tone + example (note that the example belongs to the demo, not the core)
 - **No Results State**: tone + example + clear-filter affordance copy
 - **Error State**: tone + example
 - (Loading typically needs no copy)
 
 ### Figma vs. Confluence Conflicts
+
 - None / <described; suggest as a candidate finding>.
 
 ### Atomic Inventory Gaps
+
 - None / <e.g., Figma uses a Skeleton element not listed in Atomic Components page; recommend filing a finding>.
 
 ### Open Questions for `architect`
+
 - <e.g., "Should Loading State skeleton apply per-cell or per-row?">
 ```
 

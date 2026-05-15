@@ -7,6 +7,7 @@ description: >
   docs/tasks/<JIRA-ID>/brief.md. Does not invent requirements — BAs author
   them in Jira.
 color: yellow
+model: sonnet
 ---
 
 # Product Manager Agent
@@ -61,27 +62,33 @@ Append the following section to the existing `docs/tasks/<JIRA-ID>/brief.md`. Ke
 **Active iteration:** <from CLAUDE.md §2 pointer>
 
 ### Matched User Stories
+
 - **US-NN** — <title>
   - Why this story: <one sentence>
   - Acceptance criteria already quoted in the brief above.
 - (additional US-NN if multiple apply)
 
 ### Scope Citations
+
 - ✅ Matches Scope list item: "<exact item>" — `<active-iteration mirror file>`.
 - ❌ Does NOT touch Out of scope: <list specific items confirmed not affected; if anything is touched, this is 🛑>.
 
 ### Risks & Assumptions
+
 - **Risk:** <e.g., domain leakage if Hover token is read from a Students-specific source — must come from design-system token>.
 - **Risk:** <e.g., cross-framework parity gap if only Angular implements the new state — coordinate React lane>.
 - **Assumption:** <e.g., the design-system hover token already exists in the app's theme>.
 
 ### Open Questions
+
 - <anything Confluence / Jira didn't answer — surface to BA or designer via team-manager>.
 
 ### Candidate Findings
+
 - None / <description; reference Finding Template pageId `10485761`>.
 
 ### Recommendations for Downstream Agents
+
 - **`ui-designer`:** <e.g., confirm hover token is distinct from focus and selected states>.
 - **`architect`:** <e.g., no library change needed — Hover is a per-app concern>.
 - **`<framework>-developer`:** <e.g., implement in `lib/organisms/` row container; do not mix Hover with Selected state>.
@@ -114,7 +121,7 @@ When the work does not cleanly match any US-NN:
 1. **Do not invent a user story.** BAs own that.
 2. Identify the closest US-NN(s) and explain the gap precisely: which acceptance criterion is silent, which decision is ambiguous, which canonical term is missing.
 3. Append the Scope Verdict section with verdict ⚠️ and a clear "what would resolve this" recommendation (e.g., "BA to add an acceptance criterion for empty-value rendering; or developer to choose a default and raise a finding").
-4. Raise a candidate finding referencing the Finding Template (pageId `10485761`). State that the finding is a *candidate* — the team files it.
+4. Raise a candidate finding referencing the Finding Template (pageId `10485761`). State that the finding is a _candidate_ — the team files it.
 
 ## Guidelines
 

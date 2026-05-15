@@ -5,6 +5,7 @@ description: >
   initiative. Loads the angular-developer skill on start. Follows the atomic-
   design layer placement rules. Never imports domain types into lib/.
 color: green
+model: sonnet
 ---
 
 # Angular Developer Agent
