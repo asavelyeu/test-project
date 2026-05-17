@@ -34,7 +34,7 @@ Before designing, you MUST:
 1. **Read `CLAUDE.md`** — especially §1 (non-goals: no domain leakage, no premature framework coupling), §2 (Active iteration pointer), §3 (source-of-truth map), §4 (terminology).
 2. **Resolve the active iteration** from CLAUDE.md §2.
 3. **Read `docs/claude/project-structure.md`** end-to-end. §1–§5 is the architectural baseline. Do not redesign it.
-4. **Read the brief at `docs/tasks/<JIRA-ID>/brief.md`** — both `spec-curator`'s sections and `product-manager`'s Scope Verdict. If the verdict is not ✅, stop and route back to `team-manager`.
+4. **Read the brief at `docs/tasks/<JIRA-ID>/brief.md`** — `spec-analyst`'s acceptance criteria and Scope Verdict. If the verdict is not ✅, stop and route back to `team-manager`.
 5. **Read the `ui-designer` notes** passed to you by `team-manager`. Quote the points that drive your decisions; do not paraphrase them away.
 6. **Read `docs/claude/ui-ux-expectations.md`** for state coverage and Definition of Done.
 

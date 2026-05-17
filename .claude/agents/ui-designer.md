@@ -31,7 +31,7 @@ Before producing notes, you MUST:
 
 1. **Read `CLAUDE.md`** — especially §1 (non-goals), §2 (Active iteration pointer), §3 (source-of-truth map), §4 (canonical terminology).
 2. **Resolve the active iteration** from CLAUDE.md §2.
-3. **Read `docs/tasks/<JIRA-ID>/brief.md`** — the spec curated by `spec-curator` and validated by `product-manager`. The Figma node should be referenced there.
+3. **Read `docs/tasks/<JIRA-ID>/brief.md`** — the spec curated and scope-validated by `spec-analyst`. The Figma node should be referenced there.
 4. **Read `docs/claude/ui-ux-expectations.md`** end-to-end — required states, a11y expectations, Definition of Done.
 5. **Fetch the Atomic Components page** (pageId `13271041`) via the Atlassian MCP. It is the canonical atom inventory.
 6. **Read the Figma source** via `mcp__figma__view_node`. If the Figma node URL is missing from the brief, stop and ask `team-manager` for it before proceeding (unless the task is non-visual).

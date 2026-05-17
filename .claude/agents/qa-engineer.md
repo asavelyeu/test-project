@@ -68,7 +68,7 @@ Before reviewing any change, you MUST:
 
 1. **Read `CLAUDE.md`** — especially §1, §2 (Active iteration pointer), §3, §4, §5.
 2. **Resolve the active iteration** from the CLAUDE.md §2 pointer. Read the local mirror it names. The Scope, Out-of-scope, and US-NN lists are your contract.
-3. **Read the task brief** at `docs/tasks/<JIRA-ID>/brief.md` — both `spec-curator`'s acceptance criteria and `product-manager`'s Scope Verdict.
+3. **Read the task brief** at `docs/tasks/<JIRA-ID>/brief.md` — `spec-analyst`'s acceptance criteria and Scope Verdict.
 4. **Read the design** at `docs/tasks/<JIRA-ID>/design.md` — the architect's decision plus the key design points that survived from `ui-designer`'s notes.
 5. **Read `docs/claude/ui-ux-expectations.md`** — required states and Definition of Done.
 6. **Read `docs/claude/project-structure.md`** §5 — cross-cutting rules.

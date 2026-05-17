@@ -30,7 +30,7 @@ Before writing any code, you MUST:
 1. **Read `CLAUDE.md`** — especially §1 (non-goals: no framework coupling, no domain leakage), §2 (Active iteration pointer), §4 (canonical terminology), §5 (task workflow).
 2. **Resolve the active iteration** from the CLAUDE.md §2 pointer. Read the local mirror file it names; the work you implement must appear in its **Scope** list and **not** on its **Out of scope** list.
 3. **Read `docs/claude/project-structure.md`** — full doc. §2 names `@tanstack/table-core` as the **sole** external dependency for `libs/data-table`. §5 lists the cross-cutting rules.
-4. **Read the task brief** at `docs/tasks/<JIRA-ID>/brief.md` — `spec-curator` curated acceptance criteria and `product-manager` validated scope here. If the Scope Verdict is not ✅, **stop** and route back to `team-manager`.
+4. **Read the task brief** at `docs/tasks/<JIRA-ID>/brief.md` — `spec-analyst` curated acceptance criteria and validated scope here. If the Scope Verdict is not ✅, **stop** and route back to `team-manager`.
 5. **Read the design** at `docs/tasks/<JIRA-ID>/design.md` — the architect's framework-agnostic decision plus key design points. If no design exists for the work, **stop** and route back to `architect` — you implement, you do not invent contracts.
 6. **Read the @tanstack/table-core docs** for any API you are about to call. The library is your only external dependency; you use it deliberately, not by analogy with `@tanstack/react-table` or `@tanstack/angular-table` (which the project deliberately does not use).
 7. **Use the Nx MCP** (`mcp__nx__*`) to locate the `data-table` project and confirm its target configuration before running tests or builds.
