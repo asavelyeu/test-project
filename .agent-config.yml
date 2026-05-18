@@ -1,0 +1,37 @@
+# Fill in real values before running any agent.
+
+jira:
+  base_url: 'https://aristeksystems-team-f2twyvsi.atlassian.net'
+  project_key: 'NGI'
+
+confluence:
+  base_url: 'https://aristeksystems-team-f2twyvsi.atlassian.net/wiki'
+  space_key: 'teama3c89e31d5e646f0991ddfd70c5d5982'
+
+figma:
+  file_key: 'YOUR_FIGMA_FILE_KEY'
+
+nx:
+  react_ui_lib: 'shared-ui' # project name in nx
+  react_ui_path: 'libs/shared/ui'
+  react_components_dir: 'libs/shared/ui/src/components'
+  react_core_dir: 'libs/shared/ui/src/core'
+  angular_ui_lib: 'shared-ui-angular' # created on demand
+  angular_ui_path: 'libs/shared/ui-angular'
+
+git:
+  default_branch: 'main'
+  remote: 'origin'
+
+# Naming rules
+# Branch:   apd-1332-feat-implement-data-table
+# Commit:   apd-1332-feat-implement-data-table
+# PR title: APD-1332: feat(shared-ui): implement data table component
+commit_type_map:
+  Story: feat
+  Feature: feat
+  Bug: fix
+  Test: test
+  Task: chore
+  Refactor: refactor
+  Docs: docs

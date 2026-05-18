@@ -30,7 +30,25 @@
       "command": "npx",
       "args": ["-y", "figma-mcp"],
       "env": {
-        "FIGMA_API_KEY": "${input:figmaAccessToken}"
+        "FIGMA_API_KEY": "${env:TEST_PROJECT_FIGMA_ACCESS_TOKEN}"
+      }
+    },
+    "confluence": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-atlassian-confluence"],
+      "env": {
+        "CONFLUENCE_URL": "${env:CONFLUENCE_BASE_URL}",
+        "CONFLUENCE_EMAIL": "${env:JIRA_EMAIL}",
+        "CONFLUENCE_API_TOKEN": "${env:JIRA_API_TOKEN}"
+      }
+    },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${env:GITHUB_TOKEN}"
       }
     }
   },
