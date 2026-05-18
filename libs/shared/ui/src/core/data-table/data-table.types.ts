@@ -17,8 +17,8 @@ export interface DataTableColumn<T> {
   getLabelVariant?: (value: unknown) => 'default' | 'active';
   /** For action columns: list of available actions */
   actions?: ActionMenuItem[];
-  /** Custom cell renderer - returns plain string only (no JSX) */
-  getValue?: (row: T) => string | number | Date | null | undefined;
+  /** Custom cell value getter */
+  getValue?: (row: T) => string | number | Date | AvatarTextValue | null | undefined;
 }
 
 export interface ActionMenuItem {

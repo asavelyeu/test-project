@@ -12,7 +12,7 @@ const require = createRequire(import.meta.url);
 
 const config: StorybookConfig = {
   stories: [
-    '../src/lib/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
+    '../src/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
     '../input/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
     '../hover-card/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
     '../menubar/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',

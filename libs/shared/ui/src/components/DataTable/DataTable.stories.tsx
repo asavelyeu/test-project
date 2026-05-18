@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { DataTable } from './DataTable';
-import type { DataTableColumn, DataTableRow } from '../../core/data-table/data-table.types';
+import type { DataTableColumn, DataTableProps, DataTableRow } from '../../core/data-table/data-table.types';
 
 interface SampleRow {
   name: string;
@@ -63,7 +63,7 @@ const rows: DataTableRow<SampleRow>[] = [
   { id: '4', data: { name: 'David Lee', avatarInitials: 'DL', description: 'Analyst', date: '2023-11-30', label: 'Inactive', amount: 7400 } },
 ];
 
-const meta: Meta<typeof DataTable> = {
+const meta: Meta<DataTableProps<SampleRow>> = {
   title: 'Shared/DataTable',
   component: DataTable,
   tags: ['autodocs'],
@@ -74,7 +74,7 @@ const meta: Meta<typeof DataTable> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof DataTable>;
+type Story = StoryObj<DataTableProps<SampleRow>>;
 
 export const Default: Story = {
   args: {
