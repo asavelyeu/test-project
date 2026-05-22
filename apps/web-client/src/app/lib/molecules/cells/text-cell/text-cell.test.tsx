@@ -33,4 +33,15 @@ describe('TextCell', () => {
     expect(span).toBeTruthy();
     expect(span?.textContent).toBe('via-primitive');
   });
+
+  // -------------------------------------------------------------------------
+  // Truncation (US-09 + ui-ux-expectations.md truncation requirement)
+  // -------------------------------------------------------------------------
+
+  it('US-09: applies truncate Tailwind class to the Text primitive span', () => {
+    const { container } = render(<TextCell value="A very long text value" />);
+    const span = container.querySelector('span');
+    // The `truncate` class enables overflow:hidden + text-overflow:ellipsis + white-space:nowrap.
+    expect(span?.className).toContain('truncate');
+  });
 });

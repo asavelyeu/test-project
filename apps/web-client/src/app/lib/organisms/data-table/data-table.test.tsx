@@ -44,6 +44,10 @@ const dataB: readonly ShapeB[] = [
 // ---------------------------------------------------------------------------
 
 describe('DataTable', () => {
+  // -------------------------------------------------------------------------
+  // Default State
+  // -------------------------------------------------------------------------
+
   // 1. Two structurally different dataset shapes render correctly.
   it('US-01/US-03: renders rows and cells for ShapeA dataset', () => {
     const { getByText } = render(<DataTable columns={columnsA} data={dataA} />);
@@ -94,22 +98,22 @@ describe('DataTable', () => {
     consoleSpy.mockRestore();
   });
 
-  // 4. column.align applied as textAlign style when present.
-  it('US-02: applies textAlign style to <th> and <td> when column.align is set', () => {
+  // 4. column.align applied as Tailwind text-align class when present.
+  it('US-02: applies text-right class to <th> and <td> when column.align is "end"', () => {
     const { container } = render(<DataTable columns={columnsB} data={dataB} />);
 
-    // 'amount' column has align: 'end' → expect textAlign: right on th and td.
+    // 'amount' column has align: 'end' → th should have text-right class.
     const headers = container.querySelectorAll('th');
     const amountHeader = Array.from(headers).find(
       (th) => th.textContent === 'Amount',
     );
-    expect(amountHeader?.style.textAlign).toBe('right');
+    expect(amountHeader?.className).toContain('text-right');
 
     // Find the td cells in the amount column (second td of each row).
     const rows = container.querySelectorAll('tbody tr');
     rows.forEach((row) => {
       const tds = row.querySelectorAll('td');
-      expect(tds[1]?.style.textAlign).toBe('right');
+      expect(tds[1]?.className).toContain('text-right');
     });
   });
 
@@ -145,5 +149,26 @@ describe('DataTable', () => {
   it('US-03: renders exactly one row per data item', () => {
     const { container } = render(<DataTable columns={columnsA} data={dataA} />);
     expect(container.querySelectorAll('tbody tr').length).toBe(dataA.length);
+  });
+
+  // -------------------------------------------------------------------------
+  // Hover State (US-04)
+  // -------------------------------------------------------------------------
+
+  it('US-04: Table Row has hover:bg-slate-50 Tailwind class for hover state', () => {
+    const { container } = render(<DataTable columns={columnsA} data={dataA} />);
+    const rows = container.querySelectorAll('tbody tr');
+    rows.forEach((row) => {
+      // Pure CSS hover — class must be present; no JS state required (US-04).
+      expect(row.className).toContain('hover:bg-slate-50');
+    });
+  });
+
+  it('US-04: hover class is on <tr> only — not on <td> or <th>', () => {
+    const { container } = render(<DataTable columns={columnsA} data={dataA} />);
+    const tds = container.querySelectorAll('td');
+    tds.forEach((td) => {
+      expect(td.className).not.toContain('hover:');
+    });
   });
 });

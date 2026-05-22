@@ -15,12 +15,21 @@ import { renderCell } from '../../framework/cell-registry';
  * structure; consumes the framework registry seam.
  *
  * NGI-12 scope:
- *   - Renders rows from data / columns.
+ *   - Renders rows from data / columns (Default State).
  *   - Accepts isLoading / error / emptyStateMessage as props (no distinct UI yet —
- *     those organisms ship in US-05, US-06, and the future error ticket).
+ *     those state organisms ship in later tickets: US-05, US-06).
+ *   - Hover State: pure CSS `hover:bg-slate-50` on each Table Row (US-04).
  *   - Native table semantics: <table>, <thead>, <tbody>, <tr>, <th>, <td>.
- *   - No React.memo, useMemo, or useEffect (no measurement = no memoization;
- *     no derived state stored in state = no effects needed).
+ *
+ * Hover State: `hover:bg-slate-50` on the <tr> — pure CSS Tailwind, no JS event
+ * handlers (rendering-conditional-render + US-04 requirement). Background-color
+ * only; cell content and layout are unaffected.
+ *
+ * Rules honored:
+ *   - rendering-conditional-render: ternary / if-return; never `&&` with a number.
+ *   - rerender-derived-state-no-effect: no state mirrored from props.
+ *   - Zero hooks in this component (no useState, useEffect, useMemo, useCallback).
+ *   - No React.memo — profiling must precede memoization (rerender-memo rule).
  *
  * Canonical name comments label each structural section so later tickets can
  * extract them as named components without renaming.
@@ -53,6 +62,14 @@ function getRowKey<TRow>(row: TRow, columns: DataTableProps<TRow>['columns'], in
   return String(index);
 }
 
+/** Map CellAlignment → Tailwind text-align utility class. */
+function getAlignClass(align: 'start' | 'end' | 'center' | undefined): string {
+  if (align === 'end') return 'text-right';
+  if (align === 'center') return 'text-center';
+  if (align === 'start') return 'text-left';
+  return '';
+}
+
 /**
  * DataTable — generic function component.
  *
@@ -62,22 +79,24 @@ function getRowKey<TRow>(row: TRow, columns: DataTableProps<TRow>['columns'], in
 export function DataTable<TRow>(props: DataTableProps<TRow>): React.ReactElement {
   const { columns, data } = props;
   // isLoading, error, and emptyStateMessage are accepted in props but no distinct
-  // UI is rendered in NGI-12 — those state organisms ship in later tickets.
+  // UI is rendered in NGI-12 — those state organisms ship in later tickets (US-05, US-06).
 
   return (
-    <table>
+    <table className="w-full border-collapse text-sm">
       {/* Table Header */}
       <thead>
         <tr>
           {columns.map((column) => {
             const cellKey = column.id ?? column.key;
-            const style: React.CSSProperties = column.align
-              ? { textAlign: column.align === 'end' ? 'right' : column.align === 'start' ? 'left' : 'center' }
-              : {};
+            const alignClass = getAlignClass(column.align);
 
             return (
               /* Table Header Cell */
-              <th key={cellKey} scope="col" style={style}>
+              <th
+                key={cellKey}
+                scope="col"
+                className={`border-b border-slate-200 px-4 py-3 text-left font-semibold text-slate-700 ${alignClass}`}
+              >
                 {column.header}
               </th>
             );
@@ -90,17 +109,22 @@ export function DataTable<TRow>(props: DataTableProps<TRow>): React.ReactElement
           const rowKey = getRowKey(row, columns, index);
 
           return (
-            /* Table Row */
-            <tr key={rowKey}>
+            /* Table Row — hover:bg-slate-50 is the Hover State (US-04).
+               Pure CSS: no JS state, no event handlers, background-color only. */
+            <tr
+              key={rowKey}
+              className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+            >
               {columns.map((column) => {
                 const cellKey = column.id ?? column.key;
-                const style: React.CSSProperties = column.align
-                  ? { textAlign: column.align === 'end' ? 'right' : column.align === 'start' ? 'left' : 'center' }
-                  : {};
+                const alignClass = getAlignClass(column.align);
 
                 return (
                   /* Table Cell */
-                  <td key={cellKey} style={style}>
+                  <td
+                    key={cellKey}
+                    className={`px-4 py-3 text-slate-900 ${alignClass}`}
+                  >
                     {renderCell(column, row)}
                   </td>
                 );
