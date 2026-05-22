@@ -82,7 +82,7 @@ Before reviewing any change, you MUST:
 - [ ] Engine state contract matches what the bridge exposes (the architect's design is honored).
 - [ ] Cell-type registry: each cell type the design calls for has a registered renderer.
 - [ ] Both apps' bridges expose the same engine state semantics. (Cross-framework parity.)
-- [ ] Domain types stay under `src/pages/`. `grep -r 'Student' apps/<framework>/lib/` returns zero hits.
+- [ ] Domain types stay under `src/app/pages/`. `grep -r 'Student' apps/<framework>/src/app/lib/` returns zero hits.
 - [ ] No `@tanstack/react-table` / `@tanstack/angular-table` imports. `grep -r '@tanstack/\(react\|angular\)-table' .` returns zero hits.
 
 ### Regression
@@ -167,7 +167,7 @@ You produce no file. Your output is a single chat message structured for the dev
 
 ### Tests Written
 
-- `apps/<framework>/lib/organisms/data-table.spec.ts` — covers <criterion>.
+- `apps/<framework>/src/app/lib/organisms/data-table.spec.ts` — covers <criterion>.
 - `apps/<framework>/e2e/<JIRA-ID>.e2e.spec.ts` — covers user journey for <flow>.
 
 ### UX / a11y Definition of Done (from ui-ux-expectations.md)

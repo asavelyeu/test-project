@@ -50,8 +50,8 @@ From `docs/claude/project-structure.md`:
   - No domain types.
   - No rendering. The core declares _what a config looks like_; the apps declare the renderer.
 - **Per-app structure:**
-  - `apps/<framework>/src/pages/` — concrete page instances; may contain domain code.
-  - `apps/<framework>/lib/{primitives,atoms,formatters,molecules,organisms,templates,framework}/` — reusable, domain-free.
+  - `apps/<framework>/src/app/pages/` — concrete page instances; may contain domain code.
+  - `apps/<framework>/src/app/lib/{primitives,atoms,formatters,molecules,organisms,templates,framework}/` — reusable, domain-free.
   - `lib/` never imports from `pages/`. Pages depend on `lib/`; never the reverse.
 - **The seam:** the cell-type registry. Core declares the _shape_ of a `StatusCell` config; each app's framework layer maps a cell type to a renderer.
 - **The bridge:** `lib/framework/` in each app owns the translation from the engine's state to the framework's reactivity model — owned by the advisors and developers, not by you.
@@ -59,7 +59,7 @@ From `docs/claude/project-structure.md`:
 ## Cross-Cutting Rules (non-negotiable, from §5 of project-structure.md)
 
 1. `libs/data-table` does **not** import from any framework or any app. Only `@tanstack/table-core` and pure TS.
-2. `apps/<framework>/lib/` does **not** import from `apps/<framework>/src/pages/`.
+2. `apps/<framework>/src/app/lib/` does **not** import from `apps/<framework>/src/app/pages/`.
 3. **No domain types in `lib/`.** Configuration crosses the boundary; types do not.
 4. **No locally invented atoms.** The atom inventory is owned by Confluence (Atomic Components, pageId `13271041`). Missing atoms are findings.
 5. `Chip` is the only label-style atom. Variants come from props.
@@ -98,7 +98,7 @@ Write the design file. Keep it focused: this is **not** a full spec, it is the s
 
 ## Decision (one or two sentences)
 
-<The architectural shape, stated plainly. Example: "Render Actions Cell as a horizontal arrangement of standalone `Button` components; introduce `Button` to `apps/<framework>/lib/atoms/` (only after confirming it exists in the Atomic Components inventory)." >
+<The architectural shape, stated plainly. Example: "Render Actions Cell as a horizontal arrangement of standalone `Button` components; introduce `Button` to `apps/<framework>/src/app/lib/atoms/` (only after confirming it exists in the Atomic Components inventory)." >
 
 ## Component Decomposition
 

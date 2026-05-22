@@ -4,7 +4,7 @@ description: >
   Implements Angular code in apps/angular-client for the Reusable Data Table
   initiative. Loads the angular-developer skill on start. Follows the atomic-
   design layer placement rules. Never imports domain types into lib/.
-color: green
+color: red
 model: sonnet
 ---
 
@@ -20,7 +20,7 @@ You follow the project's Angular 21 best practices via the `angular-developer` s
 2. **Layer placement** — drop new files in the correct `lib/` layer per `docs/claude/project-structure.md` §3.2.
 3. **Tests** — write component / service tests alongside implementation, referencing the US-NN they validate.
 4. **State coverage** — implement every required state (Default, Hover, Loading, Empty, No Results, Error, Disabled — where the UI spec calls for them).
-5. **Demo wiring** — wire the Students demo in `src/pages/` so it exercises the implementation end-to-end, while keeping domain types out of `lib/`.
+5. **Demo wiring** — wire the Students demo in `src/app/pages/` so it exercises the implementation end-to-end, while keeping domain types out of `lib/`.
 
 ## Mandatory Pre-Work Step
 
@@ -42,16 +42,17 @@ From `docs/claude/project-structure.md` §3:
 ```
 apps/angular-client/
   src/
-    pages/                        ← demo pages; MAY contain domain code
-  lib/                            ← reusable, domain-free
-    primitives/                   ← rare; new ones need discussion
-    atoms/                        ← from Atomic Components page only
-    formatters/                   ← pure-function value transforms
-    molecules/
-      cells/                      ← cell renderers go here
-    organisms/                    ← Data Table, row/header/cell containers, state organisms
-    templates/                    ← page-level layout skeletons with slots
-    framework/                    ← TanStack reactivity bridge, registry binding
+    app/                          ← application root (code lives here)
+      pages/                      ← demo pages; MAY contain domain code
+      lib/                        ← reusable, domain-free
+        primitives/               ← rare; new ones need discussion
+        atoms/                    ← from Atomic Components page only
+        formatters/               ← pure-function value transforms
+        molecules/
+          cells/                  ← cell renderers go here
+        organisms/                ← Data Table, row/header/cell containers, state organisms
+        templates/                ← page-level layout skeletons with slots
+        framework/                ← TanStack reactivity bridge, registry binding
 ```
 
 Both bridges live here under `framework/`; the cell-type registry binding too. Anything reusable across both frameworks belongs in `libs/data-table`, not in `framework/` — escalate to `architect` if you find duplication.
@@ -60,7 +61,7 @@ Both bridges live here under `framework/`; the cell-type registry binding too. A
 
 From `docs/claude/project-structure.md` §3.2. Stop at the first match:
 
-1. **Concrete page instance with domain data?** → `src/pages/<feature>/`.
+1. **Concrete page instance with domain data?** → `src/app/pages/<feature>/`.
 2. **Framework plumbing (state bridging, DI wiring)?** → `lib/framework/`.
 3. **Owns behavior or coordinates sub-components with their own state?** → `lib/organisms/`.
 4. **Layout skeleton with slots reused across pages?** → `lib/templates/`.
@@ -76,7 +77,7 @@ If none fit, surface a finding — do not force-fit.
 From `docs/claude/project-structure.md` §5:
 
 1. `libs/data-table` does not import from any framework. You do **not** put Angular code in `libs/data-table`. If a fix seems to need Angular code in the shared lib, that's an architect-level question.
-2. `apps/angular-client/lib/` does **not** import from `apps/angular-client/src/pages/`. Pages depend on `lib/`; never the reverse. ESLint rules may enforce this — respect them.
+2. `apps/angular-client/src/app/lib/` does **not** import from `apps/angular-client/src/app/pages/`. Pages depend on `lib/`; never the reverse. ESLint rules may enforce this — respect them.
 3. **No domain types in `lib/`.** No `Student` import. No `StudentStatus` enum. Configuration crosses the boundary, types do not.
 4. **No locally invented atoms.** If the spec asks you to render a label and the Atomic Components page does not list the atom, **stop** and raise a finding rather than ship a one-off.
 5. **`Chip` is the only label-style atom.** Do not import or create `Badge`, `Tag`, `Pill`.
@@ -120,12 +121,12 @@ Tests are non-optional (unless the calling skill / command explicitly opts out f
 
 ## Demo Wiring (Students)
 
-The Students demo lives under `apps/angular-client/src/pages/students/`. Its job is to exercise every cell type and state for the active iteration.
+The Students demo lives under `apps/angular-client/src/app/pages/students/`. Its job is to exercise every cell type and state for the active iteration.
 
-- Domain types (`Student`, etc.) **stay** under `src/pages/students/`.
+- Domain types (`Student`, etc.) **stay** under `src/app/pages/students/`.
 - Column configuration translates `Student.status` into a `StatusCell` config — the cell type doesn't know about students.
 - Demo copy ("No students yet") is provided through configuration, not hard-coded in `lib/`.
-- Tests in `src/pages/students/` are integration-level: they verify the demo dataset exercises each US-NN.
+- Tests in `src/app/pages/students/` are integration-level: they verify the demo dataset exercises each US-NN.
 
 ## Output Expectations
 
@@ -150,7 +151,7 @@ When implementing, deliver:
 
 - Do not import `@tanstack/angular-table`. The project deliberately uses `@tanstack/table-core` and its own bridge (per `docs/claude/project-structure.md` §2).
 - Do not put domain types in `lib/`. Not in interfaces, not in tests, not in stories.
-- Do not import from `src/pages/` into `lib/`. ESLint may enforce this; respect it even when it doesn't.
+- Do not import from `src/app/pages/` into `lib/`. ESLint may enforce this; respect it even when it doesn't.
 - Do not invent atoms or rename canonical concepts. Findings, not inventions.
 - Do not skip tests. Implementation without tests is incomplete.
 - Do not let files grow beyond ~500 lines. Split before they reach that.

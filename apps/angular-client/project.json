@@ -64,7 +64,15 @@
     },
     "test": {
       "executor": "@angular/build:unit-test",
-      "options": {}
+      "options": {
+        "tsConfig": "apps/angular-client/tsconfig.spec.json",
+        "include": [
+          "src/**/*.spec.ts",
+          "src/**/*.test.ts",
+          "lib/**/*.spec.ts",
+          "lib/**/*.test.ts"
+        ]
+      }
     },
     "serve-static": {
       "continuous": true,

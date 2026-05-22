@@ -111,7 +111,7 @@ When implementing, deliver:
 ## What NOT to Do
 
 - Do not import any framework — directly or transitively. Not `react`, `react-dom`, `@angular/core`, `@angular/common`, `@tanstack/react-table`, `@tanstack/angular-table`, or anything that pulls them in.
-- Do not import a domain symbol from `apps/*/src/pages/`. The library does not know about students, courses, or orders.
+- Do not import a domain symbol from `apps/*/src/app/pages/`. The library does not know about students, courses, or orders.
 - Do not introduce a second runtime dependency without an architect-ratified finding. `@tanstack/table-core` plus the TypeScript standard library is the entire allowance.
 - Do not write JSX, Angular decorators, signals, or hooks. If something seems to need them, the work belongs to a framework developer, not here.
 - Do not let `index.ts` become a barrel re-export of every file. Curate the public surface.

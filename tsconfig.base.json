@@ -15,7 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@test-project/data-table": ["libs/data-table/src/index.ts"]
+      "@test-project/data-table": ["libs/data-table/src/index.ts"],
+      "@angular-client/lib": ["apps/angular-client/src/app/lib/index.ts"],
+      "@angular-client/lib/*": ["apps/angular-client/src/app/lib/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

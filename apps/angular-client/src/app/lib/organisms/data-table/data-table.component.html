@@ -1,0 +1,45 @@
+<!-- Data Table -->
+<table class="w-full border-collapse text-sm">
+
+  <!-- Table Header -->
+  <thead>
+    <tr>
+      @for (col of columns(); track trackColumn($index, col)) {
+        <!-- Table Header Cell -->
+        <th
+          scope="col"
+          class="border-b border-slate-200 px-4 py-3 text-left font-semibold text-slate-700"
+          [class.text-right]="col.align === 'end'"
+          [class.text-center]="col.align === 'center'"
+        >
+          {{ col.header }}
+        </th>
+      }
+    </tr>
+  </thead>
+
+  <!-- Table Body -->
+  <tbody>
+    @for (row of data(); track trackRow($index, row)) {
+      <!-- Table Row -->
+      <tr class="border-b border-slate-100 last:border-0">
+        @for (col of columns(); track trackColumn($index, col)) {
+          <!-- Table Cell -->
+          <td
+            class="px-4 py-3 text-slate-900"
+            [class.text-right]="col.align === 'end'"
+            [class.text-center]="col.align === 'center'"
+          >
+            <ng-container
+              *ngComponentOutlet="
+                rendererFor(col.type);
+                inputs: cellInputs(row, col)
+              "
+            />
+          </td>
+        }
+      </tr>
+    }
+  </tbody>
+
+</table>

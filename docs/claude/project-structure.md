@@ -53,18 +53,19 @@ Each framework app uses the same shape:
 ```
 apps/<framework>/
   src/
-    pages/                       ← concrete page instances; CONTAIN domain code
-  lib/                           ← reusable component library, organized atomically
-    primitives/
-    atoms/
-    formatters/
-    molecules/
-    organisms/
-    templates/
-    framework/
+    app/                         ← application root (both apps put code here)
+      pages/                     ← concrete page instances; CONTAIN domain code
+      lib/                       ← reusable component library, organized atomically
+        primitives/
+        atoms/
+        formatters/
+        molecules/
+        organisms/
+        templates/
+        framework/
 ```
 
-The split between `src/pages/` and `lib/` is the load-bearing decision. `lib/` is the *reusable* surface; pages are concrete *instances*. Domain types (Student, etc.) only exist under `pages/`. That makes the no-domain-leakage rule physical: a cell renderer in `lib/molecules/cells/` cannot accidentally import `Student` because `lib/` does not depend on `pages/`.
+Both `pages/` and `lib/` live under `src/app/` (e.g. `apps/web-client/src/app/lib/`, `apps/angular-client/src/app/lib/`) — not at the app root. The split between `src/app/pages/` and `src/app/lib/` is the load-bearing decision. `lib/` is the *reusable* surface; pages are concrete *instances*. Domain types (Student, etc.) only exist under `pages/`. That makes the no-domain-leakage rule physical: a cell renderer in `lib/molecules/cells/` cannot accidentally import `Student` because `lib/` does not depend on `pages/`.
 
 ### 3.1 What each `lib/` directory is for
 
@@ -82,7 +83,7 @@ The atomic layout follows the _Atomic Components_ Confluence page (see §6). Eac
 
 Ask in this order; stop at the first match.
 
-1. **Is it a concrete page instance with domain data?** → `src/pages/<feature>/`.
+1. **Is it a concrete page instance with domain data?** → `src/app/pages/<feature>/`.
 2. **Is it framework plumbing (state bridging, dependency wiring)?** → `lib/framework/`.
 3. **Does it own behavior or coordinate sub-components with their own state?** → `lib/organisms/`.
 4. **Is it a layout skeleton with slots reused across pages?** → `lib/templates/`.
@@ -106,7 +107,7 @@ Keep this glue minimal. Anything that could be reused across both frameworks bel
 ## 5. Cross-cutting rules
 
 1. **`libs/data-table` does not import from any framework or any app.** Only `@tanstack/table-core` and pure TS.
-2. **`apps/<framework>/lib/` does not import from `apps/<framework>/src/pages/`.** Pages depend on `lib/`; never the reverse.
+2. **`apps/<framework>/src/app/lib/` does not import from `apps/<framework>/src/app/pages/`.** Pages depend on `lib/`; never the reverse.
 3. **No domain types in `lib/`.** Domain code lives under `pages/`; configuration crosses the boundary, types do not.
 4. **No locally invented atoms.** The atom inventory is owned by the _Atomic Components_ Confluence page (§6). If a cell type or feature seems to need an atom that page does not list, raise a finding (CLAUDE.md §6) — do not add the atom locally.
 5. **`Chip` is the only label-style atom.** Per the Confluence page, `Chip` covers what would otherwise be `Badge`, `Tag`, or `Pill`. Variants come from props.
