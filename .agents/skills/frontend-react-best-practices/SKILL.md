@@ -27,11 +27,11 @@ Import directly from source, avoid barrel files.
 
 ```tsx
 // Bad: loads entire library (200-800ms)
-import { Check, X } from "lucide-react";
+import { Check, X } from 'lucide-react';
 
 // Good: loads only what you need
-import Check from "lucide-react/dist/esm/icons/check";
-import X from "lucide-react/dist/esm/icons/x";
+import Check from 'lucide-react/dist/esm/icons/check';
+import X from 'lucide-react/dist/esm/icons/x';
 ```
 
 #### bundle-conditional - @rules/bundle-conditional.md
@@ -40,8 +40,8 @@ Load modules only when feature is activated.
 
 ```tsx
 useEffect(() => {
-  if (enabled && typeof window !== "undefined") {
-    import("./heavy-module").then((mod) => setModule(mod));
+  if (enabled && typeof window !== 'undefined') {
+    import('./heavy-module').then((mod) => setModule(mod));
   }
 }, [enabled]);
 ```
@@ -51,11 +51,7 @@ useEffect(() => {
 Preload on hover/focus for perceived speed.
 
 ```tsx
-<button
-  onMouseEnter={() => import("./editor")}
-  onFocus={() => import("./editor")}
-  onClick={openEditor}
->
+<button onMouseEnter={() => import('./editor')} onFocus={() => import('./editor')} onClick={openEditor}>
   Open Editor
 </button>
 ```
@@ -87,13 +83,13 @@ Derive state during render, not in effects.
 
 ```tsx
 // Bad: extra state and effect, extra render
-const [fullName, setFullName] = useState("");
+const [fullName, setFullName] = useState('');
 useEffect(() => {
-  setFullName(firstName + " " + lastName);
+  setFullName(firstName + ' ' + lastName);
 }, [firstName, lastName]);
 
 // Good: derived directly during render
-const fullName = firstName + " " + lastName;
+const fullName = firstName + ' ' + lastName;
 ```
 
 #### rerender-lazy-state-init - @rules/rerender-lazy-state-init.md
@@ -134,7 +130,7 @@ const width = useWindowWidth();
 const isMobile = width < 768;
 
 // Good: re-renders only when boolean changes
-const isMobile = useMediaQuery("(max-width: 767px)");
+const isMobile = useMediaQuery('(max-width: 767px)');
 ```
 
 #### rerender-memo - @rules/rerender-memo.md
@@ -186,11 +182,11 @@ Put interaction logic in event handlers, not effects.
 ```tsx
 // Bad: effect re-runs on theme change
 useEffect(() => {
-  if (submitted) post("/api/register");
+  if (submitted) post('/api/register');
 }, [submitted, theme]);
 
 // Good: in handler
-const handleSubmit = () => post("/api/register");
+const handleSubmit = () => post('/api/register');
 ```
 
 #### rerender-transitions - @rules/rerender-transitions.md
@@ -218,8 +214,8 @@ useEffect(() => {
     lastXRef.current = e.clientX;
     dotRef.current?.style.transform = `translateX(${e.clientX}px)`;
   };
-  window.addEventListener("mousemove", onMove);
-  return () => window.removeEventListener("mousemove", onMove);
+  window.addEventListener('mousemove', onMove);
+  return () => window.removeEventListener('mousemove', onMove);
 }, []);
 ```
 
@@ -309,9 +305,7 @@ Suppress expected hydration mismatches.
 Render browser-only components with ClientOnly and a fallback.
 
 ```tsx
-<ClientOnly fallback={<Skeleton />}>
-  {() => <Map />}
-</ClientOnly>
+<ClientOnly fallback={<Skeleton />}>{() => <Map />}</ClientOnly>
 ```
 
 #### rendering-use-hydrated - @rules/rendering-use-hydrated.md
@@ -355,8 +349,8 @@ Place error boundaries at feature boundaries.
 Use passive listeners for scroll/touch.
 
 ```tsx
-document.addEventListener("wheel", handler, { passive: true });
-document.addEventListener("touchstart", handler, { passive: true });
+document.addEventListener('wheel', handler, { passive: true });
+document.addEventListener('touchstart', handler, { passive: true });
 ```
 
 #### client-localstorage-schema - @rules/client-localstorage-schema.md
@@ -364,7 +358,7 @@ document.addEventListener("touchstart", handler, { passive: true });
 Version and minimize localStorage data.
 
 ```typescript
-const VERSION = "v2";
+const VERSION = 'v2';
 
 function saveConfig(config: Config) {
   try {
@@ -413,9 +407,9 @@ useEffect(
 
 // Good: also name cleanup functions
 useEffect(function subscribeToOnlineStatus() {
-  window.addEventListener("online", handleOnline);
+  window.addEventListener('online', handleOnline);
   return function unsubscribeFromOnlineStatus() {
-    window.removeEventListener("online", handleOnline);
+    window.removeEventListener('online', handleOnline);
   };
 }, []);
 ```

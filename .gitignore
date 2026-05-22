@@ -43,6 +43,8 @@ Thumbs.db
 .nx/workspace-data
 .claude/worktrees
 .claude/settings.local.json
+# Junctions into .agents/skills — tracked there, not here
+.claude/skills/frontend-react-best-practices/
 
 .nx/polygraph
 
