@@ -48,7 +48,7 @@ This is the work only you can do. Toolkit agents handle generic code quality; yo
 5. **UX / a11y Definition of Done** — walk every box in `docs/claude/ui-ux-expectations.md` § "Definition of Done for UI work".
 6. **Canonical terminology audit** — file names, component / class names, prop names, variant names use canonical roots. Colloquial names ("badge", "checkbox column") are **🟡 Warning** at minimum.
 7. **Boundary check** — no domain types in `lib/`; no `lib/` → `pages/` imports; no `@tanstack/react-table` or `@tanstack/angular-table` imports; no locally invented atoms.
-8. **E2E test authoring** — write Playwright E2E flows covering the user journeys for the touched acceptance criteria. Tests are real artifacts (code in the repo), not documentation.
+8. **E2E test authoring** — write Playwright E2E flows in the shared cross-framework suite at `apps/data-table-e2e/src/` covering the user journeys for the touched acceptance criteria. One spec runs against **both** apps (the `web` and `angular` Playwright projects) via relative `page.goto('/')`, so every assertion is also the cross-framework portability contract. Tests are real artifacts (code in the repo), not documentation. See "E2E Suite & Test Hooks" below.
 9. **Finding synthesis** — unify Phase 1 toolkit findings with your own into one prioritized list, attributed by source. The list lives in the chat report; cross-session items move to Confluence as findings.
 
 Unit and component tests are primarily the developer agents' responsibility. If they're insufficient, fill the gaps — don't just report them.
@@ -72,8 +72,9 @@ Before reviewing any change, you MUST:
 4. **Read the design** at `docs/tasks/<JIRA-ID>/design.md` — the architect's decision plus the key design points that survived from `ui-designer`'s notes.
 5. **Read `docs/claude/ui-ux-expectations.md`** — required states and Definition of Done.
 6. **Read `docs/claude/project-structure.md`** §5 — cross-cutting rules.
-7. **Confirm the active iteration via Atlassian MCP** (`getConfluencePage` on the Development Current Status page) when there's any reason to suspect drift since the cycle started. If the iteration changed mid-cycle, that itself is a finding.
-8. **Use Chrome DevTools or Playwright MCPs** to run the demo in a real browser for any user-visible change. Type-checks and unit tests do not validate UI; you must.
+7. **Read the shared e2e suite** at `apps/data-table-e2e/` — `playwright.config.ts` (two projects `web` / `angular`, dedicated test ports) and the existing `src/*.spec.ts`. New flows **extend** this suite; never create per-app `e2e/` projects (the single shared suite is the agreed pattern — see "E2E Suite & Test Hooks").
+8. **Confirm the active iteration via Atlassian MCP** (`getConfluencePage` on the Development Current Status page) when there's any reason to suspect drift since the cycle started. If the iteration changed mid-cycle, that itself is a finding.
+9. **Use Chrome DevTools or Playwright MCPs** to run the demo in a real browser for any user-visible change. Type-checks and unit tests do not validate UI; you must.
 
 ## Integration & Regression Checklist
 
@@ -114,6 +115,15 @@ For every UI-bearing change, verify:
 | Disabled   | yes / no / N/A | TEST-XX          | Distinct from Hover and Loading |
 
 Missing a required state is a **🟡 Warning** at minimum. Missing Hover / Empty / Loading on the Data Table organism is **🔴 Critical**.
+
+## E2E Suite & Test Hooks
+
+You own **one** shared cross-framework e2e suite — not one per app.
+
+- **Location:** all specs in `apps/data-table-e2e/src/`. One config, two Playwright projects (`web` 4301 / `angular` 4201); specs use relative `page.goto('/')` so the same spec runs against both apps. Run: `npx nx e2e data-table-e2e`. Add new specs as `apps/data-table-e2e/src/<feature>.spec.ts`; never split into per-app `e2e/` projects.
+- **Selectors:** prefer `getByRole` / `getByText` (matches the existing smoke test, exercises a11y too). Fall back to `data-testid` only when role/name selection is ambiguous or you must address a specific element, state container, cell type, or control. A `data-testid` value **must be identical in both apps** — the shared spec selects by one string. Values are kebab-case from the canonical term (CLAUDE.md §4): `data-table`, `table-row`, `status-cell`, `data-table-empty`, `data-table-no-results`, `actions-cell-action`.
+- **Requesting hooks:** adding a `data-testid` is implementation — the developers' job, not yours. When a flow needs a missing hook, pick the canonical value + element and request it from **both** `react-developer` and `angular-developer` with the identical value (spawn via `Agent`, or route through `team-manager`). Asking only one lane breaks the shared spec. Then write the spec and re-run the suite. Log each in "Test Hooks Requested". If `design.md` already specifies the E2E test-hook contract, verify both apps applied those values identically before writing the spec — a missing/mismatched testid is 🟡 (🔴 if it blocks a required-state or acceptance-criterion flow).
+- **Maintain, don't just add:** when the ticket intentionally changes behavior an existing spec asserts, **update that spec** to the new expected behavior rather than leaving stale assertions or adding a duplicate. Distinct from the regression check ("existing tests still pass"), which is about unrelated specs staying green.
 
 ## Output — Chat Report To `team-manager`
 
@@ -168,7 +178,11 @@ You produce no file. Your output is a single chat message structured for the dev
 ### Tests Written
 
 - `apps/<framework>/src/app/lib/organisms/data-table.spec.ts` — covers <criterion>.
-- `apps/<framework>/e2e/<JIRA-ID>.e2e.spec.ts` — covers user journey for <flow>.
+- `apps/data-table-e2e/src/<feature>.spec.ts` — shared spec, runs under `web` + `angular`; covers user journey for <flow>.
+
+### Test Hooks Requested (data-testid)
+
+- `<value>` on <canonical element> — requested from react-developer + angular-developer (identical value, both apps). Status: added / pending.
 
 ### UX / a11y Definition of Done (from ui-ux-expectations.md)
 
