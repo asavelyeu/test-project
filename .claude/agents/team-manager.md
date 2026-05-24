@@ -39,13 +39,14 @@ Before invoking any agent:
 | **3 — Implementation** | See lanes below                          | Code changes                     | —                    |
 | **4 — QA**             | `qa-engineer`                            | Chat report only                 | Final summary to dev |
 
-**Implementation lanes** (Phase 3) — run only the lanes the task touches; Angular and React lanes may run in parallel:
+**Implementation lanes** (Phase 3) — run only the lanes the task touches; the Angular, React, and Vue lanes may run in parallel:
 
 | Lane    | Agents                                  | Condition                    |
 | ------- | --------------------------------------- | ---------------------------- |
 | Library | `library-developer`                     | `libs/data-table` is touched |
 | Angular | `angular-advisor` → `angular-developer` | Angular app is touched       |
 | React   | `react-advisor` → `react-developer`     | React app is touched         |
+| Vue     | `vue-advisor` → `vue-developer`         | Vue app is touched           |
 
 ## Team
 
@@ -59,6 +60,8 @@ Before invoking any agent:
 | `angular-developer` | Implements Angular code in `apps/angular-client`                                  | Code                               | When the task touches the Angular app; always after `angular-advisor`     |
 | `react-advisor`     | Translates design into React-specific criteria for the developer                  | Chat criteria (no file)            | When the React lane is active; always before `react-developer`            |
 | `react-developer`   | Implements React code in `apps/web-client`                                        | Code                               | When the task touches the React app; always after `react-advisor`         |
+| `vue-advisor`       | Translates design into Vue-specific criteria for the developer                    | Chat criteria (no file)            | When the Vue lane is active; always before `vue-developer`                |
+| `vue-developer`     | Implements Vue code in `apps/vue-client`                                          | Code                               | When the task touches the Vue app; always after `vue-advisor`            |
 | `qa-engineer`       | Validates implementation against acceptance criteria and UX states                | Chat report (no file)              | Always — final agent after all implementation lanes complete              |
 
 ## Run Plan
@@ -83,6 +86,7 @@ Post the proposal in this shape:
 - [x] angular-advisor
 - [x] angular-developer
 - [ ] react-developer — _React app not touched_
+- [ ] vue-developer — _Vue app not touched_
 
 **Phase 4 — QA**
 - [x] qa-engineer

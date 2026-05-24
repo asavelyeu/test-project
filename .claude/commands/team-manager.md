@@ -39,13 +39,14 @@ Before invoking any agent:
 | **3 — Implementation** | See lanes below                          | Code changes                     | —                    |
 | **4 — QA**             | `qa-engineer`                            | Chat report only                 | Final summary to dev |
 
-**Implementation lanes** (Phase 3) — the Angular and React lanes both run **by default** (in parallel) so the component stays at parity across frameworks; only drop a lane when the task is clearly framework-specific (e.g. an Angular-only bug fix). The Library lane runs only when `libs/data-table` is touched.
+**Implementation lanes** (Phase 3) — the Angular, React, and Vue lanes all run **by default** (in parallel) so the component stays at parity across frameworks; only drop a lane when the task is clearly framework-specific (e.g. an Angular-only bug fix). The Library lane runs only when `libs/data-table` is touched.
 
 | Lane    | Agents                                  | Default | Condition                                            |
 | ------- | --------------------------------------- | ------- | ---------------------------------------------------- |
 | Library | `library-developer`                     | on signal | `libs/data-table` is touched                       |
 | Angular | `angular-advisor` → `angular-developer` | **on**  | Drop only if the task is clearly not Angular-bound   |
 | React   | `react-advisor` → `react-developer`     | **on**  | Drop only if the task is clearly not React-bound     |
+| Vue     | `vue-advisor` → `vue-developer`         | **on**  | Drop only if the task is clearly not Vue-bound       |
 
 ## Team
 
@@ -59,13 +60,15 @@ Before invoking any agent:
 | `angular-developer` | Implements Angular code in `apps/angular-client`                                  | Code                               | When the task touches the Angular app; always after `angular-advisor`     |
 | `react-advisor`     | Translates design into React-specific criteria for the developer                  | Chat criteria (no file)            | When the React lane is active; always before `react-developer`            |
 | `react-developer`   | Implements React code in `apps/web-client`                                        | Code                               | When the task touches the React app; always after `react-advisor`         |
+| `vue-advisor`       | Translates design into Vue-specific criteria for the developer                    | Chat criteria (no file)            | When the Vue lane is active; always before `vue-developer`                |
+| `vue-developer`     | Implements Vue code in `apps/vue-client`                                          | Code                               | When the task touches the Vue app; always after `vue-advisor`            |
 | `qa-engineer`       | Validates implementation against acceptance criteria and UX states                | Chat report (no file)              | Always — final agent after all implementation lanes complete              |
 
 ## Run Plan
 
 After the Pre-Cycle Gate, propose a phase-grouped agent checklist and wait for the developer to approve or edit it. **Once per run.**
 
-Pre-check by signal: `spec-analyst` if a Jira ticket exists; `ui-designer` + `architect` for user-visible work (drop `ui-designer` without a Figma node); both the Angular and React lanes by default (drop a lane only when the task is clearly framework-specific); `library-developer` when `libs/data-table` is touched; `qa-engineer` unless the task is purely non-code. When in doubt, pre-check — uncheck is cheap.
+Pre-check by signal: `spec-analyst` if a Jira ticket exists; `ui-designer` + `architect` for user-visible work (drop `ui-designer` without a Figma node); the Angular, React, and Vue lanes by default (drop a lane only when the task is clearly framework-specific); `library-developer` when `libs/data-table` is touched; `qa-engineer` unless the task is purely non-code. When in doubt, pre-check — uncheck is cheap.
 
 Post the proposal in this shape:
 
@@ -85,6 +88,8 @@ Post the proposal in this shape:
 - [x] angular-developer
 - [x] react-advisor
 - [x] react-developer
+- [x] vue-advisor
+- [x] vue-developer
 
 **Phase 4 — QA**
 - [x] qa-engineer

@@ -58,7 +58,7 @@ You do **NOT** advise on:
 - The shared core's contract (`architect` owns it in `libs/data-table`).
 - Where files live (`docs/claude/project-structure.md` and `architect`'s design.md own it).
 - Implementation code (the `react-developer` does it).
-- Angular anything (`angular-advisor` owns parallel decisions).
+- Angular or Vue anything (`angular-advisor` and `vue-advisor` own parallel decisions).
 - Atomic components inventory.
 
 ## Output Format — Chat Block To `react-developer`
@@ -128,9 +128,9 @@ export function useTableEngine<TRow>(columns: ColumnDef<TRow>[], data: TRow[]): 
 - `<rule filename>` — for <aspect>.
 - `<rule filename>` — for <aspect>.
 
-### Open questions / parity with angular-advisor
+### Open questions / parity with the other advisors
 
-- <items where the React and Angular bridges might diverge in spirit; flag for cross-framework discussion>.
+- <items where the React, Angular, and Vue bridges might diverge in spirit; flag for cross-framework discussion with `angular-advisor` and `vue-advisor`>.
 
 ```
 
@@ -140,7 +140,7 @@ After returning the criteria, send `team-manager` a brief chat summary so the de
 
 React criteria prepared for <JIRA-ID>. Key shapes: <one-line summary>.
 Components named: <count>. Bridge touched: <yes / no>.
-Open parity questions vs. Angular: <none / count>.
+Open parity questions vs. Angular / Vue: <none / count>.
 Handing off to react-developer.
 
 ```
@@ -156,7 +156,7 @@ The reactivity bridge in `apps/web-client/src/app/lib/framework/` is your single
 - The bridge does not import `react-router`, `react-query`, or any heavy lib. Keep it thin.
 - The hook is consumed by the Data Table organism component in `apps/web-client/src/app/lib/organisms/`.
 
-When the Angular-side bridge shape would diverge in spirit, flag it as an open parity question for `angular-advisor` rather than letting the two drift silently.
+When the Angular- or Vue-side bridge shape would diverge in spirit, flag it as an open parity question for `angular-advisor` / `vue-advisor` rather than letting the lanes drift silently.
 
 ## Key Rule Citations (most relevant)
 
@@ -189,7 +189,7 @@ The skill is the source of truth; this list is a navigation aid.
 
 - Do not write components, hooks, or test files. That is `react-developer`'s job.
 - Do not redesign the shared library contract — that is `architect`'s.
-- Do not advise on Angular. `angular-advisor` owns parallel decisions.
+- Do not advise on Angular or Vue. `angular-advisor` and `vue-advisor` own parallel decisions.
 - Do not propose changes that bypass `docs/claude/project-structure.md` rules.
 - Do not skip the skill invocation. Advice without the skill consulted is unreliable.
 - Do not advise on out-of-scope features. If the active iteration doesn't include the feature, decline and refer to `team-manager`.

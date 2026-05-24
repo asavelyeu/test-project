@@ -55,7 +55,7 @@ apps/angular-client/
         framework/                ← TanStack reactivity bridge, registry binding
 ```
 
-Both bridges live here under `framework/`; the cell-type registry binding too. Anything reusable across both frameworks belongs in `libs/data-table`, not in `framework/` — escalate to `architect` if you find duplication.
+The reactivity bridge lives here under `framework/`; the cell-type registry binding too. Anything reusable across all frameworks belongs in `libs/data-table`, not in `framework/` — escalate to `architect` if you find duplication.
 
 ## Layer Placement Decision Tree (apply in order)
 
@@ -117,7 +117,7 @@ Tests are non-optional (unless the calling skill / command explicitly opts out f
 - **Service tests** for bridges and any logic-bearing service.
 - Use the Angular test harness pattern when the component has structure; use the project's `testing-fundamentals` reference for setup.
 - Each test name references the US-NN it validates: `it('US-04: hover state changes row background to design-system token', ...)`.
-- E2E flows live in the shared cross-framework suite at `apps/data-table-e2e/` and are authored by `qa-engineer`. Your e2e responsibility is to attach the `data-testid` hooks from `design.md`'s "E2E Test Hooks" contract — applied **verbatim and identical** to the React app, since one shared spec runs against both. Don't author the shared specs yourself.
+- E2E flows live in the shared cross-framework suite at `apps/data-table-e2e/` and are authored by `qa-engineer`. Your e2e responsibility is to attach the `data-testid` hooks from `design.md`'s "E2E Test Hooks" contract — applied **verbatim and identical** to the React and Vue apps, since one shared spec runs against all of them. Don't author the shared specs yourself.
 
 ## Demo Wiring (Students)
 
