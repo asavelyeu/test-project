@@ -12,7 +12,7 @@ Use this doc when:
 
 ## 1. Monorepo layout
 
-The repo is an Nx + pnpm monorepo. Two framework apps consume the shared engine:
+The repo is an Nx + pnpm monorepo. Three framework apps consume the shared engine:
 
 ```
 test-project/
@@ -21,10 +21,11 @@ test-project/
   apps/
     web-client/                  ← React app (Students demo consumer)
     angular-client/              ← Angular app (Students demo consumer)
+    vue-client/                  ← Vue app (Students demo consumer)
   docs/claude/                   ← local mirrors and architecture decisions
 ```
 
-`libs/data-table` is the only shared package. Both framework apps depend on it; nothing else does.
+`libs/data-table` is the only shared package. All framework apps depend on it; nothing else does.
 
 `apps/mobile-client` is out of scope for this initiative and does not consume `libs/data-table`.
 
@@ -34,7 +35,7 @@ test-project/
 
 **Purpose.** Framework-free contracts and the headless table engine. Anything two framework apps must agree on lives here: column definitions, the cell-type registry contract, state-machine semantics, and helper functions for sort / filter / selection / pagination configuration.
 
-**Sole external dependency:** `@tanstack/table-core` (the headless engine, pure TypeScript). The framework adapters `@tanstack/react-table` and `@tanstack/angular-table` are deliberately **not** used. Each app writes its own thin reactivity bridge — see §4.
+**Sole external dependency:** `@tanstack/table-core` (the headless engine, pure TypeScript). The framework adapters `@tanstack/react-table`, `@tanstack/angular-table`, and `@tanstack/vue-table` are deliberately **not** used. Each app writes its own thin reactivity bridge — see §4.
 
 **What does not belong here**
 
@@ -53,7 +54,7 @@ Each framework app uses the same shape:
 ```
 apps/<framework>/
   src/
-    app/                         ← application root (both apps put code here)
+    app/                         ← application root (all apps put code here)
       pages/                     ← concrete page instances; CONTAIN domain code
       lib/                       ← reusable component library, organized atomically
         primitives/
@@ -65,7 +66,7 @@ apps/<framework>/
         framework/
 ```
 
-Both `pages/` and `lib/` live under `src/app/` (e.g. `apps/web-client/src/app/lib/`, `apps/angular-client/src/app/lib/`) — not at the app root. The split between `src/app/pages/` and `src/app/lib/` is the load-bearing decision. `lib/` is the *reusable* surface; pages are concrete *instances*. Domain types (Student, etc.) only exist under `pages/`. That makes the no-domain-leakage rule physical: a cell renderer in `lib/molecules/cells/` cannot accidentally import `Student` because `lib/` does not depend on `pages/`.
+Both `pages/` and `lib/` live under `src/app/` (e.g. `apps/web-client/src/app/lib/`, `apps/angular-client/src/app/lib/`, `apps/vue-client/src/app/lib/`) — not at the app root. The split between `src/app/pages/` and `src/app/lib/` is the load-bearing decision. `lib/` is the *reusable* surface; pages are concrete *instances*. Domain types (Student, etc.) only exist under `pages/`. That makes the no-domain-leakage rule physical: a cell renderer in `lib/molecules/cells/` cannot accidentally import `Student` because `lib/` does not depend on `pages/`.
 
 ### 3.1 What each `lib/` directory is for
 

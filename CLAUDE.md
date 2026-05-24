@@ -205,8 +205,10 @@ The workspace exposes several Model Context Protocol servers. Use them in prefer
 
 ## 8. E2E Testing
 
-One shared cross-framework suite at `apps/data-table-e2e/`. **Never create per-app `e2e/` projects.** The same specs in `apps/data-table-e2e/src/` run against both apps via two Playwright projects (`web` on port 4301, `angular` on 4201). Specs navigate with `page.goto('/')`. Run: `npx nx e2e data-table-e2e`.
+One shared cross-framework suite at `apps/data-table-e2e/`. **Never create per-app `e2e/` projects.** The same specs in `apps/data-table-e2e/src/` run against every client app via one Playwright project per app (`web` on port 4301, `angular` on 4201, and `vue` on 4401). Specs navigate with `page.goto('/')`. Run: `npx nx e2e data-table-e2e`.
+
+> The `vue` Playwright project (port 4401) is wired into `apps/data-table-e2e/playwright.config.ts` and `vue-client` is an `implicitDependency` of `data-table-e2e`. The `vue` project will stay red until the Vue app actually renders a Data Table at `/` — `apps/vue-client` is still the Nx scaffold (no Data Table, no `lib/framework/` bridge). Once the Vue Data Table demo lands, the shared smoke spec goes green for `vue` with no e2e changes.
 
 Add new specs as `apps/data-table-e2e/src/<feature>.spec.ts`.
 
-**Selectors.** Prefer `getByRole` / `getByText`. Fall back to `data-testid` when role/name selection is ambiguous. `data-testid` values must be **identical in both apps** and use kebab-case from the canonical term (Section 4): `data-table`, `table-row`, `status-cell`, `data-table-empty`, `data-table-no-results`, `actions-cell-action`. Adding a `data-testid` is implementation — request it from **both** `react-developer` and `angular-developer` with the same value.
+**Selectors.** Prefer `getByRole` / `getByText`. Fall back to `data-testid` when role/name selection is ambiguous. `data-testid` values must be **identical across all client apps** and use kebab-case from the canonical term (Section 4): `data-table`, `table-row`, `status-cell`, `data-table-empty`, `data-table-no-results`, `actions-cell-action`. Adding a `data-testid` is implementation — request it from **all** framework developers (`react-developer`, `angular-developer`, `vue-developer`) with the same value.

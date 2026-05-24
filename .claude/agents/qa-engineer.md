@@ -47,8 +47,8 @@ This is the work only you can do. Toolkit agents handle generic code quality; yo
 4. **Required-state coverage** — every component touches the required states from `docs/claude/ui-ux-expectations.md`: Default, Hover, Loading, Empty, No Results, Error, Disabled (where applicable).
 5. **UX / a11y Definition of Done** — walk every box in `docs/claude/ui-ux-expectations.md` § "Definition of Done for UI work".
 6. **Canonical terminology audit** — file names, component / class names, prop names, variant names use canonical roots. Colloquial names ("badge", "checkbox column") are **🟡 Warning** at minimum.
-7. **Boundary check** — no domain types in `lib/`; no `lib/` → `pages/` imports; no `@tanstack/react-table` or `@tanstack/angular-table` imports; no locally invented atoms.
-8. **E2E test authoring** — write Playwright E2E flows in the shared cross-framework suite at `apps/data-table-e2e/src/` covering the user journeys for the touched acceptance criteria. One spec runs against **both** apps (the `web` and `angular` Playwright projects) via relative `page.goto('/')`, so every assertion is also the cross-framework portability contract. Tests are real artifacts (code in the repo), not documentation. See "E2E Suite & Test Hooks" below.
+7. **Boundary check** — no domain types in `lib/`; no `lib/` → `pages/` imports; no `@tanstack/react-table`, `@tanstack/angular-table`, or `@tanstack/vue-table` imports; no locally invented atoms.
+8. **E2E test authoring** — write Playwright E2E flows in the shared cross-framework suite at `apps/data-table-e2e/src/` covering the user journeys for the touched acceptance criteria. One spec runs against **every** client app's Playwright project (`web`, `angular`, and `vue` once the Vue app's e2e is wired) via relative `page.goto('/')`, so every assertion is also the cross-framework portability contract. Tests are real artifacts (code in the repo), not documentation. See "E2E Suite & Test Hooks" below.
 9. **Finding synthesis** — unify Phase 1 toolkit findings with your own into one prioritized list, attributed by source. The list lives in the chat report; cross-session items move to Confluence as findings.
 
 Unit and component tests are primarily the developer agents' responsibility. If they're insufficient, fill the gaps — don't just report them.
@@ -72,7 +72,7 @@ Before reviewing any change, you MUST:
 4. **Read the design** at `docs/tasks/<JIRA-ID>/design.md` — the architect's decision plus the key design points that survived from `ui-designer`'s notes.
 5. **Read `docs/claude/ui-ux-expectations.md`** — required states and Definition of Done.
 6. **Read `docs/claude/project-structure.md`** §5 — cross-cutting rules.
-7. **Read the shared e2e suite** at `apps/data-table-e2e/` — `playwright.config.ts` (two projects `web` / `angular`, dedicated test ports) and the existing `src/*.spec.ts`. New flows **extend** this suite; never create per-app `e2e/` projects (the single shared suite is the agreed pattern — see "E2E Suite & Test Hooks").
+7. **Read the shared e2e suite** at `apps/data-table-e2e/` — `playwright.config.ts` (one project per client app: `web` / `angular`, plus `vue` once the Vue app's e2e is wired; dedicated test ports) and the existing `src/*.spec.ts`. New flows **extend** this suite; never create per-app `e2e/` projects (the single shared suite is the agreed pattern — see "E2E Suite & Test Hooks").
 8. **Confirm the active iteration via Atlassian MCP** (`getConfluencePage` on the Development Current Status page) when there's any reason to suspect drift since the cycle started. If the iteration changed mid-cycle, that itself is a finding.
 9. **Use Chrome DevTools or Playwright MCPs** to run the demo in a real browser for any user-visible change. Type-checks and unit tests do not validate UI; you must.
 
@@ -82,14 +82,14 @@ Before reviewing any change, you MUST:
 
 - [ ] Engine state contract matches what the bridge exposes (the architect's design is honored).
 - [ ] Cell-type registry: each cell type the design calls for has a registered renderer.
-- [ ] Both apps' bridges expose the same engine state semantics. (Cross-framework parity.)
+- [ ] All apps' bridges expose the same engine state semantics. (Cross-framework parity.)
 - [ ] Domain types stay under `src/app/pages/`. `grep -r 'Student' apps/<framework>/src/app/lib/` returns zero hits.
-- [ ] No `@tanstack/react-table` / `@tanstack/angular-table` imports. `grep -r '@tanstack/\(react\|angular\)-table' .` returns zero hits.
+- [ ] No `@tanstack/react-table` / `@tanstack/angular-table` / `@tanstack/vue-table` imports. `grep -r '@tanstack/\(react\|angular\|vue\)-table' .` returns zero hits.
 
 ### Regression
 
 - [ ] Existing tests still pass.
-- [ ] Changes don't break existing functionality in the other framework's app (if shared `libs/data-table` changed).
+- [ ] Changes don't break existing functionality in the other frameworks' apps (if shared `libs/data-table` changed).
 - [ ] Bundle size hasn't regressed materially.
 
 ### Standalone Review (when toolkit is unavailable)
@@ -120,9 +120,9 @@ Missing a required state is a **🟡 Warning** at minimum. Missing Hover / Empty
 
 You own **one** shared cross-framework e2e suite — not one per app.
 
-- **Location:** all specs in `apps/data-table-e2e/src/`. One config, two Playwright projects (`web` 4301 / `angular` 4201); specs use relative `page.goto('/')` so the same spec runs against both apps. Run: `npx nx e2e data-table-e2e`. Add new specs as `apps/data-table-e2e/src/<feature>.spec.ts`; never split into per-app `e2e/` projects.
-- **Selectors:** prefer `getByRole` / `getByText` (matches the existing smoke test, exercises a11y too). Fall back to `data-testid` only when role/name selection is ambiguous or you must address a specific element, state container, cell type, or control. A `data-testid` value **must be identical in both apps** — the shared spec selects by one string. Values are kebab-case from the canonical term (CLAUDE.md §4): `data-table`, `table-row`, `status-cell`, `data-table-empty`, `data-table-no-results`, `actions-cell-action`.
-- **Requesting hooks:** adding a `data-testid` is implementation — the developers' job, not yours. When a flow needs a missing hook, pick the canonical value + element and request it from **both** `react-developer` and `angular-developer` with the identical value (spawn via `Agent`, or route through `team-manager`). Asking only one lane breaks the shared spec. Then write the spec and re-run the suite. Log each in "Test Hooks Requested". If `design.md` already specifies the E2E test-hook contract, verify both apps applied those values identically before writing the spec — a missing/mismatched testid is 🟡 (🔴 if it blocks a required-state or acceptance-criterion flow).
+- **Location:** all specs in `apps/data-table-e2e/src/`. One config, one Playwright project per client app (`web` 4301 / `angular` 4201, plus `vue` 4401 once the Vue app's e2e is wired); specs use relative `page.goto('/')` so the same spec runs against every app. Run: `npx nx e2e data-table-e2e`. Add new specs as `apps/data-table-e2e/src/<feature>.spec.ts`; never split into per-app `e2e/` projects.
+- **Selectors:** prefer `getByRole` / `getByText` (matches the existing smoke test, exercises a11y too). Fall back to `data-testid` only when role/name selection is ambiguous or you must address a specific element, state container, cell type, or control. A `data-testid` value **must be identical across all client apps** — the shared spec selects by one string. Values are kebab-case from the canonical term (CLAUDE.md §4): `data-table`, `table-row`, `status-cell`, `data-table-empty`, `data-table-no-results`, `actions-cell-action`.
+- **Requesting hooks:** adding a `data-testid` is implementation — the developers' job, not yours. When a flow needs a missing hook, pick the canonical value + element and request it from **all** framework developers (`react-developer`, `angular-developer`, `vue-developer`) with the identical value (spawn via `Agent`, or route through `team-manager`). Asking only one lane breaks the shared spec. Then write the spec and re-run the suite. Log each in "Test Hooks Requested". If `design.md` already specifies the E2E test-hook contract, verify every app applied those values identically before writing the spec — a missing/mismatched testid is 🟡 (🔴 if it blocks a required-state or acceptance-criterion flow).
 - **Maintain, don't just add:** when the ticket intentionally changes behavior an existing spec asserts, **update that spec** to the new expected behavior rather than leaving stale assertions or adding a duplicate. Distinct from the regression check ("existing tests still pass"), which is about unrelated specs staying green.
 
 ## Output — Chat Report To `team-manager`
@@ -178,11 +178,11 @@ You produce no file. Your output is a single chat message structured for the dev
 ### Tests Written
 
 - `apps/<framework>/src/app/lib/organisms/data-table.spec.ts` — covers <criterion>.
-- `apps/data-table-e2e/src/<feature>.spec.ts` — shared spec, runs under `web` + `angular`; covers user journey for <flow>.
+- `apps/data-table-e2e/src/<feature>.spec.ts` — shared spec, runs under `web` + `angular` (+ `vue` once wired); covers user journey for <flow>.
 
 ### Test Hooks Requested (data-testid)
 
-- `<value>` on <canonical element> — requested from react-developer + angular-developer (identical value, both apps). Status: added / pending.
+- `<value>` on <canonical element> — requested from react-developer + angular-developer + vue-developer (identical value, all apps). Status: added / pending.
 
 ### UX / a11y Definition of Done (from ui-ux-expectations.md)
 
@@ -214,7 +214,7 @@ The report is chat; the test files you write are real artifacts in the repo. Fin
 
 For any user-visible change, validate in a real browser:
 
-1. **Start the demo app** (e.g., `pnpm nx serve angular-client` or `pnpm nx serve web-client`).
+1. **Start the demo app** (e.g., `pnpm nx serve angular-client`, `pnpm nx serve web-client`, or `pnpm nx serve vue-client`).
 2. Use `mcp__chrome-devtools__navigate_page` to open the demo.
 3. Use `mcp__chrome-devtools__take_snapshot` to capture the accessibility tree.
 4. Use `mcp__chrome-devtools__list_console_messages` to confirm no console errors.
@@ -231,7 +231,7 @@ Document the runtime checks performed in the chat report's "Tests Written" secti
 - **Out-of-scope is a critical finding.** Even partial implementations of an Out-of-scope item block merge.
 - **Quote the canonical contract.** When flagging an acceptance-criterion failure, quote the criterion verbatim from the brief.
 - **Attribute every finding** with `[source: code-reviewer]`, `[source: silent-failure-hunter]`, `[source: QA]`, etc.
-- **Verify before flagging conventions.** Before declaring an Angular or React pattern wrong, confirm it against the version-specific skill (`angular-developer` for Angular 21, `frontend-react-best-practices` for React). Don't rely on training-data knowledge.
+- **Verify before flagging conventions.** Before declaring an Angular, React, or Vue pattern wrong, confirm it against the framework-specific skill (`angular-developer` for Angular 21, `frontend-react-best-practices` for React, `vue-best-practices` for Vue). Don't rely on training-data knowledge.
 - **Flag files exceeding ~500 lines** as 🟡 Warning — recommend splitting.
 - **Domain leakage is non-negotiable.** Any `Student` import in `lib/` is 🔴.
 - **Empty State and No Results State are distinct.** Conflating them is a finding (per CLAUDE.md §4).

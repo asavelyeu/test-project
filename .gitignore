@@ -45,6 +45,7 @@ Thumbs.db
 .claude/settings.local.json
 # Junctions into .agents/skills — tracked there, not here
 .claude/skills/frontend-react-best-practices/
+.claude/skills/vue-best-practices/
 
 .nx/polygraph
 
@@ -66,3 +67,5 @@ vite.config.*.timestamp*
 .angular
 
 __screenshots__/
+
+vitest.config.*.timestamp*

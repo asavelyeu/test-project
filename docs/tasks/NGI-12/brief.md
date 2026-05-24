@@ -1,9 +1,9 @@
 # Task Brief — NGI-12: [FE] Table Component: Columns and Data Props
 
 **Jira:** [NGI-12](https://aristeksystems-team-f2twyvsi.atlassian.net/browse/NGI-12)
-**Figma:** not linked yet
+**Figma:** [Aristek UI Pro Core Kit — node 380-1485](https://www.figma.com/design/0gLQ8QbaZq1I0yhiKspQg0/Aristek-UI-Pro-%E2%80%94-Core-Kit?node-id=380-1485) (visual source; ui-designer to validate)
 **Active iteration:** Iteration 1 — MVP Table with Extended Cell Types
-**Curated by:** spec-analyst on 2026-05-17
+**Curated by:** spec-analyst on 2026-05-24 (Vue parity cycle; original brief 2026-05-17)
 
 ---
 
@@ -91,7 +91,8 @@ Applies because the ticket explicitly bars domain logic from the component inter
 - **Risk — column `type` identifier contract.** The ticket specifies that `columns` defines cell types, but does not name the allowed type identifier strings. If the developer invents short forms (e.g., `"badge"`, `"buttons"`, `"custom"`) rather than the canonical names, every downstream cell-type story (US-09–US-20) will need corrections. The canonical identifiers must be agreed before implementation starts (CLAUDE.md §4 — "Don't invent short forms").
 - **Risk — domain leakage via column defaults.** If example or test column configurations hardcode Students-specific keys (e.g., `key: "studentId"`) inside the component source rather than in a demo file, that violates US-08 and the non-goals in CLAUDE.md §1. The architect and developer must ensure all demo-specific configuration lives outside the core component.
 - **Risk — partial state coverage.** NGI-12 is scoped to `columns`/`data` rendering. It does not explicitly mention the Loading State (`isLoading` prop) or the Empty State. US-06 and US-05 are separate stories, but the base component's prop surface must leave room for those props without requiring a breaking API change. If the initial `DataTableProps` type omits `isLoading` and `error`, a later story will force a prop-surface change.
-- **Risk — cross-framework parity gap.** The Data Table is designed with framework portability in mind (CLAUDE.md §1). If the `columns`/`data` API is implemented in a framework-specific way (e.g., Angular signals, React context) rather than as a portable interface, later Angular or Vue implementations will diverge. The architect should confirm the API shape is defined in a framework-agnostic layer.
+- **Risk — cross-framework parity gap (Vue).** This cycle brings `apps/vue-client` to parity with the React (`apps/web-client`) and Angular (`apps/angular-client`) implementations. The `columns`/`data` prop contract and the canonical `type` identifier strings must be shared from the framework-agnostic core (`libs/data-table`). If the Vue bridge at `apps/vue-client/src/lib/framework/` (or equivalent) re-derives the prop interface independently, API drift will break the shared e2e smoke spec (CLAUDE.md §8). The vue-developer must import the same `ColumnConfig<T>` / `DataTableProps` types from the core lib, not redefine them.
+- **Risk — Vue reactivity model vs prop-change AC.** AC item 3 requires: "Changing either prop re-renders the table with updated content." Vue's reactivity model differs from React and Angular. The vue-developer must ensure `columns` and `data` are declared as `defineProps` and that downstream template expressions are reactive to their changes — not cached with a non-reactive local copy.
 - **Open — `columns` type definition location.** The ticket does not specify whether the `ColumnConfig<T>` type lives in `libs/data-table` core, a shared types package, or is co-located with the component. This must be decided before implementation so cell-type stories reference the same type.
 - **Open — minimum column field set.** The ticket says "column keys, labels, and cell types." Design Requirements §7.2 says "at least a key, title, type, alignment, and whether it supports sorting." The alignment and sortable fields are broader than what the ticket requires for Iteration 1 (sorting is out of scope). Developer should confirm whether to include them as optional fields now (forward-compatible) or defer them.
 
@@ -99,9 +100,9 @@ Applies because the ticket explicitly bars domain logic from the component inter
 
 ## Drift Detected
 
-- **None between Jira NGI-12 and Confluence US-01/US-08.** The Jira acceptance criteria are a verbatim or near-verbatim restatement of the Confluence US-01 criteria, with the addition of "Selection and row actions are not implemented" — which is consistent with US-08's Confluence text. No substantive conflict detected.
-- **Local mirror `docs/claude/iterations/iteration-1.md` vs Confluence pageId `8749069` (Iterations).** Both list identical Scope and Out-of-scope items for Iteration 1. No drift detected.
-- **Local mirror `docs/claude/iterations/iteration-1.md` vs Confluence pageId `11960322` (User Stories).** US-01 and US-08 acceptance criteria in the mirror match Confluence verbatim. No drift detected.
+- **None between Jira NGI-12 and Confluence US-01/US-08.** The Jira acceptance criteria are a verbatim or near-verbatim restatement of the Confluence US-01 criteria, with the addition of "Selection and row actions are not implemented" — which is consistent with US-08's Confluence text. No substantive conflict detected. Re-verified on 2026-05-24 (Vue parity cycle) — no change.
+- **Local mirror `docs/claude/iterations/iteration-1.md` vs Confluence pageId `8749069` (Iterations).** Both list identical Scope and Out-of-scope items for Iteration 1. No drift detected. Re-verified on 2026-05-24.
+- **Local mirror `docs/claude/iterations/iteration-1.md` vs Confluence pageId `11960322` (User Stories).** US-01 and US-08 acceptance criteria in the mirror match Confluence verbatim. No drift detected. Re-verified on 2026-05-24.
 
 ---
 
@@ -114,9 +115,10 @@ Applies because the ticket explicitly bars domain logic from the component inter
 ## Recommendations for Downstream Agents
 
 - **`architect`:** Define the `ColumnConfig<T>` interface in the framework-agnostic core (`libs/data-table`) before any framework-specific implementation starts. Include `key`, `header` (label), `type`, and optionally `align` as extensible fields. Ensure `isLoading` and `error` are present in `DataTableProps` now so US-05 and US-06 do not require a breaking change. Confirm the `type` enumeration uses canonical Cell type names as its values.
-- **`react-developer` / `angular-developer`:** Do not hardcode any domain-specific field names (studentId, courseTitle, etc.) inside the component or its test fixtures. All dataset shapes used for testing must live in demo or spec files external to the core component. Use at minimum two structurally different datasets (e.g., students and users) in tests or Storybook to satisfy the US-01 "two dataset shapes" criterion.
-- **`qa-engineer`:** Verify: (1) prop-change re-renders correctly; (2) zero domain-specific field names exist inside component source; (3) Selection and Actions Cell are absent from the implementation; (4) the component renders identically correct for two structurally different datasets. Consider a snapshot or render test with both a students-shaped and a users-shaped dataset.
-- **`ui-designer`:** The ticket does not carry a Figma link. Before implementation begins, confirm whether the base Data Table layout Figma component (called for in US-07 and Deliverables) is ready. The `columns`/`data` prop contract directly determines column count and cell-slot layout in Figma — an early Figma reference will prevent implementation–design drift.
+- **`vue-developer`:** This is the primary implementation target for this cycle. Import `ColumnConfig<T>` and `DataTableProps` from the shared core lib — do not redeclare them in the Vue app. Declare both props via `defineProps<DataTableProps>()` so Vue's reactivity system tracks changes correctly (AC item 3). No domain-specific field names inside `apps/vue-client/src/lib/` or any core layer; demo datasets live in `apps/vue-client/src/app/` only. The component must render correctly for at least two structurally different datasets to satisfy US-01.
+- **`react-developer` / `angular-developer`:** Reference only — these lanes are already implemented. If the shared `ColumnConfig<T>` type is extended during the Vue cycle (e.g., adding optional fields), ensure backward compatibility so existing React/Angular implementations are not broken.
+- **`qa-engineer`:** The shared e2e suite at `apps/data-table-e2e/` has a `vue` Playwright project targeting port 4401 (CLAUDE.md §8). Once the Vue Data Table renders at `/`, the smoke spec for `vue` should go green with no e2e changes. Verify: (1) prop-change re-renders correctly in the Vue app; (2) zero domain-specific field names exist inside the Vue component source; (3) Selection and Actions Cell are absent; (4) the component renders correctly for at least two structurally different datasets. `data-testid` values must be identical to those used in the React and Angular apps (`data-table`, `table-row`, etc.).
+- **`ui-designer`:** A Figma node is now linked: [Aristek UI Pro Core Kit — node 380-1485](https://www.figma.com/design/0gLQ8QbaZq1I0yhiKspQg0/Aristek-UI-Pro-%E2%80%94-Core-Kit?node-id=380-1485). Validate the base Data Table layout against this node before the Vue implementation begins. The `columns`/`data` prop contract directly determines column count and cell-slot layout — confirm the Figma component reflects the same column structure used in the React and Angular implementations.
 
 ---
 
