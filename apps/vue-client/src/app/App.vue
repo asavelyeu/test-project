@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import NxWelcome from './NxWelcome.vue';
+import DataTableDemo from './pages/data-table-demo/DataTableDemo.vue';
 </script>
 
 <template>
-  <NxWelcome title="vue-client" />
+  <DataTableDemo />
 </template>
