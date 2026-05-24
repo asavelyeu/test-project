@@ -2,7 +2,11 @@
   "name": "@test-project/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "start:angular": "nx serve angular-client",
+    "start:react": "nx serve web-client",
+    "start": "nx run-many --target=serve --projects=angular-client,web-client"
+  },
   "private": true,
   "devDependencies": {
     "@angular-devkit/core": "~21.2.0",

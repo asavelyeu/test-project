@@ -200,3 +200,13 @@ The workspace exposes several Model Context Protocol servers. Use them in prefer
 - Always use the agreed Cloud ID and site URL from Section 3 when calling Atlassian tools — don't infer them from page content.
 - Prefer the most specific MCP for the job (Figma for designs, Nx for workspace structure) over reading raw config files.
 - If a task requires a tool that no MCP covers, surface that as a finding (Section 6) so the team can decide whether to add the MCP or use a different approach.
+
+---
+
+## 8. E2E Testing
+
+One shared cross-framework suite at `apps/data-table-e2e/`. **Never create per-app `e2e/` projects.** The same specs in `apps/data-table-e2e/src/` run against both apps via two Playwright projects (`web` on port 4301, `angular` on 4201). Specs navigate with `page.goto('/')`. Run: `npx nx e2e data-table-e2e`.
+
+Add new specs as `apps/data-table-e2e/src/<feature>.spec.ts`.
+
+**Selectors.** Prefer `getByRole` / `getByText`. Fall back to `data-testid` when role/name selection is ambiguous. `data-testid` values must be **identical in both apps** and use kebab-case from the canonical term (Section 4): `data-table`, `table-row`, `status-cell`, `data-table-empty`, `data-table-no-results`, `actions-cell-action`. Adding a `data-testid` is implementation — request it from **both** `react-developer` and `angular-developer` with the same value.

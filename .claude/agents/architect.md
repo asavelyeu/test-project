@@ -26,6 +26,7 @@ You write **one file per task**: `docs/tasks/<JIRA-ID>/design.md`. It is the dur
 5. **Trade-offs and alternatives** — name what you gave up, what you considered and rejected, why.
 6. **Boundary validation** — confirm the design respects the cross-cutting rules in `docs/claude/project-structure.md` §5. If it can't, raise a finding.
 7. **Open questions / deferred decisions** — list anything the advisors or developers will need to resolve, and where (Angular advisor for signal shape, React advisor for hook shape, etc.).
+8. **E2E test-hook contract** — name the `data-testid` values the shared cross-framework e2e suite (`apps/data-table-e2e/`) needs, mapped to canonical elements. This is one contract for both apps: `react-developer` and `angular-developer` apply the **same** values, and `qa-engineer` selects by them — so it must be decided once here, framework-agnostically, not left to the two advisor lanes where it could drift. Derive each from the canonical term (CLAUDE.md §4), kebab-case.
 
 ## Mandatory Pre-Work Step
 
@@ -159,6 +160,17 @@ These survive across sessions; `ui-designer` produces no file of its own.
 - **Accessibility:** <focus, contrast, hit areas, ARIA, state-independence — quote the Definition of Done items that apply>
 - **Microcopy direction:** <tone, examples — note that domain copy belongs to the demo, not the core>
 - **Figma vs. Confluence conflicts:** none / <described; finding raised>
+
+## E2E Test Hooks (`data-testid`)
+
+One contract for both apps — `react-developer` and `angular-developer` apply the **same** values; `qa-engineer` selects by them in the shared suite (`apps/data-table-e2e/`). Prefer role / accessible-name selectors; assign a `data-testid` only where role-based selection is ambiguous (a specific state container, cell type, or control). Values are kebab-case from the canonical term (CLAUDE.md §4). Omit rows that don't apply this ticket.
+
+| Canonical element | `data-testid` |
+| --- | --- |
+| Data Table root | `data-table` |
+| Empty State container | `data-table-empty` |
+| No Results State container | `data-table-no-results` |
+| <element> | `<value>` |
 
 ## Boundary Validation
 

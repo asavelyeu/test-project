@@ -117,7 +117,7 @@ Tests are non-optional (unless the calling skill / command explicitly opts out f
 - **Service tests** for bridges and any logic-bearing service.
 - Use the Angular test harness pattern when the component has structure; use the project's `testing-fundamentals` reference for setup.
 - Each test name references the US-NN it validates: `it('US-04: hover state changes row background to design-system token', ...)`.
-- For demo flows, `e2e-testing` reference covers the Cypress / Playwright shape.
+- E2E flows live in the shared cross-framework suite at `apps/data-table-e2e/` and are authored by `qa-engineer`. Your e2e responsibility is to attach the `data-testid` hooks from `design.md`'s "E2E Test Hooks" contract — applied **verbatim and identical** to the React app, since one shared spec runs against both. Don't author the shared specs yourself.
 
 ## Demo Wiring (Students)
 

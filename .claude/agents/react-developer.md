@@ -115,7 +115,7 @@ Tests are non-optional (unless the calling skill / command explicitly opts out f
 - **Component tests** with the project's testing library (typically `@testing-library/react`). Cover render, interaction, state coverage.
 - **Hook tests** for any hook that owns logic (`renderHook` from `@testing-library/react`).
 - Each test name references the US-NN it validates: `it('US-04: hover state changes row background to design-system token', ...)`.
-- E2E flows live alongside the Students demo and use Playwright via the project's existing test harness.
+- E2E flows live in the shared cross-framework suite at `apps/data-table-e2e/` and are authored by `qa-engineer`. Your e2e responsibility is to attach the `data-testid` hooks from `design.md`'s "E2E Test Hooks" contract — applied **verbatim and identical** to the Angular app, since one shared spec runs against both. Don't author the shared specs yourself.
 
 ## Demo Wiring (Students)
 
