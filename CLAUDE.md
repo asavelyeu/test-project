@@ -207,7 +207,7 @@ The workspace exposes several Model Context Protocol servers. Use them in prefer
 
 One shared cross-framework suite at `apps/data-table-e2e/`. **Never create per-app `e2e/` projects.** The same specs in `apps/data-table-e2e/src/` run against every client app via one Playwright project per app (`web` on port 4301, `angular` on 4201, and `vue` on 4401). Specs navigate with `page.goto('/')`. Run: `npx nx e2e data-table-e2e`.
 
-> The `vue` Playwright project (port 4401) is wired into `apps/data-table-e2e/playwright.config.ts` as part of building out the Vue app's Data Table; until then only the `web` and `angular` projects exist in the config. The cross-app contract below already treats Vue as a first-class target.
+> The `vue` Playwright project (port 4401) is wired into `apps/data-table-e2e/playwright.config.ts` and `vue-client` is an `implicitDependency` of `data-table-e2e`. The `vue` project will stay red until the Vue app actually renders a Data Table at `/` — `apps/vue-client` is still the Nx scaffold (no Data Table, no `lib/framework/` bridge). Once the Vue Data Table demo lands, the shared smoke spec goes green for `vue` with no e2e changes.
 
 Add new specs as `apps/data-table-e2e/src/<feature>.spec.ts`.
 
