@@ -5,7 +5,8 @@
   "scripts": {
     "start:angular": "nx serve angular-client",
     "start:react": "nx serve web-client",
-    "start": "nx run-many --target=serve --projects=angular-client,web-client"
+    "start:vue": "nx serve vue-client",
+    "start": "nx run-many --target=serve --projects=angular-client,web-client,vue-client"
   },
   "private": true,
   "devDependencies": {
@@ -29,6 +30,8 @@
     "@nx/playwright": "22.6.5",
     "@nx/react": "22.6.5",
     "@nx/vite": "22.6.5",
+    "@nx/vitest": "22.6.5",
+    "@nx/vue": "22.6.5",
     "@nx/web": "22.6.5",
     "@nx/workspace": "22.6.5",
     "@oxc-project/runtime": "^0.115.0",
@@ -47,9 +50,15 @@
     "@types/node": "20.19.9",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.0.0",
+    "@typescript-eslint/parser": "^8.40.0",
     "@typescript-eslint/utils": "^8.40.0",
     "@vitejs/plugin-react": "^6.0.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/coverage-v8": "~4.1.0",
     "@vitest/ui": "~4.1.0",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/eslint-config-typescript": "^14.6.0",
+    "@vue/test-utils": "^2.4.6",
     "angular-eslint": "^21.2.0",
     "babel-jest": "^30.0.2",
     "babel-preset-expo": "~54.0.7",
@@ -60,6 +69,7 @@
     "eslint-plugin-playwright": "^1.6.2",
     "eslint-plugin-react": "7.35.0",
     "eslint-plugin-react-hooks": "5.0.0",
+    "eslint-plugin-vue": "^9.16.1",
     "jest": "^30.0.2",
     "jest-environment-jsdom": "^30.0.2",
     "jest-expo": "~54.0.13",
@@ -78,7 +88,8 @@
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.40.0",
     "vite": "^8.0.0",
-    "vitest": "~4.1.0"
+    "vitest": "~4.1.0",
+    "vue-tsc": "^2.2.8"
   },
   "dependencies": {
     "@angular/common": "~21.2.0",
@@ -101,7 +112,8 @@
     "react-native-svg": "15.12.1",
     "react-native-svg-transformer": "~1.5.1",
     "react-native-web": "~0.21.0",
-    "rxjs": "~7.8.0"
+    "rxjs": "~7.8.0",
+    "vue": "^3.5.13"
   },
   "packageManager": "pnpm@10.33.0"
 }
