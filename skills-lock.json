@@ -36,6 +36,12 @@
       "source": "sergiodxa/agent-skills",
       "sourceType": "github",
       "computedHash": "b0a43ebbba8550bfa179283acf9979994bd15245660ee1163204e2f307d971ff"
+    },
+    "vue-best-practices": {
+      "source": "hyf0/vue-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vue-best-practices/SKILL.md",
+      "computedHash": "21132f6c11c765bd11d0d6ad081122dd858630073e2123b651e58f17b399b131"
     }
   }
 }
