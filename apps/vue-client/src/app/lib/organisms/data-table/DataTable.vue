@@ -68,12 +68,13 @@ function rowKey(row: TRow, index: number): string | number {
 
 <template>
   <!-- Data Table -->
-  <table class="w-full border-collapse text-sm">
+  <table data-testid="data-table" class="w-full border-collapse text-sm">
     <!-- Table Header -->
     <thead>
-      <tr>
+      <tr data-testid="table-header">
         <!-- Table Header Cell -->
         <th
+          data-testid="table-header-cell"
           v-for="column in props.columns"
           :key="column.id ?? column.key"
           scope="col"

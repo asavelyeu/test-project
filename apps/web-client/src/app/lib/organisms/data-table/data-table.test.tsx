@@ -171,4 +171,15 @@ describe('DataTable', () => {
       expect(td.className).not.toContain('hover:');
     });
   });
+
+  it('Decision 3: empty header: \'\' renders blank <th> with no fallback to key', () => {
+    const colsWithBlank: readonly ColumnConfig<ShapeA>[] = [
+      { id: 'title', key: 'title', header: 'Title', type: 'text' },
+      { id: 'score', key: 'score', header: '', type: 'text' },
+    ];
+    const { container } = render(<DataTable columns={colsWithBlank} data={dataA} />);
+    const headers = container.querySelectorAll('thead th');
+    expect(headers.length).toBe(2);
+    expect(headers[1]?.textContent?.trim()).toBe('');
+  });
 });

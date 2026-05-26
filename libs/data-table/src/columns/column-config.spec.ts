@@ -216,3 +216,50 @@ describe('ColumnConfig discriminated union', () => {
     expect(col.id).toBe('col-label');
   });
 });
+
+// ---------------------------------------------------------------------------
+// NGI-13 — contract hardening assertions
+// ---------------------------------------------------------------------------
+
+describe('NGI-13 contract hardening', () => {
+  it('US-02: key, header, and type are all required fields', () => {
+    const col: ColumnConfig<RowShapeA> = {
+      type: 'text',
+      key: 'label',
+      header: 'Label',
+    };
+    expect(col.type).toBe('text');
+    expect(col.key).toBe('label');
+    expect(col.header).toBe('Label');
+  });
+
+  it('US-02: align is optional — omitting it leaves the field undefined', () => {
+    const col: ColumnConfig<RowShapeA> = {
+      type: 'text',
+      key: 'label',
+      header: 'Label',
+    };
+    expect(col.align).toBeUndefined();
+  });
+
+  it('US-02: an empty string header is accepted without modification (NGI-13 Decision 3)', () => {
+    const col: ColumnConfig<RowShapeA> = {
+      type: 'text',
+      key: 'label',
+      header: '',
+    };
+    // No throw; header round-trips as-is.
+    expect(col.header).toBe('');
+    // The library must not silently replace it with the key value.
+    expect(col.header).not.toBe(col.key);
+  });
+
+  it('US-02: no sortable member exists on the contract in Iteration 1 (NGI-13 Decision 2)', () => {
+    const col: ColumnConfig<RowShapeA> = {
+      type: 'text',
+      key: 'label',
+      header: 'Label',
+    };
+    expect(Object.prototype.hasOwnProperty.call(col, 'sortable')).toBe(false);
+  });
+});

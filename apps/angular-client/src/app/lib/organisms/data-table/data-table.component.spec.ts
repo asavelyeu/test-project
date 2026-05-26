@@ -265,4 +265,25 @@ describe('DataTableComponent (Data Table organism)', () => {
     expect(el.querySelector('th')).not.toBeNull();
     expect(el.querySelector('td')).not.toBeNull();
   });
+
+  // ---- Empty header renders blank <th>, no key fallback (Decision 3) ----
+
+  it('US-02: a column with header: \'\' renders an empty <th> with no fallback text', async () => {
+    interface RecordC { val: string }
+    const columns: readonly ColumnConfig<RecordC>[] = [
+      { type: 'text', key: 'val', header: 'Value' },
+      { type: 'text', key: 'val', header: '' },
+    ];
+    const data: readonly RecordC[] = [{ val: 'x' }];
+
+    const fixture = TestBed.createComponent(DataTableComponent<RecordC>);
+    fixture.componentRef.setInput('columns', columns);
+    fixture.componentRef.setInput('data', data);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const headers = fixture.nativeElement.querySelectorAll('thead th');
+    expect(headers.length).toBe(2);
+    expect(headers[1].textContent.trim()).toBe('');
+  });
 });

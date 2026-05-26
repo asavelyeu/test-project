@@ -82,10 +82,10 @@ export function DataTable<TRow>(props: DataTableProps<TRow>): React.ReactElement
   // UI is rendered in NGI-12 — those state organisms ship in later tickets (US-05, US-06).
 
   return (
-    <table className="w-full border-collapse text-sm">
+    <table data-testid="data-table" className="w-full border-collapse text-sm">
       {/* Table Header */}
       <thead>
-        <tr>
+        <tr data-testid="table-header">
           {columns.map((column) => {
             const cellKey = column.id ?? column.key;
             const alignClass = getAlignClass(column.align);
@@ -94,6 +94,7 @@ export function DataTable<TRow>(props: DataTableProps<TRow>): React.ReactElement
               /* Table Header Cell */
               <th
                 key={cellKey}
+                data-testid="table-header-cell"
                 scope="col"
                 className={`border-b border-slate-200 px-4 py-3 text-left font-semibold text-slate-700 ${alignClass}`}
               >
