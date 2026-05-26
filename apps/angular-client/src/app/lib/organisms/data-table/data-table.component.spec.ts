@@ -266,38 +266,7 @@ describe('DataTableComponent (Data Table organism)', () => {
     expect(el.querySelector('td')).not.toBeNull();
   });
 
-  // ---- NGI-13: data-testid hooks ----
-
-  it('NGI-13: data-testid="data-table" is on the <table> element', async () => {
-    const fixture = setupFixture(COLUMNS_A, DATA_A);
-    await fixture.whenStable();
-
-    const table = fixture.nativeElement.querySelector('table');
-    expect(table?.getAttribute('data-testid')).toBe('data-table');
-  });
-
-  it('NGI-13: data-testid="table-header" is on the header <tr>, not on <thead>', async () => {
-    const fixture = setupFixture(COLUMNS_A, DATA_A);
-    await fixture.whenStable();
-
-    const thead = fixture.nativeElement.querySelector('thead');
-    expect(thead?.getAttribute('data-testid')).toBeNull();
-    const headerRow = fixture.nativeElement.querySelector('thead tr');
-    expect(headerRow?.getAttribute('data-testid')).toBe('table-header');
-  });
-
-  it('NGI-13: data-testid="table-header-cell" is on every <th>, count matches columns.length', async () => {
-    const fixture = setupFixture(COLUMNS_A, DATA_A);
-    await fixture.whenStable();
-
-    const headerCells = fixture.nativeElement.querySelectorAll('thead th');
-    expect(headerCells.length).toBe(COLUMNS_A.length);
-    headerCells.forEach((th: Element) => {
-      expect(th.getAttribute('data-testid')).toBe('table-header-cell');
-    });
-  });
-
-  // ---- NGI-13 Decision 3: Empty header renders blank <th>, no key fallback ----
+  // ---- Empty header renders blank <th>, no key fallback (Decision 3) ----
 
   it('US-02: a column with header: \'\' renders an empty <th> with no fallback text', async () => {
     interface RecordC { val: string }

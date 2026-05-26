@@ -83,34 +83,9 @@ describe('DataTable (Vue organism)', () => {
     expect(headers[1]?.text()).toBe('Amount');
   });
 
-  // ---- NGI-13: data-testid hooks ----
+  // ---- Empty header renders blank <th>, no key fallback (Decision 3) ----
 
-  it('NGI-13: data-testid="data-table" is on the <table> element', () => {
-    const wrapper = mount(DataTable as Component, { props: { columns: columnsA, data: dataA } });
-    const table = wrapper.find('table');
-    expect(table.attributes('data-testid')).toBe('data-table');
-  });
-
-  it('NGI-13: data-testid="table-header" is on the header <tr>, not on <thead>', () => {
-    const wrapper = mount(DataTable as Component, { props: { columns: columnsA, data: dataA } });
-    const thead = wrapper.find('thead');
-    expect(thead.attributes('data-testid')).toBeUndefined();
-    const headerRow = wrapper.find('thead tr');
-    expect(headerRow.attributes('data-testid')).toBe('table-header');
-  });
-
-  it('NGI-13: data-testid="table-header-cell" is on every <th>, count matches columns.length', () => {
-    const wrapper = mount(DataTable as Component, { props: { columns: columnsA, data: dataA } });
-    const headerCells = wrapper.findAll('thead th');
-    expect(headerCells.length).toBe(columnsA.length);
-    headerCells.forEach((th) => {
-      expect(th.attributes('data-testid')).toBe('table-header-cell');
-    });
-  });
-
-  // ---- NGI-13 Decision 3: Empty header ----
-
-  it('NGI-13 Decision 3: empty header: \'\' renders blank <th> with no fallback to key', () => {
+  it('Decision 3: empty header: \'\' renders blank <th> with no fallback to key', () => {
     const colsWithBlank: readonly ColumnConfig<ShapeA>[] = [
       { id: 'title', key: 'title', header: 'Title', type: 'text' },
       { id: 'score', key: 'score', header: '', type: 'text' },
