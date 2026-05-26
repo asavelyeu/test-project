@@ -87,5 +87,25 @@ All tests: ✅
 6. Create PR via GitHub MCP. Label = ticket.type. Reviewer = `PR_REVIEWER` env.
 7. Transition Jira to "In Review" (skip if unavailable).
 8. Set `pr.branch`, `pr.commit_message`, `pr.pr_url`, `pr.pr_number`. Merge.
+9. Epic memory update — only if `context.epic.id` exists.
+   Build a `produced` payload from the merged implementation slices:
 
-Output: "PR created: {pr_url}"
+   ```json
+   {
+     "files": ["...files_created + files_modified across core/react/angular..."],
+     "exports": ["...new symbols exported from the updated barrels..."],
+     "tokens_added": ["...new --ui-<component>-* custom properties..."],
+     "types": ["...new public TS types/interfaces..."],
+     "notes": ["pr={pr.pr_url}", "qa_react={qa.pixel_diff_score.react}"]
+   }
+   ```
+
+   Pipe it to:
+   `printf '%s' '<json>' | pnpm agent:epic complete \
+    --epic {context.epic.id} --subticket {ticket.id} \
+    --pr-url {pr.pr_url} --produced -`
+
+   The CLI handles atomic JSON writes, dedup, journal append, and
+   recomputes `epic.next_action`. Do not edit `epic.json` directly.
+
+Output: "PR created: {pr_url}. Next subticket: {epic.next_action.subticket_id ?? 'none — epic done'}"

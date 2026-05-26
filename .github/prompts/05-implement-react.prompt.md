@@ -20,6 +20,17 @@ Apply the `frontend-react-best-practices` skill throughout.
 
 Read context.json. If `qa.feedback_for_react` exists, fix those first.
 
+### Delta guard (MANDATORY when `architecture.delta_plan` exists)
+
+- Only create files in `delta_plan.create`, only edit files in
+  `delta_plan.modify`. Files in `delta_plan.reuse_existing` are frozen.
+- Never redefine or rename anything in `must_respect.existing_exports`.
+- Never redefine values for tokens in `must_respect.existing_tokens`;
+  only add new tokens or new variant/state overrides.
+- If `delta_plan.no_op === true`: skip this phase entirely.
+- The barrel `libs/shared/ui/src/index.ts` may be APPENDED to but never
+  rewritten — preserve existing re-exports byte-for-byte.
+
 ## Pass 1 — Files
 
 Create per `architecture.file_plan` (react entries):

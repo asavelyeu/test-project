@@ -2,7 +2,9 @@
   "name": "@test-project/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "agent:epic": "node tools/scripts/epic-sync.mjs"
+  },
   "private": true,
   "devDependencies": {
     "@babel/core": "^7.14.5",

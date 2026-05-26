@@ -21,6 +21,16 @@ FORBIDDEN: git, React paths, core paths (use them read-only via the package alia
 
 Read context.json. If `qa.feedback_for_angular` exists, fix those first.
 
+### Delta guard (MANDATORY when `architecture.delta_plan` exists)
+
+- Only create files in `delta_plan.create`, only edit files in
+  `delta_plan.modify`. Files in `delta_plan.reuse_existing` are frozen.
+- Never redefine or rename anything in `must_respect.existing_exports`.
+- Never redefine existing tokens; only add new ones.
+- If `delta_plan.no_op === true`: skip this phase entirely.
+- The barrel `libs/shared/ui-angular/src/index.ts` may be APPENDED to
+  but never rewritten.
+
 ## Pass 1 — Bootstrap (skip if already done)
 
 1. If `@nx/angular` missing in `package.json`: `pnpm nx add @nx/angular`.
