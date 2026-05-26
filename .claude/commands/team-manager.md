@@ -30,6 +30,16 @@ Before invoking any agent:
 2. Confirm it matches Confluence (Development Current Status, pageId `8749057`). If they disagree, stop and surface the conflict. This step may be skipped when no Jira ticket is provided (typical for small bug fixes or refactors).
 3. Translate the request into canonical terminology (CLAUDE.md §4).
 
+## Pipeline Intelligence
+
+Before proposing the Run Plan, use available tools **only to route the pipeline** — not to extract specs or design details.
+
+- **Jira ticket** (`mcp__atlassian__getJiraIssue`): read summary + labels to determine which implementation lanes are needed and whether the task is UI-facing.
+- **Figma node** (`mcp__figma__view_node`): confirm the node exists before pre-checking `ui-designer`. If no URL is available and the task is UI-facing, ask the developer.
+- **Iteration status** (`mcp__atlassian__getConfluencePage` pageId `8749057`): validate the CLAUDE.md active-iteration pointer (Pre-Cycle Gate step 2).
+
+Pass **no** extracted content to downstream agents — full spec extraction is `spec-analyst`'s job; full design reading is `ui-designer`'s job.
+
 ## Pipeline
 
 | Phase                  | Agents                                   | Output                           | Checkpoint           |
@@ -122,7 +132,7 @@ If a sub-agent returns an `agentId`, use **`SendMessage`** with that ID to conti
 
 ## What NOT to Do
 
-- Do not fetch Jira tickets, Confluence pages, or Figma files yourself — that is spec-analyst's and ui-designer's job.
+- Do not extract acceptance criteria, design details, or implementation guidance from Jira or Figma — use those sources only for pipeline routing (see Pipeline Intelligence). Full extraction is `spec-analyst`'s and `ui-designer`'s job.
 - Do not write `docs/tasks/` files yourself — those belong to spec-analyst and architect.
 - Do not write any other files (no scratch files, no staging files, no intermediate notes).
 - Do not implement code.
