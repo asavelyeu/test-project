@@ -265,4 +265,56 @@ describe('DataTableComponent (Data Table organism)', () => {
     expect(el.querySelector('th')).not.toBeNull();
     expect(el.querySelector('td')).not.toBeNull();
   });
+
+  // ---- NGI-13: data-testid hooks ----
+
+  it('NGI-13: data-testid="data-table" is on the <table> element', async () => {
+    const fixture = setupFixture(COLUMNS_A, DATA_A);
+    await fixture.whenStable();
+
+    const table = fixture.nativeElement.querySelector('table');
+    expect(table?.getAttribute('data-testid')).toBe('data-table');
+  });
+
+  it('NGI-13: data-testid="table-header" is on the header <tr>, not on <thead>', async () => {
+    const fixture = setupFixture(COLUMNS_A, DATA_A);
+    await fixture.whenStable();
+
+    const thead = fixture.nativeElement.querySelector('thead');
+    expect(thead?.getAttribute('data-testid')).toBeNull();
+    const headerRow = fixture.nativeElement.querySelector('thead tr');
+    expect(headerRow?.getAttribute('data-testid')).toBe('table-header');
+  });
+
+  it('NGI-13: data-testid="table-header-cell" is on every <th>, count matches columns.length', async () => {
+    const fixture = setupFixture(COLUMNS_A, DATA_A);
+    await fixture.whenStable();
+
+    const headerCells = fixture.nativeElement.querySelectorAll('thead th');
+    expect(headerCells.length).toBe(COLUMNS_A.length);
+    headerCells.forEach((th: Element) => {
+      expect(th.getAttribute('data-testid')).toBe('table-header-cell');
+    });
+  });
+
+  // ---- NGI-13 Decision 3: Empty header renders blank <th>, no key fallback ----
+
+  it('US-02: a column with header: \'\' renders an empty <th> with no fallback text', async () => {
+    interface RecordC { val: string }
+    const columns: readonly ColumnConfig<RecordC>[] = [
+      { type: 'text', key: 'val', header: 'Value' },
+      { type: 'text', key: 'val', header: '' },
+    ];
+    const data: readonly RecordC[] = [{ val: 'x' }];
+
+    const fixture = TestBed.createComponent(DataTableComponent<RecordC>);
+    fixture.componentRef.setInput('columns', columns);
+    fixture.componentRef.setInput('data', data);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const headers = fixture.nativeElement.querySelectorAll('thead th');
+    expect(headers.length).toBe(2);
+    expect(headers[1].textContent.trim()).toBe('');
+  });
 });

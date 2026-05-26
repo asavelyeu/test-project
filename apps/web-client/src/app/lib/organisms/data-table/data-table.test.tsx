@@ -171,4 +171,42 @@ describe('DataTable', () => {
       expect(td.className).not.toContain('hover:');
     });
   });
+
+  // -------------------------------------------------------------------------
+  // NGI-13: data-testid hooks
+  // -------------------------------------------------------------------------
+
+  it('NGI-13: data-testid="data-table" is on the <table> element', () => {
+    const { container } = render(<DataTable columns={columnsA} data={dataA} />);
+    const table = container.querySelector('table');
+    expect(table?.getAttribute('data-testid')).toBe('data-table');
+  });
+
+  it('NGI-13: data-testid="table-header" is on the header <tr>, not on <thead>', () => {
+    const { container } = render(<DataTable columns={columnsA} data={dataA} />);
+    const thead = container.querySelector('thead');
+    expect(thead?.getAttribute('data-testid')).toBeNull();
+    const headerRow = container.querySelector('thead tr');
+    expect(headerRow?.getAttribute('data-testid')).toBe('table-header');
+  });
+
+  it('NGI-13: data-testid="table-header-cell" is on every <th>, count matches columns.length', () => {
+    const { container } = render(<DataTable columns={columnsA} data={dataA} />);
+    const headerCells = container.querySelectorAll('thead th');
+    expect(headerCells.length).toBe(columnsA.length);
+    headerCells.forEach((th) => {
+      expect(th.getAttribute('data-testid')).toBe('table-header-cell');
+    });
+  });
+
+  it('NGI-13 Decision 3: empty header: \'\' renders blank <th> with no fallback to key', () => {
+    const colsWithBlank: readonly ColumnConfig<ShapeA>[] = [
+      { id: 'title', key: 'title', header: 'Title', type: 'text' },
+      { id: 'score', key: 'score', header: '', type: 'text' },
+    ];
+    const { container } = render(<DataTable columns={colsWithBlank} data={dataA} />);
+    const headers = container.querySelectorAll('thead th');
+    expect(headers.length).toBe(2);
+    expect(headers[1]?.textContent?.trim()).toBe('');
+  });
 });

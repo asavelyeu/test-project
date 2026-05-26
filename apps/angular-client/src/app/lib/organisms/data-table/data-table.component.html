@@ -1,12 +1,12 @@
 <!-- Data Table -->
-<table class="w-full border-collapse text-sm">
+<table data-testid="data-table" class="w-full border-collapse text-sm">
 
   <!-- Table Header -->
   <thead>
-    <tr>
+    <tr data-testid="table-header">
       @for (col of columns(); track trackColumn($index, col)) {
       <!-- Table Header Cell -->
-      <th scope="col" class="border-b border-slate-200 px-4 py-3 text-left font-semibold text-slate-700"
+      <th data-testid="table-header-cell" scope="col" class="border-b border-slate-200 px-4 py-3 text-left font-semibold text-slate-700"
         [class.text-right]="col.align === 'end'" [class.text-center]="col.align === 'center'">
         {{ col.header }}
       </th>
