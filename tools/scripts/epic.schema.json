@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://test-project/agent/epic.schema.json",
+  "title": "Epic memory file",
+  "description": "Persistent epic state managed by tools/scripts/epic-sync.mjs. Single source of truth for an in-flight epic across days, sessions, and subticket pipeline runs.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "title",
+    "component",
+    "status",
+    "subtickets"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9]+-\\d+$" },
+    "title": { "type": "string", "minLength": 1 },
+    "component": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Component kebab-case identifier, e.g. data-table"
+    },
+    "status": { "enum": ["not_started", "in_progress", "done"] },
+    "started_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "subtickets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/subticket" }
+    },
+    "next_action": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/next_action" }]
+    }
+  },
+  "$defs": {
+    "design_source": {
+      "type": "object",
+      "description": "Per-subticket design pointer. Each subticket has its own because subtickets often depict different states of the same component (e.g. table vs table-with-pagination). The architect uses this together with prior subtickets' produced exports/files to plan only the delta.",
+      "additionalProperties": false,
+      "properties": {
+        "figma_url": { "type": ["string", "null"], "format": "uri" },
+        "figma_file_key": { "type": ["string", "null"] },
+        "figma_node_id": { "type": ["string", "null"] },
+        "screenshot_path": { "type": ["string", "null"] },
+        "notes": { "type": ["string", "null"] },
+        "updated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "subticket": {
+      "type": "object",
+      "required": ["id", "title", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9]+-\\d+$" },
+        "title": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["not_started", "in_progress", "blocked", "done"] },
+        "depends_on": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9]+-\\d+$" },
+          "default": []
+        },
+        "started_at": { "type": "string", "format": "date-time" },
+        "finished_at": { "type": "string", "format": "date-time" },
+        "pr_url": { "type": "string", "format": "uri" },
+        "design_source": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/design_source" }]
+        },
+        "produced": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "files": { "type": "array", "items": { "type": "string" } },
+            "exports": { "type": "array", "items": { "type": "string" } },
+            "tokens_added": { "type": "array", "items": { "type": "string" } },
+            "types": { "type": "array", "items": { "type": "string" } },
+            "notes": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "next_action": {
+      "type": "object",
+      "required": ["subticket_id", "reason", "must_respect"],
+      "properties": {
+        "subticket_id": { "type": ["string", "null"] },
+        "reason": { "type": "string" },
+        "blocked_subticket_id": { "type": "string" },
+        "unmet_dependencies": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "must_respect": {
+          "type": "object",
+          "required": ["existing_exports", "existing_tokens", "existing_files"],
+          "properties": {
+            "existing_exports": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "existing_tokens": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "existing_files": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    }
+  }
+}

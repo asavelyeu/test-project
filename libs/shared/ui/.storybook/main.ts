@@ -1,5 +1,5 @@
-import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
+import { createRequire } from 'node:module';
 
 import type { StorybookConfig } from '@storybook/react-vite';
 
@@ -8,10 +8,14 @@ import { mergeConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
+const require = createRequire(import.meta.url);
+
 const config: StorybookConfig = {
   stories: [
-    '../src/lib/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
+    '../src/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
     '../input/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
+    '../hover-card/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
+    '../menubar/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
   ],
   addons: [],
   framework: {
@@ -22,11 +26,16 @@ const config: StorybookConfig = {
   viteFinal: async (config) =>
     mergeConfig(config, {
       plugins: [tailwindcss(), react(), nxViteTsPaths()],
+      resolve: {
+        alias: {
+          'react-native': 'react-native-web',
+        },
+      },
     }),
 };
 
 function getAbsolutePath(value: string): any {
-  return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
+  return dirname(require.resolve(`${value}/package.json`));
 }
 
 export default config;

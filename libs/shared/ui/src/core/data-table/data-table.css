@@ -1,0 +1,295 @@
+/* DataTable core token surface — all visual values expressed as CSS custom properties.
+   Consumers override via Tailwind arbitrary values or plain CSS targeting .ui-data-table */
+
+.ui-data-table {
+  /* Layout */
+  --ui-data-table-radius: 8px;
+  --ui-data-table-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --ui-data-table-cell-padding-x: 16px;
+  --ui-data-table-cell-padding-y: 12px;
+  --ui-data-table-row-height: 52px;
+  --ui-data-table-header-height: 44px;
+  --ui-data-table-avatar-size: 32px;
+  --ui-data-table-checkbox-size: 16px;
+
+  /* Backgrounds */
+  --ui-data-table-row-bg: var(--color-surface, #ffffff);
+  --ui-data-table-row-bg-hover: var(--color-surface-hover, #f9fafb);
+  --ui-data-table-row-bg-selected: var(--color-surface-selected, #faf5ff);
+  --ui-data-table-row-bg-alt: var(--color-surface-subtle, #f9fafb);
+  --ui-data-table-header-bg: var(--color-surface-subtle, #f9fafb);
+
+  /* Text */
+  --ui-data-table-text-primary: var(--color-text-primary, #111827);
+  --ui-data-table-text-secondary: var(--color-text-secondary, #6b7280);
+  --ui-data-table-text-header: var(--color-text-heading, #374151);
+
+  /* Borders */
+  --ui-data-table-border: var(--color-border, #e5e7eb);
+
+  /* Checkbox */
+  --ui-data-table-checkbox-border: var(--color-border-input, #d1d5db);
+  --ui-data-table-checkbox-checked-bg: var(--color-primary, #7c3aed);
+  --ui-data-table-checkbox-checked-border: var(--color-primary, #7c3aed);
+  --ui-data-table-checkbox-radius: 4px;
+
+  /* Avatar */
+  --ui-data-table-avatar-bg: var(--color-primary-subtle, #ede9fe);
+  --ui-data-table-avatar-text: var(--color-primary, #7c3aed);
+  --ui-data-table-avatar-radius: 9999px;
+
+  /* Label badge */
+  --ui-data-table-label-bg: var(--color-surface-subtle, #f3f4f6);
+  --ui-data-table-label-text: var(--color-text-secondary, #374151);
+  --ui-data-table-label-bg-active: var(--color-success-subtle, #dcfce7);
+  --ui-data-table-label-text-active: var(--color-success, #166534);
+  --ui-data-table-label-radius: 9999px;
+  --ui-data-table-label-padding-x: 8px;
+  --ui-data-table-label-padding-y: 2px;
+
+  /* Action icon */
+  --ui-data-table-action-icon: var(--color-text-muted, #9ca3af);
+  --ui-data-table-action-icon-hover: var(--color-text-primary, #374151);
+  --ui-data-table-action-menu-bg: var(--color-surface, #ffffff);
+  --ui-data-table-action-menu-radius: 8px;
+  --ui-data-table-action-menu-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+
+  /* Focus */
+  --ui-data-table-focus-ring: var(--focus-ring-color, #93c5fd);
+
+  /* Apply base styles */
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: var(--ui-data-table-radius);
+  box-shadow: var(--ui-data-table-shadow);
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Header row */
+.ui-data-table thead tr {
+  background-color: var(--ui-data-table-header-bg);
+  height: var(--ui-data-table-header-height);
+}
+
+.ui-data-table th {
+  padding: var(--ui-data-table-cell-padding-y) var(--ui-data-table-cell-padding-x);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.05em;
+  color: var(--ui-data-table-text-header);
+  border-bottom: 1px solid var(--ui-data-table-border);
+  white-space: nowrap;
+}
+
+.ui-data-table th[aria-sort] {
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-data-table th[aria-sort]:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--ui-data-table-focus-ring);
+}
+
+/* Body rows */
+.ui-data-table tbody tr {
+  height: var(--ui-data-table-row-height);
+  background-color: var(--ui-data-table-row-bg);
+  border-bottom: 1px solid var(--ui-data-table-border);
+  transition: background-color 0.1s ease;
+}
+
+.ui-data-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.ui-data-table tbody tr:hover {
+  background-color: var(--ui-data-table-row-bg-hover);
+}
+
+.ui-data-table tbody tr[aria-selected='true'] {
+  background-color: var(--ui-data-table-row-bg-selected);
+}
+
+/* Striped variant */
+.ui-data-table[data-variant='striped'] tbody tr:nth-child(even) {
+  background-color: var(--ui-data-table-row-bg-alt);
+}
+
+.ui-data-table[data-variant='striped'] tbody tr:nth-child(even):hover {
+  background-color: var(--ui-data-table-row-bg-hover);
+}
+
+.ui-data-table[data-variant='striped'] tbody tr:nth-child(even)[aria-selected='true'] {
+  background-color: var(--ui-data-table-row-bg-selected);
+}
+
+/* Cells */
+.ui-data-table td {
+  padding: var(--ui-data-table-cell-padding-y) var(--ui-data-table-cell-padding-x);
+  color: var(--ui-data-table-text-primary);
+  vertical-align: middle;
+}
+
+/* Checkbox cells */
+.ui-data-table .ui-data-table-checkbox-cell {
+  width: calc(var(--ui-data-table-checkbox-size) + 2 * var(--ui-data-table-cell-padding-x));
+}
+
+.ui-data-table .ui-data-table-checkbox {
+  width: var(--ui-data-table-checkbox-size);
+  height: var(--ui-data-table-checkbox-size);
+  border-radius: var(--ui-data-table-checkbox-radius);
+  border: 1.5px solid var(--ui-data-table-checkbox-border);
+  accent-color: var(--ui-data-table-checkbox-checked-bg);
+  cursor: pointer;
+}
+
+.ui-data-table .ui-data-table-checkbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ui-data-table-focus-ring);
+}
+
+/* Avatar + text cell */
+.ui-data-table .ui-data-table-avatar-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ui-data-table .ui-data-table-avatar {
+  width: var(--ui-data-table-avatar-size);
+  height: var(--ui-data-table-avatar-size);
+  border-radius: var(--ui-data-table-avatar-radius);
+  background-color: var(--ui-data-table-avatar-bg);
+  color: var(--ui-data-table-avatar-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ui-data-table .ui-data-table-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Label badge */
+.ui-data-table .ui-data-table-label {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--ui-data-table-label-padding-y) var(--ui-data-table-label-padding-x);
+  border-radius: var(--ui-data-table-label-radius);
+  background-color: var(--ui-data-table-label-bg);
+  color: var(--ui-data-table-label-text);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.ui-data-table .ui-data-table-label[data-variant='active'] {
+  background-color: var(--ui-data-table-label-bg-active);
+  color: var(--ui-data-table-label-text-active);
+}
+
+/* Numeric cell */
+.ui-data-table .ui-data-table-numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Action menu */
+.ui-data-table .ui-data-table-action-cell {
+  position: relative;
+  text-align: right;
+}
+
+.ui-data-table .ui-data-table-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--ui-data-table-action-icon);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.1s ease;
+}
+
+.ui-data-table .ui-data-table-action-btn:hover {
+  color: var(--ui-data-table-action-icon-hover);
+}
+
+.ui-data-table .ui-data-table-action-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ui-data-table-focus-ring);
+}
+
+.ui-data-table .ui-data-table-action-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10; /* local stacking context within table */
+  background: var(--ui-data-table-action-menu-bg);
+  border: 1px solid var(--ui-data-table-border);
+  border-radius: var(--ui-data-table-action-menu-radius);
+  box-shadow: var(--ui-data-table-action-menu-shadow);
+  min-width: 140px;
+  padding: 4px 0;
+  list-style: none;
+  margin: 0;
+}
+
+.ui-data-table .ui-data-table-action-menu-item {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--ui-data-table-text-primary);
+  white-space: nowrap;
+}
+
+.ui-data-table .ui-data-table-action-menu-item:hover {
+  background-color: var(--ui-data-table-row-bg-hover);
+}
+
+.ui-data-table .ui-data-table-action-menu-item:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ui-data-table-focus-ring);
+}
+
+/* Visually hidden utility */
+.ui-data-table .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ui-data-table tbody tr,
+  .ui-data-table .ui-data-table-action-btn {
+    transition: none;
+  }
+}

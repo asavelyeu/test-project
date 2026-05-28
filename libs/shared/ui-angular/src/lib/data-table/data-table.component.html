@@ -1,0 +1,143 @@
+<table class="ui-data-table" [attr.data-variant]="striped ? 'striped' : 'default'">
+  <caption class="sr-only" [id]="captionId">{{ caption }}</caption>
+
+  <thead>
+    <tr>
+      @if (selectable) {
+        <th scope="col" class="ui-data-table-checkbox-cell">
+          <input
+            type="checkbox"
+            class="ui-data-table-checkbox"
+            [checked]="selectionState.allSelected"
+            [indeterminate]="selectionState.someSelected"
+            [attr.aria-checked]="selectionState.someSelected ? 'mixed' : selectionState.allSelected"
+            [attr.aria-label]="selectAllLabel"
+            (change)="toggleSelectAll()"
+          />
+        </th>
+      }
+
+      @for (column of columns; track column.key) {
+        <th
+          scope="col"
+          [style.width]="column.width ?? null"
+          [attr.aria-sort]="getAriaSort(column)"
+          [attr.tabindex]="column.sortable ? 0 : null"
+          (click)="handleSort(column)"
+          (keydown.enter)="handleSort(column)"
+          (keydown.space)="$event.preventDefault(); handleSort(column)"
+        >
+          @if (column.header) {
+            <span>{{ column.header }}</span>
+          } @else {
+            <span class="sr-only">Actions</span>
+          }
+        </th>
+      }
+    </tr>
+  </thead>
+
+  <tbody>
+    @for (row of rows; track row.id) {
+      <tr [attr.aria-selected]="selectable ? isRowSelected(row.id) : null">
+        @if (selectable) {
+          <td class="ui-data-table-checkbox-cell">
+            <input
+              type="checkbox"
+              class="ui-data-table-checkbox"
+              [checked]="isRowSelected(row.id)"
+              [attr.aria-label]="getCheckboxLabel(row)"
+              (change)="toggleRow(row.id)"
+            />
+          </td>
+        }
+
+        @for (column of columns; track column.key) {
+          @switch (column.type) {
+            @case ('avatar-text') {
+              <td>
+                @if (getAvatarValue(column, row); as avatar) {
+                  <div class="ui-data-table-avatar-cell">
+                    <div class="ui-data-table-avatar" aria-hidden="true">
+                      @if (avatar.avatarUrl) {
+                        <img [src]="avatar.avatarUrl" alt="" />
+                      } @else {
+                        <span>{{ getAvatarInitials(avatar) }}</span>
+                      }
+                    </div>
+                    <span>{{ avatar.name }}</span>
+                  </div>
+                } @else {
+                  {{ getCellValue(column, row) ?? '' }}
+                }
+              </td>
+            }
+            @case ('date') {
+              <td>{{ formatDateValue(getCellValue(column, row)) }}</td>
+            }
+            @case ('label') {
+              <td>
+                <span
+                  class="ui-data-table-label"
+                  [attr.data-variant]="getLabelVariant(column, getCellValue(column, row))"
+                >
+                  {{ getCellValue(column, row) ?? '' }}
+                </span>
+              </td>
+            }
+            @case ('numeric') {
+              <td class="ui-data-table-numeric">{{ formatNumericValue(getCellValue(column, row)) }}</td>
+            }
+            @case ('action') {
+              <td class="ui-data-table-action-cell">
+                <button
+                  #actionTrigger
+                  type="button"
+                  class="ui-data-table-action-btn"
+                  [attr.data-row-id]="row.id"
+                  [attr.aria-controls]="getActionMenuId(row.id)"
+                  [attr.aria-expanded]="openActionRowId === row.id"
+                  aria-haspopup="menu"
+                  [attr.aria-label]="getActionButtonLabel(row)"
+                  (click)="toggleActionMenu(row.id)"
+                  (keydown.escape)="closeActionMenu(row.id)"
+                >
+                  <span aria-hidden="true">⋮</span>
+                </button>
+
+                @if (openActionRowId === row.id) {
+                  <ul
+                    #actionMenu
+                    class="ui-data-table-action-menu"
+                    [attr.data-row-id]="row.id"
+                    [id]="getActionMenuId(row.id)"
+                    role="menu"
+                    tabindex="-1"
+                    [attr.aria-label]="getActionMenuLabel(row)"
+                    (keydown)="onActionMenuKeydown($event, row.id)"
+                  >
+                    @for (action of column.actions ?? []; track action.key) {
+                      <li role="none">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          class="ui-data-table-action-menu-item"
+                          (click)="handleAction(row.id, action.key)"
+                        >
+                          {{ action.label }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+              </td>
+            }
+            @default {
+              <td>{{ getCellValue(column, row) ?? '' }}</td>
+            }
+          }
+        }
+      </tr>
+    }
+  </tbody>
+</table>

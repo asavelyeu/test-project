@@ -48,6 +48,8 @@ Thumbs.db
 
 # Expo
 node_modules/
+
+.agent-run/
 .expo/
 .yarn/
 dist/

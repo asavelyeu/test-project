@@ -96,7 +96,7 @@ brew install uv
 Export these environment variables in your shell profile (`~/.zshrc` or `~/.bashrc`). They are required for Jira and Figma — Nx needs no secrets.
 
 ```sh
-export JIRA_URL="https://yourcompany.atlassian.net"
+export JIRA_URL="https://aristeksystems-team-f2twyvsi.atlassian.net"
 export JIRA_USERNAME="you@yourcompany.com"
 export JIRA_API_TOKEN="your-jira-api-token"   # https://id.atlassian.com/manage-profile/security/api-tokens
 export FIGMA_ACCESS_TOKEN="your-figma-token"  # https://www.figma.com/settings → Personal access tokens
