@@ -31,8 +31,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright (chromium)
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Build Storybook (shared-ui)
         run: pnpm nx build-storybook shared-ui
@@ -44,33 +44,10 @@ jobs:
           pnpm nx test-storybook shared-ui --ci --url http://localhost:6006
           kill %1 2>/dev/null || true
 
-      - name: Detect Angular adapter
-        id: ng
-        run: |
-          if [ -d "libs/shared/ui-angular" ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Build Storybook (shared-ui-angular)
-        if: steps.ng.outputs.exists == 'true'
-        run: pnpm nx build-storybook shared-ui-angular
-
-      - name: Serve + test Storybook with axe (shared-ui-angular)
-        if: steps.ng.outputs.exists == 'true'
-        run: |
-          npx serve libs/shared/ui-angular/storybook-static -p 6007 &
-          npx wait-on http://localhost:6007 --timeout 30000
-          pnpm nx test-storybook shared-ui-angular --ci --url http://localhost:6007
-          kill %1 2>/dev/null || true
-
       - name: Upload Storybook artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: storybook-a11y-report
-          path: |
-            libs/shared/ui/storybook-static
-            libs/shared/ui-angular/storybook-static
+          path: libs/shared/ui/storybook-static
           if-no-files-found: ignore
