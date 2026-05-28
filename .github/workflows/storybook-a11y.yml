@@ -1,0 +1,53 @@
+name: Storybook a11y (CI gate)
+
+on:
+  pull_request:
+    paths:
+      - 'libs/shared/ui/**'
+      - 'libs/shared/ui-angular/**'
+      - 'libs/**/.storybook/**'
+      - '.github/workflows/storybook-a11y.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+
+jobs:
+  storybook-a11y:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Build Storybook (shared-ui)
+        run: pnpm nx build-storybook shared-ui
+
+      - name: Serve + test Storybook with axe (shared-ui)
+        run: |
+          npx serve libs/shared/ui/storybook-static -p 6006 &
+          npx wait-on http://localhost:6006 --timeout 30000
+          pnpm nx test-storybook shared-ui --ci --url http://localhost:6006
+          kill %1 2>/dev/null || true
+
+      - name: Upload Storybook artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-a11y-report
+          path: libs/shared/ui/storybook-static
+          if-no-files-found: ignore
