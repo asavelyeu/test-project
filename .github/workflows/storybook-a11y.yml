@@ -1,0 +1,68 @@
+name: Storybook a11y (CI gate)
+
+on:
+  pull_request:
+    paths:
+      - 'libs/shared/ui/**'
+      - 'libs/shared/ui-angular/**'
+      - 'libs/**/.storybook/**'
+      - '.github/workflows/storybook-a11y.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+
+jobs:
+  storybook-a11y:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright (chromium)
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build Storybook (shared-ui)
+        run: pnpm nx build-storybook shared-ui
+
+      - name: Run Storybook test-runner with axe (shared-ui)
+        run: pnpm nx test-storybook shared-ui --ci
+
+      - name: Detect Angular adapter
+        id: ng
+        run: |
+          if [ -d "libs/shared/ui-angular" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Storybook (shared-ui-angular)
+        if: steps.ng.outputs.exists == 'true'
+        run: pnpm nx build-storybook shared-ui-angular
+
+      - name: Run Storybook test-runner with axe (shared-ui-angular)
+        if: steps.ng.outputs.exists == 'true'
+        run: pnpm nx test-storybook shared-ui-angular --ci
+
+      - name: Upload Storybook artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-a11y-report
+          path: |
+            libs/shared/ui/storybook-static
+            libs/shared/ui-angular/storybook-static
+          if-no-files-found: ignore
