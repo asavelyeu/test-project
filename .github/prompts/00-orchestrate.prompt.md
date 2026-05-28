@@ -122,6 +122,12 @@ PHASE 1 — parallel:
 #file:.github/prompts/01-requirements.prompt.md
 #file:.github/prompts/02-design-inspector.prompt.md
 
+PHASE 1.5 — Fetch gate (deterministic, no LLM call):
+Read context.json. HALT and surface to user if ANY of these is true: - `fetch_status.jira === "error"` - `fetch_status.figma === "error"` (only required when
+`ticket.frameworks` is non-empty) - `fetch_status.jira` is missing entirely (Phase 1 never ran)
+`"hit" | "ok" | "stale_refreshed"` are all acceptable.
+Log: `"Fetch gate: jira={...} confluence={...} figma={...}"`.
+
 PHASE 2:
 #file:.github/prompts/03-architect.prompt.md
 
@@ -132,8 +138,13 @@ PHASE 3 — implementation (sequential, only run adapters the ticket needs):
 
 PHASE 4 — QA loop (max 3 iterations across all implemented adapters):
 #file:.github/prompts/07-qa.prompt.md
+When the base QA checks pass, ALSO invoke the deep WCAG auditor once per
+built adapter:
+#file:.github/prompts/07b-wcag-auditor.prompt.md
+Effective `qa.passed = base.qa.passed && every adapter's qa.wcag_audit.passed`.
 If qa.passed is false AND iteration < 3: re-run the relevant implement-\* prompts
-with qa feedback, then re-run QA.
+with qa feedback (including any `qa.wcag_audit` failures bucketed into
+`feedback_for_core/react/angular`), then re-run QA.
 If qa.passed is false AND iteration == 3: stop, report to user.
 
 PHASE 5:

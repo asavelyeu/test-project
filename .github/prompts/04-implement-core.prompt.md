@@ -38,6 +38,20 @@ Create per `architecture.file_plan` (core entries):
 - `<kebab>.a11y.ts` ← keyboard maps, ARIA computation helpers
 - `<kebab>.css` ← full `--ui-<component>-*` token surface
   with sensible defaults referencing shared tokens
+- `<kebab>.contrast.spec.ts` ← deterministic unit test that imports
+  `auditPairs` from `tools/scripts/contrast-check.mjs` and asserts every
+  documented `--ui-<comp>-*-fg` / `--ui-<comp>-*-bg` token pair meets
+  WCAG AA. Example:
+  ```ts
+  import { auditPairs } from '../../../../../../tools/scripts/contrast-check.mjs';
+  it('all token pairs meet WCAG AA', () => {
+    const results = auditPairs([
+      { name: 'default', fg: '#111', bg: '#fff', kind: 'normal_text' },
+      // ...one entry per documented pair
+    ]);
+    expect(results.filter((r) => !r.passes)).toEqual([]);
+  });
+  ```
 - `index.ts` ← barrel
 
 Rules:

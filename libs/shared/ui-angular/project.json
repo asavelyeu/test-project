@@ -31,6 +31,42 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint"
+    },
+    "storybook": {
+      "executor": "@storybook/angular:start-storybook",
+      "options": {
+        "configDir": "libs/shared/ui-angular/.storybook",
+        "browserTarget": "shared-ui-angular:build:development",
+        "compodoc": false,
+        "port": 4400
+      }
+    },
+    "build-storybook": {
+      "executor": "@storybook/angular:build-storybook",
+      "outputs": ["{projectRoot}/storybook-static"],
+      "options": {
+        "configDir": "libs/shared/ui-angular/.storybook",
+        "browserTarget": "shared-ui-angular:build:production",
+        "compodoc": false,
+        "outputDir": "libs/shared/ui-angular/storybook-static"
+      },
+      "cache": true
+    },
+    "test-storybook": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "libs/shared/ui-angular",
+        "command": "test-storybook"
+      }
+    },
+    "static-storybook": {
+      "dependsOn": ["build-storybook"],
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "build-storybook",
+        "staticFilePath": "libs/shared/ui-angular/storybook-static"
+      }
     }
   }
 }

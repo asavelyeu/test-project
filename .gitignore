@@ -65,3 +65,4 @@ cache/
 vite.config.*.timestamp*
 
 storybook-static
+.angular

@@ -17,7 +17,10 @@ const config: StorybookConfig = {
     '../hover-card/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
     '../menubar/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
   ],
-  addons: [],
+  addons: [
+    getAbsolutePath('@storybook/addon-essentials'),
+    getAbsolutePath('@storybook/addon-a11y'),
+  ],
   framework: {
     name: getAbsolutePath('@storybook/react-vite'),
     options: {},

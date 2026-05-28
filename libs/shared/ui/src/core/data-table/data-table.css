@@ -138,12 +138,14 @@
 
 /* Checkbox cells */
 .ui-data-table .ui-data-table-checkbox-cell {
+  box-sizing: border-box;
   width: calc(var(--ui-data-table-checkbox-size) + 2 * var(--ui-data-table-cell-padding-x));
 }
 
 .ui-data-table .ui-data-table-checkbox {
   width: var(--ui-data-table-checkbox-size);
   height: var(--ui-data-table-checkbox-size);
+  margin: 0;
   border-radius: var(--ui-data-table-checkbox-radius);
   border: 1.5px solid var(--ui-data-table-checkbox-border);
   accent-color: var(--ui-data-table-checkbox-checked-bg);

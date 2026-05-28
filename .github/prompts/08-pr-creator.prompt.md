@@ -102,8 +102,8 @@ All tests: ✅
 
    Pipe it to:
    `printf '%s' '<json>' | pnpm agent:epic complete \
-    --epic {context.epic.id} --subticket {ticket.id} \
-    --pr-url {pr.pr_url} --produced -`
+ --epic {context.epic.id} --subticket {ticket.id} \
+ --pr-url {pr.pr_url} --produced -`
 
    The CLI handles atomic JSON writes, dedup, journal append, and
    recomputes `epic.next_action`. Do not edit `epic.json` directly.

@@ -7,10 +7,26 @@ tools: ['codebase', 'editFiles']
 ---
 
 PERMITTED: Jira MCP (read-only), Confluence MCP (read-only),
+terminal scoped to `pnpm agent:cache <get|set|peek>`,
 filesystem write to `.agent-run/` only.
 FORBIDDEN: git, Figma, source files outside `.agent-run/`.
 
 You receive a Jira ticket ID (e.g. APD-1332). Ask if missing.
+
+STEP 0 — Fetch cache (TTL 6h).
+Compute `cache_key = "jira:" + ticket_id`.
+Run `pnpm agent:cache get --key "{cache_key}" --ttl-seconds 21600`.
+
+- `status === "hit"` → use `payload.ticket`, set
+  `fetch_status.jira = "hit"`, `fetch_status.from_cache = true`,
+  skip STEP 1's Jira call (still run STEP 1b epic awareness).
+- `status ∈ ("miss", "stale")` → continue to STEP 1, then write the
+  fresh ticket back with
+  `echo '{"ticket":<obj>}' | pnpm agent:cache set --key "{cache_key}" --source jira --ttl-seconds 21600`
+  and set `fetch_status.jira = "ok"` (or `"stale_refreshed"`).
+- On any Jira error: set `fetch_status.jira = "error"`, emit the
+  error message, and HALT — the orchestrator's Phase 1.5 fetch gate
+  will block Phase 2.
 
 STEP 1 — Fetch the Jira ticket. Extract:
 id, type (mapped via .agent-config.yml commit_type_map),
@@ -29,10 +45,15 @@ this prompt MUST NOT call epic-sync itself. Just read
 contents into context under key `epic_memory` so downstream phases see them.
 
 STEP 2 — Search Confluence for pages matching the ticket title and component
-name. Fetch top 3. Store { title, url, summary (2–3 sentences) }.
+name. Use the same cache pattern as STEP 0 with
+`cache_key = "confluence:" + ticket_id + ":" + ticket.title_kebab` and
+TTL 12h (43200). Set `fetch_status.confluence` to
+`hit | ok | stale_refreshed | error`. Fetch top 3. Store
+{ title, url, summary (2–3 sentences) }.
 
 STEP 3 — Read `.agent-run/{id}/context.json` (create dir if needed).
-Merge your output under keys `ticket`, `confluence`, and (if applicable)
-`epic_memory`. Write back.
+Merge your output under keys `ticket`, `confluence`, (if applicable)
+`epic_memory`, and ALWAYS `fetch_status: { jira, confluence,
+from_cache }`. Write back.
 
-Output: "Requirements complete for {id}. Frameworks: {frameworks}. Parent epic: {epic.id or 'none'}. Title kebab: {title_kebab}."
+Output: "Requirements complete for {id}. Frameworks: {frameworks}. Parent epic: {epic.id or 'none'}. Title kebab: {title_kebab}. Cache: jira={fetch_status.jira} confluence={fetch_status.confluence}."

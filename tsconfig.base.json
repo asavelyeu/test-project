@@ -10,21 +10,17 @@
     "importHelpers": true,
     "target": "es2015",
     "module": "esnext",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
+    "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@test-project/shared-ui": [
-        "libs/shared/ui/src/index.ts"
+      "@test-project/shared-ui": ["libs/shared/ui/src/index.ts"],
+      "@test-project/shared-ui/core": ["libs/shared/ui/src/core/data-table/index.ts"],
+      "@test-project/shared-ui-angular": [
+        "./libs/shared/ui-angular/src/index.ts"
       ]
     }
   },
-  "exclude": [
-    "node_modules",
-    "tmp"
-  ]
+  "exclude": ["node_modules", "tmp"]
 }

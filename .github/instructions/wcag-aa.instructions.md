@@ -255,3 +255,72 @@ ensure their theme meets contrast requirements.
 - Never skip the axe accessibility audit in test files
 - Never use `user-select: none` on content that users may need to copy
 - Never set `autocomplete="off"` on login/account forms
+
+---
+
+## 13. Forced-colors mode (Windows High Contrast)
+
+Components MUST remain usable when `forced-colors: active`:
+
+- Every interactive element draws a visible `border` OR `outline` using
+  a system color (`CanvasText`, `Highlight`, `ButtonText`), or declares
+  `forced-color-adjust: auto`.
+- Never use `background-color` as the SOLE indicator of state — pair
+  it with a border-style change or icon swap.
+- Provide an explicit `@media (forced-colors: active) { … }` block in
+  the component CSS for every state token that relies on colour.
+- The wcag-auditor (Phase 4 Check 1) verifies this at runtime via
+  chrome-devtools MCP `emulate.forcedColors = "active"`.
+
+## 14. Reduced motion (WCAG 2.3.3)
+
+- All non-essential transitions and animations MUST be wrapped in
+  `@media (prefers-reduced-motion: no-preference) { … }`.
+- The default styles (outside that media query) MUST resolve to
+  `transition: none` / `animation: none` for the same properties.
+- The wcag-auditor (Phase 4 Check 2) enforces this by emulating
+  `reducedMotion: "reduce"` and asserting computed transition /
+  animation duration ≤ 0.01s.
+
+## 15. Text spacing (WCAG 1.4.12)
+
+When the user overrides line-height ≥ 1.5, letter-spacing ≥ 0.12em,
+word-spacing ≥ 0.16em, paragraph-spacing ≥ 2em:
+
+- No content is clipped (no `overflow: hidden` on text-bearing surfaces).
+- No horizontal scrollbars appear.
+- No text overlaps adjacent content.
+
+Implementation rules:
+
+- Never set fixed `height` on containers that hold flowing text — use
+  `min-height` or leave it auto.
+- Use `overflow: auto` or `overflow: visible` on text containers,
+  never `overflow: hidden`.
+- Verified by Phase 4 Check 3.
+
+## 16. 400% reflow (WCAG 1.4.10)
+
+At a 320×256 CSS-px viewport (= 1280×1024 zoomed to 400%):
+
+- Content reflows with NO two-dimensional scrolling (no horizontal scroll).
+- Exception: data tables are exempt per SC 1.4.10. The table wrapper
+  MUST still expose `overflow-x: auto` and a visible scrollbar.
+
+Implementation rules:
+
+- Prefer `max-width: 100%` over `min-width: <fixed-px>`.
+- Use `flex-wrap: wrap` on flex rows that may overflow.
+- Never set `min-width` on a top-level component greater than 320px.
+- Verified by Phase 4 Check 4.
+
+## 17. Contrast tokens — unit-tested
+
+Every component library MUST ship `<component>.contrast.spec.ts`. It
+imports `auditPairs` from `tools/scripts/contrast-check.mjs` and asserts
+every documented `--ui-<comp>-*-fg` / `--ui-<comp>-*-bg` pair meets
+WCAG AA at its documented usage (`normal_text` / `large_text` / `ui`).
+The wcag-auditor re-runs the same check from rendered Storybook
+stylesheets in Phase 4 Check 5 as defense in depth, and
+`pnpm nx test-storybook shared-ui` blocks the PR on any axe `wcag2aa`
+contrast violation in a rendered story.

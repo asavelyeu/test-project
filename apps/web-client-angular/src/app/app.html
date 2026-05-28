@@ -1,0 +1,19 @@
+<div style="padding: 2rem; font-family: sans-serif">
+  <h1 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700">
+    Angular — Data Table Demo
+  </h1>
+  <p style="margin-bottom: 1rem; color: #555">
+    {{ selectionCount }} row{{ selectionCount !== 1 ? 's' : '' }} selected
+  </p>
+  <lib-data-table
+    [columns]="$any(columns)"
+    [rows]="$any(rows)"
+    caption="Employee directory"
+    [selectedIds]="selectedIds()"
+    [sortConfig]="sortConfig()"
+    [striped]="true"
+    (selectionChange)="onSelectionChange($event)"
+    (sortChange)="onSort($event)"
+    (actionClick)="onActionSelect($event.rowId, $event.actionKey)"
+  />
+</div>

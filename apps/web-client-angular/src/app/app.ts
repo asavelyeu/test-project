@@ -1,10 +1,6 @@
-import { useState } from 'react';
-import { DataTable } from '@test-project/shared-ui';
-import type {
-  DataTableColumn,
-  DataTableRow,
-  SortConfig,
-} from '@test-project/shared-ui';
+import { Component, signal } from '@angular/core';
+import { DataTableComponent } from '@test-project/shared-ui-angular';
+import type { DataTableColumn, DataTableRow, SortConfig } from '@test-project/shared-ui/core';
 
 interface Employee {
   name: string;
@@ -65,33 +61,31 @@ const ROWS: DataTableRow<Employee>[] = [
   { id: '5', data: { name: 'Eva Martinez', initials: 'EM', role: 'Engineer', department: 'Platform', joined: new Date('2019-11-05'), salary: 135000, status: 'active' } },
 ];
 
-export function App() {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ columnKey: 'name', direction: 'asc' });
+@Component({
+  imports: [DataTableComponent],
+  selector: 'app-root',
+  templateUrl: './app.html',
+  styleUrl: './app.css',
+})
+export class App {
+  columns = COLUMNS;
+  rows = ROWS;
+  selectedIds = signal<Set<string>>(new Set());
+  sortConfig = signal<SortConfig>({ columnKey: 'name', direction: 'asc' });
 
-  return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 700 }}>
-        React — Data Table Demo
-      </h1>
-      <p style={{ marginBottom: '1rem', color: '#555' }}>
-        {selectedIds.size} row{selectedIds.size !== 1 ? 's' : ''} selected
-      </p>
-      <DataTable
-        caption="Employee directory"
-        columns={COLUMNS}
-        rows={ROWS}
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        sortConfig={sortConfig}
-        onSort={setSortConfig}
-        onActionSelect={(rowId, action) =>
-          alert(`Action "${action}" on row ${rowId}`)
-        }
-        striped
-      />
-    </div>
-  );
+  get selectionCount() {
+    return this.selectedIds().size;
+  }
+
+  onSelectionChange(ids: Set<string>) {
+    this.selectedIds.set(ids);
+  }
+
+  onSort(config: SortConfig) {
+    this.sortConfig.set(config);
+  }
+
+  onActionSelect(rowId: string, actionKey: string) {
+    alert(`Action "${actionKey}" on row ${rowId}`);
+  }
 }
-
-export default App;
