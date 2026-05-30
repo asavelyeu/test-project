@@ -79,6 +79,36 @@ Run `pnpm agent:doctor`. Examine the output.
   Note which MCP servers may be unavailable (e.g. Figma, Confluence)
   so downstream phases can degrade gracefully.
 
+After the doctor passes, **ping each MCP server** to verify it is actually
+running (not just configured). A configured-but-stopped server will silently
+break downstream phases:
+
+| MCP Server | Ping call | Required for |
+|------------|-----------|--------------|
+| **Jira** | `jira_get_issue` with the target ticket ID | Phase 0 (requirements) |
+| **chrome-devtools** | `chrome_devtools_take_screenshot` (any tab) | Phase 4 (QA visual checks) |
+| **Playwright** | `playwright_navigate` to `about:blank` | Phase 4 (QA keyboard/interaction) |
+| **Figma** | `figma_get_file` with a known file key | Phase 1 (design inspection) |
+
+For each server:
+- If the ping call **succeeds** → mark the server as `alive` in memory.
+- If the ping call **errors or times out (>10 s)** → notify the user:
+  > "⚠️ MCP server `{name}` is configured but not responding.
+  > Please restart it in VS Code (Cmd+Shift+P → 'MCP: Restart Server')
+  > then confirm to continue."
+  Wait for user confirmation before proceeding.
+- If the server is **optional** for the current ticket (e.g. Figma when
+  design is already cached, or Playwright when only React is in scope)
+  → log the warning and continue without blocking.
+
+**Critical servers** that MUST be alive to proceed:
+- Jira — always required (ticket fetch is Phase 0 step 1)
+- chrome-devtools — required if the pipeline will reach Phase 4 QA
+
+**Degradable servers** (pipeline can continue without them):
+- Figma — only needed if no cached design exists in context.json
+- Playwright — only needed for interaction testing in QA
+
 PHASE 0b — Resumability Check:
 
 Before starting Phase 0, check for existing progress:
