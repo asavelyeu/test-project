@@ -65,6 +65,46 @@ All epic-level memory operations go through the deterministic CLI
 `.agent-run/epics/**/epic.json` or `spec/component.json` — always shell
 out so the schema and merges stay deterministic.
 
+PHASE 0a — MCP Preflight (MANDATORY, runs before everything):
+
+Run `pnpm agent:doctor`. Examine the output.
+
+- If ANY **required** check fails (exit code 1): **HALT immediately**.
+  Surface the doctor's output to the user with this message:
+  > "Pipeline cannot start — required dependencies are missing. Run
+  > `pnpm agent:doctor` and fix the items marked ✘ above."
+  Do NOT proceed to Phase 0 or any other phase.
+- If only **optional** checks fail (exit code 0 with warnings): log
+  the warnings to `.agent-run/{ticket_id}/pipeline.log` and continue.
+  Note which MCP servers may be unavailable (e.g. Figma, Confluence)
+  so downstream phases can degrade gracefully.
+
+PHASE 0b — Resumability Check:
+
+Before starting Phase 0, check for existing progress:
+
+1. **Epic mode:** If the ticket has an epic parent, check
+   `.agent-run/epics/{epic_id}/subtickets/{ticket_id}/context.json`.
+2. **Single-ticket mode:** Check `.agent-run/{ticket_id}/context.json`.
+
+If the context file exists AND has `last_completed_phase` set:
+> "Found existing progress for {ticket_id}: last completed phase =
+> {last_completed_phase}. Resume from phase {last_completed_phase + 1}?
+> [Y/n]"
+
+- **yes** → Load the existing context. Skip all phases up to and
+  including `last_completed_phase`. Continue from
+  `last_completed_phase + 1`.
+- **no** → Wipe the context file (`phases` and `last_completed_phase`
+  keys only — preserve `epic`, `must_respect`, `design_source` if
+  present) and start from Phase 0.
+
+At the end of each phase, persist progress via:
+`pnpm agent:epic checkpoint --epic {epic_id} --subticket {subticket_id} \
+  --phase {N} --slice -`
+(In single-ticket mode, write `last_completed_phase` directly into
+`.agent-run/{ticket_id}/context.json` instead.)
+
 PHASE 0 — Epic Sync (MANDATORY, runs before everything else):
 
 1. Fetch the ticket from Jira (Jira MCP). Extract `parent` (the epic).

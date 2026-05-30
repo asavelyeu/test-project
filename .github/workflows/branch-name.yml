@@ -1,0 +1,45 @@
+name: Branch name check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Validate branch name
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          echo "Checking branch name: $BRANCH"
+
+          # Pattern: {project-key}-{number}-{type}-{description}
+          # e.g. apd-1332-feat-implement-data-table
+          PATTERN='^[a-z][a-z0-9]+-[0-9]+-(feat|fix|chore|refactor|test|docs|style|perf|ci|build|revert)-[a-z0-9][a-z0-9-]{0,50}$'
+
+          if [[ ${#BRANCH} -gt 72 ]]; then
+            echo "::error::Branch name exceeds 72 characters (got ${#BRANCH}): $BRANCH"
+            echo ""
+            echo "Expected format: {ticket-lowercase}-{type}-{title-kebab}"
+            echo "Example: apd-1332-feat-implement-data-table"
+            exit 1
+          fi
+
+          if ! [[ "$BRANCH" =~ $PATTERN ]]; then
+            echo "::error::Branch name does not match naming convention: $BRANCH"
+            echo ""
+            echo "Expected format: {ticket-lowercase}-{type}-{title-kebab}"
+            echo "  ticket:  lowercase Jira key + number (e.g. apd-1332, ngi-12)"
+            echo "  type:    feat|fix|chore|refactor|test|docs|style|perf|ci|build|revert"
+            echo "  title:   kebab-case description, lowercase letters/digits/hyphens only"
+            echo ""
+            echo "Examples:"
+            echo "  apd-1332-feat-implement-data-table"
+            echo "  ngi-12-fix-table-sort-regression"
+            echo "  ngi-15-chore-update-storybook-config"
+            exit 1
+          fi
+
+          echo "✔ Branch name is valid: $BRANCH"

@@ -30,9 +30,13 @@
  *   complete    --epic <ID> --subticket <ID>
  *               [--pr-url <url>]
  *               [--produced <json-file|->]     mark subticket done, merge produced slice
+ *   checkpoint  --epic <ID> --subticket <ID> --phase <N>
+ *               [--slice <json-file|->]        save phase progress for resumability
  *   journal     --epic <ID> --message <"...">  append a line to progress.md
  *   add-tokens  --epic <ID> --tokens <json-file|->   merge tokens into spec/tokens.css
  *   add-decision --epic <ID> --subticket <ID> --message <"...">  append ADR entry
+ *   lock        --epic <ID>                    acquire concurrency lock
+ *   unlock      --epic <ID>                    release concurrency lock
  *
  * Pass `-` to any `<json-file>` flag to read JSON from stdin.
  *
@@ -52,6 +56,7 @@ import {
 import { dirname, join, resolve } from 'node:path';
 import { argv, exit, stdin } from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { hostname } from 'node:os';
 
 const SCHEMA_VERSION = 1;
 const REPO_ROOT = resolve(fileURLToPath(import.meta.url), '..', '..', '..');
@@ -170,6 +175,10 @@ function subticketContextPath(epicId, subId) {
 
 function ignoredMarkerPath(epicId) {
   return join(epicDir(epicId), 'IGNORED.json');
+}
+
+function lockFilePath(epicId) {
+  return join(epicDir(epicId), '.lock');
 }
 
 function isEpicIgnored(epicId) {
@@ -423,6 +432,9 @@ function cmdStart(args) {
   const subId = args.subticket;
   if (!subId) fail('start requires --subticket');
 
+  // Acquire concurrency lock
+  acquireLock(args.epic);
+
   const sub = epic.subtickets.find((s) => s.id === subId);
   if (!sub) fail(`subticket ${subId} not found in epic ${epic.id}`);
 
@@ -562,6 +574,9 @@ async function cmdComplete(args) {
         : ''),
   );
 
+  // Release concurrency lock
+  releaseLock(epic.id);
+
   ok({
     subticket: sub,
     next_action: epic.next_action,
@@ -598,6 +613,52 @@ function cmdAddDecision(args) {
   ok({ appended_to: decisionsPath(epic.id).replace(REPO_ROOT + '/', '') });
 }
 
+async function cmdCheckpoint(args) {
+  const epicId = args.epic;
+  const subId = args.subticket;
+  const phase = args.phase;
+  if (!epicId || !subId || phase === undefined)
+    fail('checkpoint requires --epic, --subticket, --phase');
+
+  const phaseNum = parseInt(phase, 10);
+  if (isNaN(phaseNum) || phaseNum < 0 || phaseNum > 9)
+    fail(`invalid phase number "${phase}" (expected 0–9)`);
+
+  const epic = loadEpic(epicId);
+  const sub = epic.subtickets.find((s) => s.id === subId);
+  if (!sub) fail(`subticket ${subId} not found in epic ${epicId}`);
+
+  const slice = (await readJsonInput(args.slice)) || {};
+  const contextPath = subticketContextPath(epicId, subId);
+
+  let context = {};
+  if (existsSync(contextPath)) {
+    context = readJson(contextPath);
+  }
+
+  // Replace entire phase slice (not deep merge — deterministic)
+  if (!context.phases) context.phases = {};
+  context.phases[phaseNum] = {
+    ...slice,
+    completed_at: nowIso(),
+  };
+  context.last_completed_phase = phaseNum;
+
+  writeJsonAtomic(contextPath, context);
+
+  appendFileAtomic(
+    progressPath(epicId),
+    `[${nowIso()}] checkpoint phase ${phaseNum} for ${subId}\n`,
+  );
+
+  ok({
+    subticket_id: subId,
+    phase: phaseNum,
+    last_completed_phase: phaseNum,
+    context_path: contextPath.replace(REPO_ROOT + '/', ''),
+  });
+}
+
 function cmdSetDesign(args) {
   const epic = loadEpic(args.epic);
   const subId = args.subticket;
@@ -629,6 +690,92 @@ function cmdGetDesign(args) {
   const sub = epic.subtickets.find((s) => s.id === subId);
   if (!sub) fail(`subticket ${subId} not found in epic ${epic.id}`);
   ok({ subticket_id: sub.id, design_source: sub.design_source || null });
+}
+
+// ---------- lock helpers ----------
+function isPidAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function acquireLock(epicId) {
+  const lp = lockFilePath(epicId);
+  const lockData = JSON.stringify(
+    {
+      pid: process.pid,
+      hostname: hostname(),
+      started_at: nowIso(),
+      cwd: process.cwd(),
+    },
+    null,
+    2,
+  );
+
+  if (existsSync(lp)) {
+    try {
+      const existing = readJson(lp);
+      if (existing.pid && isPidAlive(existing.pid)) {
+        fail(
+          `epic ${epicId} is locked by PID ${existing.pid} since ${existing.started_at}. ` +
+            `If this is stale, run: pnpm agent:epic unlock --epic ${epicId}`,
+        );
+      }
+      // Stale lock — PID is dead, override with warning
+      process.stderr.write(
+        `epic-sync: WARNING — overriding stale lock (PID ${existing.pid} is dead)\n`,
+      );
+    } catch {
+      // Corrupt lock file, override
+      process.stderr.write(
+        `epic-sync: WARNING — overriding unreadable lock file\n`,
+      );
+    }
+  }
+
+  try {
+    writeFileSync(lp, lockData + '\n', { flag: 'wx' });
+  } catch (err) {
+    if (err.code === 'EEXIST') {
+      // Race: another process created it between our check and write
+      fail(
+        `epic ${epicId} lock acquired by another process. Retry or run: pnpm agent:epic unlock --epic ${epicId}`,
+      );
+    }
+    // For stale overrides, we already warned — just write normally
+    writeFileSync(lp, lockData + '\n', 'utf8');
+  }
+}
+
+function releaseLock(epicId) {
+  const lp = lockFilePath(epicId);
+  if (existsSync(lp)) {
+    try {
+      unlinkSync(lp);
+    } catch {
+      /* best effort */
+    }
+  }
+}
+
+function cmdLock(args) {
+  const epicId = args.epic;
+  if (!epicId) fail('lock requires --epic');
+  mkdirSync(epicDir(epicId), { recursive: true });
+  acquireLock(epicId);
+  ok({ locked: true, epic_id: epicId, pid: process.pid });
+}
+
+function cmdUnlock(args) {
+  const epicId = args.epic;
+  if (!epicId) fail('unlock requires --epic');
+  const lp = lockFilePath(epicId);
+  const wasLocked = existsSync(lp);
+  releaseLock(epicId);
+  ok({ unlocked: true, epic_id: epicId, was_locked: wasLocked });
 }
 
 function cmdList() {
@@ -664,7 +811,7 @@ async function main() {
   const cmd = args._[0];
   if (!cmd) {
     process.stderr.write(
-      'Usage: epic-sync <init|status|next|start|complete|journal|add-tokens|add-decision|set-design|get-design|ignore|unignore|list> [flags]\n',
+      'Usage: epic-sync <init|status|next|start|complete|checkpoint|journal|add-tokens|add-decision|set-design|get-design|ignore|unignore|lock|unlock|list> [flags]\n',
     );
     exit(2);
   }
@@ -686,6 +833,8 @@ async function main() {
         return await cmdAddTokens(args);
       case 'add-decision':
         return cmdAddDecision(args);
+      case 'checkpoint':
+        return await cmdCheckpoint(args);
       case 'set-design':
         return cmdSetDesign(args);
       case 'get-design':
@@ -694,6 +843,10 @@ async function main() {
         return cmdIgnore(args);
       case 'unignore':
         return cmdUnignore(args);
+      case 'lock':
+        return cmdLock(args);
+      case 'unlock':
+        return cmdUnlock(args);
       case 'list':
         return cmdList();
       default:
