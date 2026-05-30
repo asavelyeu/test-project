@@ -34,11 +34,14 @@ on failure with non-zero exit code).
 | `init`         | Seed a new epic from Jira data. Required: `--epic`, `--title`, `--component`; optional `--subtickets <file   | ->` (JSON array). |
 | `status`       | Print the current `epic.json`.                                                                               |
 | `next`         | Print `next_action` — which subticket to pick up and what to respect.                                        |
-| `start`        | Mark a subticket `in_progress` and emit a context seed.                                                      |
-| `complete`     | Mark a subticket `done`, merge `produced` slice (files/exports/tokens/types), update PR URL, append journal. |
+| `start`        | Mark a subticket `in_progress` and emit a context seed. **Acquires concurrency lock.**                       |
+| `complete`     | Mark a subticket `done`, merge `produced` slice (files/exports/tokens/types), update PR URL, append journal. **Releases concurrency lock.** |
+| `checkpoint`   | Save per-phase progress for resumability. `--epic --subticket --phase <0–9> [--slice json\|-]`.              |
 | `journal`      | Append a free-form line to `progress.md`.                                                                    |
 | `add-decision` | Append an ADR entry to `spec/decisions.md`.                                                                  |
 | `add-tokens`   | Append tokens to `spec/tokens.css` outside the normal complete flow.                                         |
+| `lock`         | Manually acquire a concurrency lock. `--epic`. Fails if already locked by a live PID.                        |
+| `unlock`       | Manually release a concurrency lock. `--epic`. Use when a prior run crashed.                                 |
 | `list`         | List all epics with status + done/total.                                                                     |
 
 ### Typical usage (orchestrator Phase 0 → Phase 7)
@@ -80,3 +83,20 @@ script:
 If you ever need to extend the schema, bump `SCHEMA_VERSION` in
 `epic-sync.mjs` and `epic.schema.json` together, and add a migration
 branch in `loadEpic()`.
+
+## `agent-doctor.mjs` — preflight health check
+
+Run via `pnpm agent:doctor`. Checks everything the pipeline needs before
+any work begins:
+
+- **Environment variables** — `JIRA_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`
+  (required); `TEST_PROJECT_FIGMA_ACCESS_TOKEN`, `CONFLUENCE_BASE_URL`,
+  `GITHUB_TOKEN` (optional).
+- **CLI tools** — `uvx` (for Jira MCP), `npx`, `pnpm`.
+- **Pipeline files** — all 11 prompt files in `.github/prompts/` and all
+  3 scripts in `tools/scripts/`.
+
+Exit code 0 = pipeline ready (optional warnings OK). Exit code 1 = required
+check(s) failed; fix before running the orchestrator.
+
+The orchestrator's Phase 0a runs this automatically and halts on failure.

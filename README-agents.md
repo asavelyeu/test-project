@@ -115,36 +115,55 @@ phases, each scoped to one responsibility.
 
 | #   | Phase                | What it does                                                                                                                                                                                                        |
 | --- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0   | **Epic Sync**        | Detects the parent epic, asks once whether to use shared cross-subticket memory, then seeds `context.json` with prior decisions/exports                                                                             |
+| 0a  | **MCP Preflight**    | Runs `pnpm agent:doctor` to verify env vars, CLI tools, and prompt files. Halts if required checks fail; warns for optional                                                                                         |
+| 0b  | **Resumability**     | Checks for existing `context.json` with `last_completed_phase`. If found, asks user whether to resume from last checkpoint or start fresh                                                                           |
+| 0   | **Epic Sync**        | Detects the parent epic, asks once whether to use shared cross-subticket memory, then seeds `context.json` with prior decisions/exports. Acquires a concurrency lock on `start`                                      |
 | 1a  | **Requirements**     | Checks a 6-hour TTL cache first, then hits the Jira + Confluence MCPs; stores a `fetch_status` slice                                                                                                                |
 | 1b  | **Design Inspector** | Same cache pattern for Figma; extracts real hex/px/typography tokens                                                                                                                                                |
 | 1.5 | **Fetch gate**       | Hard stop if any MCP call returned an error — no code is written until data is confirmed                                                                                                                            |
 | 2   | **Architect**        | Diffs the new design against what's already shipped (`spec/component.json`), emits a `delta_plan` of files to reuse / modify / create                                                                               |
 | 3   | **Implement**        | Writes only the files in `delta_plan` — core types + CSS tokens first, then React and/or Angular adapters with Storybook stories                                                                                    |
-| 4   | **QA**               | Runs axe-core, pixel diff, keyboard simulation, token override checks, **then** a deep WCAG auditor (forced-colors, reduced-motion, text-spacing, 400% reflow, contrast tokens). Loops up to 3 times if things fail |
-| 5–6 | **PR + Review**      | Opens a branch, commits, pushes, creates the PR, and leaves inline review comments                                                                                                                                  |
-| 7   | **Epic Update**      | Merges new exports/tokens/types back into shared epic memory so the next subticket inherits them                                                                                                                    |
+| 4   | **QA**               | Runs axe-core, pixel diff, keyboard simulation, token override checks, **then** a deep WCAG auditor (forced-colors, reduced-motion, text-spacing, 400% reflow, contrast tokens). Loops up to 3 times; tracks iteration telemetry |
+| 5–6 | **PR + Review**      | Opens a branch, commits, pushes, creates the PR (with epic context details block), and leaves inline review comments                                                                                                |
+| 7   | **Epic Update**      | Merges new exports/tokens/types back into shared epic memory so the next subticket inherits them. Releases the concurrency lock                                                                                     |
 
 **Key safeguards we added this sprint:**
 
-1. **TTL cache** — Jira, Confluence, and Figma responses are cached for
+1. **Preflight doctor** — `pnpm agent:doctor` checks env vars (Jira, Figma,
+   Confluence, GitHub), CLI tools (uvx, npx, pnpm), and all prompt files
+   before any pipeline work begins. Phase 0a halts if required checks fail.
+2. **TTL cache** — Jira, Confluence, and Figma responses are cached for
    6 hours in `.agent-run/cache/`. Subsequent runs on the same ticket
    don't waste API calls or rate-limit tokens.
-2. **Fetch gate** — Phase 1.5 reads `fetch_status` and aborts before any
+3. **Fetch gate** — Phase 1.5 reads `fetch_status` and aborts before any
    code generation if a source returned an error. Prevents "hallucinated
    fixes to missing requirements."
-3. **Deep WCAG audit** — After the standard axe pass, a dedicated subagent
+4. **Phase checkpointing + resumability** — Each phase saves its progress
+   via `pnpm agent:epic checkpoint`. If the pipeline crashes mid-run,
+   Phase 0b detects the checkpoint and offers to resume from where it
+   stopped instead of re-running everything.
+5. **Concurrency lock** — `epic-sync` acquires a PID-based lock on `start`
+   and releases on `complete`, preventing two parallel orchestrator runs
+   from corrupting the same epic's state.
+6. **Deep WCAG audit** — After the standard axe pass, a dedicated subagent
    (`07b-wcag-auditor`) runs five checks that axe-core alone cannot catch:
    Windows High Contrast (forced-colors), prefers-reduced-motion, WCAG
    1.4.12 text-spacing, 1.4.10 400% reflow, and contrast-token math via
    our own `contrast-check` utility.
-4. **Storybook CI gate** — `.github/workflows/storybook-a11y.yml` blocks
-   PRs that touch `libs/shared/ui/**` if any story fails axe wcag2aa
-   rules.
-5. **Contrast unit tests** — every core slice now ships a
-   `<component>.contrast.spec.ts` that imports `auditPairs` from
-   `tools/scripts/contrast-check.mjs` and fails the test run if any
-   `--ui-*-fg` / `--ui-*-bg` token pair is below the AA threshold.
+7. **QA iteration telemetry** — Each QA loop iteration records its results
+   in `qa.iterations[]`. On the 3rd failure, a diff summary shows what
+   regressed/improved across attempts.
+8. **Storybook CI gate** — `.github/workflows/storybook-a11y.yml` runs axe
+   wcag2aa on **both** `shared-ui` (React) and `shared-ui-angular` in
+   parallel via a matrix strategy. Triggered on `pull_request`,
+   `push` to main, and `merge_group`.
+9. **Branch-name enforcement** — `.github/workflows/branch-name.yml`
+   validates PR branch names match the `{key}-{type}-{title-kebab}`
+   convention on every PR.
+10. **Contrast unit tests** — every core slice now ships a
+    `<component>.contrast.spec.ts` that imports `auditPairs` from
+    `tools/scripts/contrast-check.mjs` and fails the test run if any
+    `--ui-*-fg` / `--ui-*-bg` token pair is below the AA threshold.
 
 **Commands team members interact with day-to-day:**
 
@@ -173,7 +192,14 @@ pnpm agent:epic next   --epic NGI-11
 ```mermaid
 flowchart TD
     Start([User: /00-orchestrate NGI-12]) --> Q{Ask: framework,\nfigma URL/screenshot\nFOR THIS SUBTICKET}
-    Q --> P0[Phase 0: Epic Sync\ndetect parent epic,\ninit/resume epic.json,\ncache design_source\non subticket]
+    Q --> P0a[Phase 0a: MCP Preflight\npnpm agent:doctor\ncheck env vars + CLIs]
+    P0a -->|required check failed| HaltDoc([HALT: show doctor output\nfix env vars / tools])
+    P0a -->|all required OK| P0b{Phase 0b: Resume?\ncheck context.json\nlast_completed_phase}
+    P0b -->|existing progress found| AskResume{Resume from\nphase N+1?}
+    AskResume -->|yes| SkipToPhase[Skip to phase N+1]
+    AskResume -->|no| P0
+    P0b -->|no prior progress| P0
+    P0[Phase 0: Epic Sync\ndetect parent epic,\nacquire lock,\ninit/resume epic.json,\ncache design_source\non subticket]
     P0 --> P1a[Phase 1a: Requirements\nJira cache check → Jira MCP\nConfluence cache → store fetch_status]
     P0 --> P1b[Phase 1b: Design Inspector\nFigma cache check → Figma MCP\n→ tokens, variants, states]
     P1a --> Gate{Phase 1.5:\nFetch gate\nfetch_status OK?}
@@ -184,16 +210,17 @@ flowchart TD
     P3a --> P3b{Frameworks?}
     P3b -->|react| P3r[Phase 3b: React adapter\n+ Storybook stories]
     P3b -->|angular| P3ang[Phase 3c: Angular adapter\n+ Storybook stories]
-    P3r --> P4[Phase 4: Base QA\naxe-core, pixel diff,\nkeyboard, token override]
+    P3r --> P4[Phase 4: Base QA\naxe-core, pixel diff,\nkeyboard, token override\n+ iteration telemetry]
     P3ang --> P4
     P4 --> P4w[Phase 4 ext: WCAG Auditor\nforced-colors · reduced-motion\ntext-spacing · 400% reflow\ncontrast tokens]
     P4w --> P4d{All checks passed?}
     P4d -->|no, iter < 3| P3a
-    P4d -->|no, iter = 3| Stop([Stop: surface report])
-    P4d -->|yes| P5[Phase 5: PR Creator\nbranch, commit, push, PR]
+    P4d -->|no, iter = 3| Stop([Stop: surface report\n+ iteration diff summary])
+    P4d -->|yes| P5[Phase 5: PR Creator\nbranch, commit, push, PR\n+ epic context details]
     P5 --> P6[Phase 6: Code Reviewer\ninline review comments]
-    P6 --> P7[Phase 7: Epic Update\nagent:epic complete\nmerge produced slice]
+    P6 --> P7[Phase 7: Epic Update\nagent:epic complete\nmerge produced slice\nrelease lock]
     P7 --> Done([Output: PR URL,\nnext_action.subticket_id])
+    SkipToPhase -.-> P2
 ```
 
 ### Epic memory across multiple subticket runs
@@ -258,6 +285,329 @@ flowchart TB
 
     Core --> React
     Core --> Angular
+```
+
+---
+
+## Architecture: the full picture
+
+> **Read this section when you need to explain the system to someone who
+> has never seen it before.** It covers *what* each layer does and *why*
+> it was designed that way.
+
+### The problem this solves
+
+Building UI components from Jira tickets involves repetitive, error-prone
+manual steps: read the ticket, open Figma, extract design tokens, scaffold
+files in the right places, write framework adapters, run accessibility
+checks, create a PR, and — if the component is part of a multi-ticket
+epic — make sure the new code doesn't conflict with what was shipped
+yesterday. An LLM can do most of this, but LLMs have three fundamental
+weaknesses this pipeline must compensate for:
+
+1. **No persistent memory** — each conversation starts with a blank
+   context. If you worked on NGI-12 yesterday and NGI-13 today, the LLM
+   doesn't know what exports, tokens, or files NGI-12 produced.
+2. **Unreliable JSON handling** — LLMs routinely corrupt large JSON
+   structures when asked to rewrite them from context (missing commas,
+   dropped fields, duplicated entries).
+3. **No verifiable correctness** — an LLM can claim "WCAG compliant"
+   without actually running axe-core or checking contrast ratios.
+
+The pipeline architecture directly addresses each of these.
+
+### Layer 1: Prompt chain (the "brain")
+
+```
+.github/prompts/
+├── 00-orchestrate.prompt.md    ← drives the whole pipeline
+├── 01-requirements.prompt.md   ← Jira + Confluence extraction
+├── 02-design-inspector.prompt.md ← Figma token extraction
+├── 03-architect.prompt.md      ← delta detection + file planning
+├── 04-implement-core.prompt.md ← framework-agnostic types/logic/CSS
+├── 05-implement-react.prompt.md ← React adapter
+├── 06-implement-angular.prompt.md ← Angular adapter
+├── 07-qa.prompt.md             ← automated QA (axe, pixel, keyboard)
+├── 07b-wcag-auditor.prompt.md  ← deep WCAG checks (5 criteria)
+├── 08-pr-creator.prompt.md     ← branch, commit, PR
+└── 09-code-reviewer.prompt.md  ← inline review comments
+```
+
+Each prompt is a **standalone agent** with:
+- A defined **model** (Opus for orchestrator, Sonnet for everything else)
+- A defined **permission set** (e.g. QA agent: read filesystem + chrome-devtools MCP, write only `.agent-run/`)
+- A defined **input/output contract** (reads/writes specific slices of `context.json`)
+
+**Why a chain of specialized agents, not one big prompt?**
+
+- **Context window management.** A single prompt containing Jira data,
+  Figma tokens, architecture plan, implementation code, and QA results
+  would exceed any model's effective context. Splitting into phases keeps
+  each agent focused on ~2000 tokens of relevant context.
+- **Least privilege.** The QA agent cannot write source files. The
+  implementer cannot push to git. The PR creator cannot edit code. This
+  prevents a confused agent from accidentally overwriting production code
+  during a QA check.
+- **Retry granularity.** If Phase 4 (QA) fails, only the implementer
+  phases re-run — not the entire pipeline. Each phase's output is
+  checkpointed so the orchestrator knows exactly where to resume.
+- **Model selection.** The orchestrator (decision-making, user interaction)
+  runs on a premium model. Implementers run on a faster model. This
+  optimizes cost and latency.
+
+### Layer 2: Deterministic state (`epic-sync.mjs`)
+
+This is the answer to "why JSON files managed by a Node script?"
+
+**Why JSON (not a database, not YAML, not a cloud service)?**
+
+| Alternative          | Why we rejected it                                                                                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **SQLite / Postgres** | Requires a running database server or a binary dependency. The pipeline runs in VS Code's Copilot Chat — no server assumed. JSON files are zero-dependency and inspectable with any text editor.             |
+| **YAML**              | Ambiguous parsing (implicit type coercion, multi-line strings), no native schema validation, harder to merge programmatically. JSON is unambiguous and has `JSON.parse`/`JSON.stringify` built into Node.    |
+| **Cloud service**     | Adds network dependency, auth tokens, and latency. The pipeline must work offline and on any developer's machine. Local JSON files are always available, always fast.                                        |
+| **LLM inline edits** | This is what we tried first. The LLM would read `epic.json`, modify it in context, and write it back. It reliably dropped array entries, added trailing commas, and lost precision on long strings. Unusable.|
+| **`.env` / flat files** | Can't represent nested structures (subtickets, produced exports, design sources). JSON's nested object model maps naturally to the data.                                                                   |
+
+**Why a CLI script wrapping the JSON, not direct file reads/writes?**
+
+The `epic-sync.mjs` script is the **single writer** for all epic state.
+This solves three problems:
+
+1. **Atomic writes.** Every write goes through `writeJsonAtomic()`: write
+   to a temp file (`*.tmp-<pid>-<ts>`), then `rename()` over the target.
+   If the process crashes mid-write, the original file is untouched. An
+   LLM writing JSON inline has no atomicity guarantee — a timeout during
+   `editFiles` leaves a half-written file.
+
+2. **Deterministic computation.** Fields like `next_action`, `must_respect`,
+   and `status` are **computed from data**, not written by the LLM. Every
+   time `saveEpic()` runs, it recalculates these fields from the
+   subtickets array. This means:
+   - `next_action.subticket_id` is always the first `not_started` subticket
+     whose `depends_on` are all `done`. The LLM cannot accidentally skip
+     a dependency.
+   - `must_respect.existing_exports` is always the sorted, deduplicated
+     union of all `done` subtickets' exports. The LLM cannot accidentally
+     drop an export.
+   - `status` is always computed from subticket statuses. It cannot get
+     out of sync.
+
+3. **Schema enforcement.** The script validates `schema_version` on every
+   read and rejects unknown versions. This means we can evolve the schema
+   (add fields, change structure) with a migration path, without worrying
+   about LLMs writing old-format data into new-format files.
+
+**Data flow through `epic-sync`:**
+
+```
+Orchestrator (LLM)                    epic-sync.mjs (deterministic)
+─────────────────                     ──────────────────────────────
+Phase 0: "init this epic"         →   cmdInit: validate, create epic.json,
+                                      seed component.json, tokens.css,
+                                      decisions.md, progress.md
+
+Phase 0: "start NGI-12"          →   cmdStart: validate deps, acquire lock,
+                                      mark in_progress, emit context seed
+                                      (must_respect, design_source,
+                                      previous_designs)
+
+Phase 1–6: each phase completes  →   cmdCheckpoint: write phase slice into
+                                      context.json, set last_completed_phase
+
+Phase 7: "NGI-12 is done"        →   cmdComplete: merge produced exports/
+                                      tokens/types, update spec, release lock,
+                                      compute next_action for NGI-13
+```
+
+The LLM decides **what** to write (which exports were created, which
+tokens were added). The script decides **how** it's stored (deduplication,
+ordering, atomicity, computed fields). This separation is the core
+architectural principle.
+
+### Layer 3: MCP servers (external data)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  VS Code / Copilot Chat                                     │
+│                                                              │
+│  ┌─────────┐  ┌──────────┐  ┌────────┐  ┌───────────────┐  │
+│  │ Jira    │  │ Figma    │  │ GitHub │  │ chrome-devtools│  │
+│  │ MCP     │  │ MCP      │  │ MCP    │  │ MCP            │  │
+│  │ (uvx)   │  │ (npx)    │  │ (npx)  │  │ (npx)          │  │
+│  └────┬────┘  └────┬─────┘  └───┬────┘  └───────┬───────┘  │
+│       │            │            │                │           │
+│       ▼            ▼            ▼                ▼           │
+│  Jira Cloud   Figma API   GitHub API   Local Chrome browser  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Each MCP server is declared in `.vscode/mcp.json` and started
+automatically by VS Code when a Copilot Chat session begins. They use
+environment variables for credentials (never stored on disk, never
+committed to git).
+
+The `pnpm agent:doctor` preflight verifies all env vars and CLI tools
+are available before the pipeline starts. This prevents the frustrating
+failure mode where Phase 1 runs for 30 seconds, fails on Jira auth, and
+the user has to start over.
+
+**Why MCP and not direct API calls in the prompts?**
+
+- **Standardized protocol.** MCP provides a consistent tool interface
+  regardless of the underlying API. The prompt says "get Jira ticket
+  NGI-12" — it doesn't need to know the Jira REST API URL format, auth
+  headers, or pagination.
+- **Credential isolation.** The agent never sees API tokens. The MCP
+  server handles auth. This prevents credential leakage in prompt
+  context or `.agent-run/` files.
+- **Reusability.** The same MCP servers work across VS Code, Claude Code,
+  and JetBrains — the pipeline isn't locked to one editor.
+
+### Layer 4: CI guardrails (GitHub Actions)
+
+```
+.github/workflows/
+├── storybook-a11y.yml    ← axe wcag2aa on both React + Angular Storybooks
+└── branch-name.yml       ← validates branch naming convention
+```
+
+**`storybook-a11y.yml`** — the accessibility regression guard:
+
+- **Trigger:** `pull_request`, `push` to main, and `merge_group`. This
+  means PRs are checked before merge, direct pushes to main are caught
+  after merge, and merge queue integrations are supported.
+- **Matrix strategy:** runs in parallel for `shared-ui` (React Storybook)
+  and `shared-ui-angular` (Angular Storybook). Each gets its own port
+  and artifact upload.
+- **What it tests:** Builds Storybook, serves it on localhost, and runs
+  `@storybook/test-runner` with axe-playwright against every story.
+  Any wcag2aa violation fails the job.
+
+**Why CI axe _in addition to_ the agent's QA phase?**
+
+The agent's Phase 4 QA runs against a local Storybook during development.
+It catches issues at authoring time. But:
+- Manual edits after the agent finishes could introduce regressions.
+- The agent's QA runs in a specific environment; CI runs on a clean
+  `ubuntu-latest` with no cached state.
+- CI is the **merge gate** — it's the single source of truth for
+  "is this PR safe to ship?"
+
+The agent's QA is a productivity tool (catch issues early). CI is the
+safety net (catch everything before merge).
+
+**`branch-name.yml`** — naming convention enforcement:
+
+Validates that PR branch names match `{ticket-lowercase}-{type}-{title-kebab}`
+(e.g. `ngi-12-feat-implement-data-table`). This ensures:
+- Every branch is traceable to a Jira ticket.
+- Conventional commit types are embedded in the branch name.
+- No spaces, uppercase, or special characters that break shell scripts.
+
+### Layer 5: Epic memory (cross-session persistence)
+
+This is the most architecturally significant layer. It solves the "LLM
+has no persistent memory" problem.
+
+```
+.agent-run/epics/NGI-11/
+├── epic.json                    ← the source of truth
+│   ├── subtickets[]             ← status, produced exports/tokens/files
+│   ├── next_action              ← computed: which subticket to pick up
+│   └── must_respect             ← computed: constraints for the next run
+├── .lock                        ← PID-based concurrency lock
+├── progress.md                  ← human-readable journal (append-only)
+├── spec/
+│   ├── component.json           ← accumulated public API (exports, types)
+│   ├── tokens.css               ← canonical --ui-* CSS custom properties
+│   └── decisions.md             ← architectural decision records (ADRs)
+└── subtickets/
+    ├── NGI-12/context.json      ← full pipeline state for NGI-12
+    └── NGI-13/context.json      ← full pipeline state for NGI-13
+```
+
+**The constraint propagation pattern:**
+
+When NGI-12 completes, `epic-sync complete` records everything it
+produced: 15 files, 21 exports, 27 tokens. When NGI-13 starts,
+`epic-sync start` injects all of these as `must_respect` constraints:
+
+```
+NGI-12 done → epic-sync complete → epic.json updated
+                                         │
+NGI-13 start → epic-sync start ──────────┘
+                    │
+                    ▼
+         context.json seeded with:
+         must_respect.existing_exports = [DataTable, DataTableColumn, ...]
+         must_respect.existing_tokens  = [--ui-data-table-bg, ...]
+         must_respect.existing_files   = [libs/shared/ui/src/..., ...]
+```
+
+The Architect (Phase 2) reads these constraints and **cannot violate
+them**. It classifies existing files as `reuse_existing` or `modify`
+(additive only). The Implementer (Phase 3) **hard-refuses** to write to
+any file not in the `delta_plan`. This is how the pipeline prevents
+a "table + pagination" subticket from accidentally rewriting the base
+table that was already reviewed and merged.
+
+**Why opt-in per epic?**
+
+Not every Jira epic deserves shared memory. "Q3 performance sweep" bundles
+unrelated tickets. If we forced shared memory, `must_respect.existing_exports`
+from an unrelated perf fix would inject irrelevant constraints into every
+sibling ticket. The opt-in question asks once; the answer is persisted
+(`epic.json` for yes, `IGNORED.json` for no). Subsequent siblings run
+silently in the chosen mode.
+
+**Why checkpointing?**
+
+Without checkpointing, a crash in Phase 3 (implementation) loses all
+work from Phases 0–2. The orchestrator would re-fetch from Jira, re-extract
+from Figma, and re-plan the architecture — wasting 5–10 minutes of API
+calls and LLM tokens. With `checkpoint`, each phase's output is persisted
+into `context.json` with a `last_completed_phase` marker. On re-run,
+Phase 0b detects the checkpoint and offers to skip directly to the failed
+phase.
+
+**Why a concurrency lock?**
+
+Two parallel orchestrator runs on the same epic would both call `start`,
+both get the same `must_respect`, and both write to the same files. The
+result would be conflicting PRs or corrupted `epic.json`. The PID-based
+lock prevents this: `start` acquires, `complete` releases. If a prior run
+crashed without releasing, the lock includes a PID that can be checked
+for liveness — a dead PID's lock is automatically overridden with a
+warning.
+
+### How everything fits together (end to end)
+
+```
+Day 1: User types "/00-orchestrate" + "NGI-12"
+    │
+    ├─ Phase 0a: agent:doctor checks env vars + tools           [Layer 3]
+    ├─ Phase 0b: no prior context.json → start fresh            [Layer 5]
+    ├─ Phase 0:  epic-sync init + start (acquire lock)          [Layer 2]
+    ├─ Phase 1:  Jira MCP → ticket data, Figma MCP → tokens    [Layer 3]
+    ├─ Phase 1.5: fetch gate verifies all data present          [Layer 1]
+    ├─ Phase 2:  Architect plans delta_plan (all "create")      [Layer 1]
+    ├─ Phase 3:  Implementer writes 15 files                    [Layer 1]
+    ├─ Phase 4:  QA agent runs axe + WCAG audit (3 iterations)  [Layer 1+3]
+    ├─ Phase 5:  PR creator opens PR (with epic details block)  [Layer 1]
+    ├─ Phase 6:  Code reviewer leaves inline comments           [Layer 1]
+    └─ Phase 7:  epic-sync complete (release lock, persist)     [Layer 2]
+         │
+         └─ CI runs storybook-a11y + branch-name check          [Layer 4]
+
+Day 2: User types "/00-orchestrate" + "NGI-13"
+    │
+    ├─ Phase 0a: doctor passes
+    ├─ Phase 0b: no prior context for NGI-13 → start fresh
+    ├─ Phase 0:  epic-sync start injects must_respect from NGI-12
+    ├─ Phase 2:  Architect diffs new design vs prior → delta_plan
+    │            (reuse DataTable.tsx, create TablePagination.tsx)
+    └─ ... (same pipeline, but implementer only writes new files)
 ```
 
 ---
@@ -846,13 +1196,15 @@ only.
 | [.github/prompts/06-implement-angular.prompt.md](.github/prompts/06-implement-angular.prompt.md)                   | Angular adapter (on demand)                                                            |
 | [.github/prompts/07-qa.prompt.md](.github/prompts/07-qa.prompt.md)                                                 | axe, pixel diff, keyboard, override + invokes auditor                                  |
 | [.github/prompts/07b-wcag-auditor.prompt.md](.github/prompts/07b-wcag-auditor.prompt.md)                           | Deep WCAG subagent (5 checks via chrome-devtools MCP)                                  |
-| [.github/prompts/08-pr-creator.prompt.md](.github/prompts/08-pr-creator.prompt.md)                                 | Branch, commit, push, PR + `agent:epic complete`                                       |
+| [.github/prompts/08-pr-creator.prompt.md](.github/prompts/08-pr-creator.prompt.md)                                 | Branch, commit, push, PR with epic context details block                               |
 | [.github/prompts/09-code-reviewer.prompt.md](.github/prompts/09-code-reviewer.prompt.md)                           | Inline PR review                                                                       |
 | [.github/instructions/cross-framework-ui.instructions.md](.github/instructions/cross-framework-ui.instructions.md) | Three-layer component contract                                                         |
 | [.github/instructions/wcag-aa.instructions.md](.github/instructions/wcag-aa.instructions.md)                       | WCAG 2.1 AA rules including §13–§17 (forced-colors, motion, spacing, reflow, contrast) |
 | [.github/instructions/table-library.instructions.md](.github/instructions/table-library.instructions.md)           | Table-specific rules                                                                   |
-| [.github/workflows/storybook-a11y.yml](.github/workflows/storybook-a11y.yml)                                       | CI gate: axe wcag2aa on every PR touching shared-ui                                    |
-| [tools/scripts/epic-sync.mjs](tools/scripts/epic-sync.mjs)                                                         | Epic memory CLI                                                                        |
+| [.github/workflows/storybook-a11y.yml](.github/workflows/storybook-a11y.yml)                                       | CI gate: axe wcag2aa on PRs/push for shared-ui AND shared-ui-angular (matrix)          |
+| [.github/workflows/branch-name.yml](.github/workflows/branch-name.yml)                                             | CI gate: validates branch naming convention on PRs                                     |
+| [tools/scripts/epic-sync.mjs](tools/scripts/epic-sync.mjs)                                                         | Epic memory CLI (+ checkpoint, lock/unlock)                                            |
+| [tools/scripts/agent-doctor.mjs](tools/scripts/agent-doctor.mjs)                                                   | Preflight health check for env vars, CLIs, prompt files                                |
 | [tools/scripts/fetch-cache.mjs](tools/scripts/fetch-cache.mjs)                                                     | TTL cache CLI for Jira/Confluence/Figma payloads                                       |
 | [tools/scripts/contrast-check.mjs](tools/scripts/contrast-check.mjs)                                               | WCAG contrast-ratio math; importable + CLI                                             |
 | [tools/scripts/epic.schema.json](tools/scripts/epic.schema.json)                                                   | `epic.json` JSON Schema                                                                |
@@ -868,13 +1220,16 @@ only.
 | `init`         | Seed a new epic. `--epic --title --component [--subtickets json\|-]`                                                                                                                                                |
 | `status`       | Print the full `epic.json`.                                                                                                                                                                                         |
 | `next`         | Print `next_action` (which subticket to pick up and what to respect).                                                                                                                                               |
-| `start`        | Mark a subticket `in_progress`; emit context seed with `must_respect`, this subticket's `design_source`, and `previous_designs[]`.                                                                                  |
-| `complete`     | Mark a subticket `done`, merge `produced` slice, update PR URL, append journal.                                                                                                                                     |
+| `start`        | Mark a subticket `in_progress`; emit context seed with `must_respect`, this subticket's `design_source`, and `previous_designs[]`. **Acquires concurrency lock.**                                                   |
+| `complete`     | Mark a subticket `done`, merge `produced` slice, update PR URL, append journal. **Releases concurrency lock.**                                                                                                      |
+| `checkpoint`   | Save per-phase progress for resumability. `--epic --subticket --phase <0–9> [--slice json\|-]`. Writes `last_completed_phase` into the subticket's `context.json`.                                                  |
 | `journal`      | Append a free-form line to `progress.md`.                                                                                                                                                                           |
 | `add-decision` | Append an ADR entry.                                                                                                                                                                                                |
 | `add-tokens`   | Append tokens to `spec/tokens.css` outside the normal `complete` flow.                                                                                                                                              |
 | `set-design`   | Cache design source on a **subticket**. `--epic --subticket` required; `--figma-url --figma-file-key --figma-node-id --screenshot --notes` (figma-url or screenshot required).                                      |
 | `get-design`   | Print a subticket's `design_source` (null if none). `--epic --subticket` required.                                                                                                                                  |
+| `lock`         | Manually acquire a concurrency lock on an epic. `--epic`. Fails if already locked by a live PID.                                                                                                                    |
+| `unlock`       | Manually release a concurrency lock. `--epic`. Use if a prior run crashed without releasing.                                                                                                                        |
 | `ignore`       | Mark an epic as "no shared memory". `--epic --reason "..."`. Refuses if `epic.json` already exists (delete the folder by hand first). Future runs against any sibling subticket run in single-ticket mode silently. |
 | `unignore`     | Remove the ignore marker. `--epic`. Next sibling run will re-ask the opt-in question.                                                                                                                               |
 | `list`         | Print all epics with status + done/total.                                                                                                                                                                           |
@@ -935,14 +1290,18 @@ import { auditPairs, contrastRatio, AA_NORMAL } from '../../../../../tools/scrip
 
 | Symptom                                            | Fix                                                                                                                                                                                                      |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| MCP server not appearing                           | Restart VS Code; verify `.vscode/mcp.json` syntax.                                                                                                                                                       |
-| Jira auth fails                                    | Use an Atlassian API token, not your password.                                                                                                                                                           |
+| Pipeline halts at Phase 0a                         | Run `pnpm agent:doctor` and fix the items marked ✘. Usually missing env vars.                                                                                                                            |
+| MCP server not appearing                           | Restart VS Code; verify `.vscode/mcp.json` syntax. Ensure env vars are exported.                                                                                                                         |
+| Jira auth fails                                    | Use an Atlassian API token, not your password. Set `JIRA_EMAIL` and `JIRA_API_TOKEN` env vars.                                                                                                           |
 | Figma component not found                          | Check `FIGMA_FILE_KEY` matches the ID in the Figma URL.                                                                                                                                                  |
 | Orchestrator re-asks Figma every subticket         | This is intentional — each subticket has its own design state. If you really want to reuse the prior URL, paste it again.                                                                                |
 | Orchestrator keeps asking "use epic memory?"       | Either answer once (the choice is persisted), or pre-seed it manually: `pnpm agent:epic ignore --epic <id> --reason "grab-bag"` for no, or run the orchestrator once and answer yes for epic mode.       |
 | Orchestrator stopped asking and you wanted memory  | `pnpm agent:epic unignore --epic <id>` — next subticket run re-asks.                                                                                                                                     |
 | DevTools timeout in Phase 4                        | Ensure Storybook is running before Phase 3/4.                                                                                                                                                            |
 | Angular plugin missing                             | The Architect plans `pnpm nx add @nx/angular`; let it run.                                                                                                                                               |
-| QA loops 3 times and fails                         | Inspect `qa.feedback_for_*` in the subticket `context.json`.                                                                                                                                             |
+| QA loops 3 times and fails                         | Inspect `qa.iterations[]` in `context.json` for the cross-iteration diff summary. Check `qa.feedback_for_*` for fix suggestions.                                                                         |
 | `epic-sync: cannot start <ID>: unmet dependencies` | A prior subticket isn't `done`. Run `pnpm agent:epic next --epic <id>` to see what's actually next.                                                                                                      |
+| `epic is locked by PID X since Y`                  | Another orchestrator run is in progress, or a prior run crashed. If the PID is dead, run `pnpm agent:epic unlock --epic <id>`.                                                                           |
+| Pipeline crashed mid-run                           | Re-run the orchestrator. Phase 0b will detect the checkpoint and offer to resume from the last completed phase.                                                                                           |
+| Branch name rejected by CI                         | Rename to match `{ticket-lowercase}-{type}-{title-kebab}`, ≤72 chars. See `.github/workflows/branch-name.yml` for the exact regex.                                                                      |
 | Need to bump the epic schema                       | Change `SCHEMA_VERSION` in both [tools/scripts/epic-sync.mjs](tools/scripts/epic-sync.mjs) and [tools/scripts/epic.schema.json](tools/scripts/epic.schema.json); add a migration branch in `loadEpic()`. |

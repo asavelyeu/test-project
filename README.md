@@ -104,7 +104,9 @@ export FIGMA_ACCESS_TOKEN="your-figma-token"  # https://www.figma.com/settings �
 
 ### VS Code (GitHub Copilot)
 
-The config is already in `.vscode/mcp.json` and committed to the repo — nothing to do. When you open a Copilot chat session, VS Code will start the MCP servers automatically. It will prompt you for Jira and Figma credentials interactively (values are never stored on disk).
+The config is already in `.vscode/mcp.json` and committed to the repo — nothing to do. All MCP servers use environment variables for credentials (never stored on disk). Make sure the environment variables above are exported before opening VS Code.
+
+**Preflight check** — run `pnpm agent:doctor` to verify all env vars, CLI tools, and prompt files are in place before starting the pipeline.
 
 ### Claude Code
 
