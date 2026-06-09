@@ -54,6 +54,8 @@ export function DataTable<T>({
   caption,
   striped = false,
   className,
+  loading = false,
+  emptyMessage = 'No data available',
 }: DataTableInternalProps<T>) {
   const rows = rowsProp ?? normalizeRows(data ?? []);
   const isControlled = controlledSelectedIds !== undefined;
@@ -308,7 +310,44 @@ export function DataTable<T>({
         </tr>
       </thead>
       <tbody>
-        {rows.map((row) => {
+        {loading ? (
+          <tr>
+            <td
+              className="ui-data-table-loading-cell"
+              colSpan={columns.length + 1}
+              aria-busy="true"
+              aria-label="Loading data"
+            >
+              <span className="ui-data-table-skeleton" style={{ width: '60%' }} aria-hidden="true" />
+              <span className="sr-only">Loading data, please wait…</span>
+            </td>
+          </tr>
+        ) : rows.length === 0 ? (
+          <tr>
+            <td
+              className="ui-data-table-empty-cell"
+              colSpan={columns.length + 1}
+              aria-label={emptyMessage}
+            >
+              <svg
+                className="ui-data-table-empty-icon"
+                aria-hidden="true"
+                width="40"
+                height="40"
+                viewBox="0 0 40 40"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <rect x="4" y="8" width="32" height="24" rx="3" />
+                <line x1="4" y1="15" x2="36" y2="15" />
+                <line x1="13" y1="8" x2="13" y2="32" />
+              </svg>
+              <span className="ui-data-table-empty-message">{emptyMessage}</span>
+            </td>
+          </tr>
+        ) : (
+          rows.map((row) => {
           const isSelected = selectedIds.has(row.id);
           const rowLabel = String(row.id);
           return (
@@ -334,7 +373,8 @@ export function DataTable<T>({
               {columns.map((col) => renderCell(col, row))}
             </tr>
           );
-        })}
+        })
+        )}
       </tbody>
     </table>
   );

@@ -245,3 +245,41 @@ export const DataProp: StoryObj<DataTableProps<CityRow>> = {
     </div>
   ),
 };
+
+/** NGI-16: Empty state — displayed when data is an empty array. */
+export const EmptyState: Story = {
+  render: () => (
+    <div>
+      <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
+        <strong>Empty state:</strong> When <code>data</code> is an empty array, the table shows
+        a meaningful placeholder with column headers still visible.
+      </p>
+      <DataTable caption="Empty table demo" columns={columns} data={[]} />
+    </div>
+  ),
+};
+
+/** NGI-16: Custom empty message */
+export const EmptyStateCustomMessage: Story = {
+  render: () => (
+    <DataTable
+      caption="No results table"
+      columns={columns}
+      data={[]}
+      emptyMessage="No team members found. Try adjusting your filters."
+    />
+  ),
+};
+
+/** NGI-16: Loading state — clearly distinct from empty state. */
+export const LoadingState: Story = {
+  render: () => (
+    <div>
+      <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
+        <strong>Loading state:</strong> When <code>loading</code> is true, a shimmer skeleton
+        is shown — distinct from the empty-state illustration.
+      </p>
+      <DataTable caption="Loading table demo" columns={columns} data={[]} loading />
+    </div>
+  ),
+};

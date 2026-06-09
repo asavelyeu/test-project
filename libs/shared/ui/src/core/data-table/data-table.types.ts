@@ -54,6 +54,10 @@ export interface DataTableProps<T> {
   /** Whether to show alternating row backgrounds */
   striped?: boolean;
   className?: string;
+  /** When true, shows a loading skeleton in place of rows */
+  loading?: boolean;
+  /** Message shown when data is empty and not loading. Defaults to "No data available" */
+  emptyMessage?: string;
 }
 
 export interface AvatarTextValue {

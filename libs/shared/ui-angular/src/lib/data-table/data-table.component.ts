@@ -69,6 +69,10 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   @Input() striped = false;
   @Input() selectedIds?: Set<string>;
   @Input() sortConfig?: SortConfig;
+  /** When true, shows a loading skeleton in place of rows */
+  @Input() loading = false;
+  /** Message shown when data is empty and not loading. Defaults to "No data available" */
+  @Input() emptyMessage = 'No data available';
 
   @Output() readonly selectionChange = new EventEmitter<Set<string>>();
   @Output() readonly actionClick = new EventEmitter<{ rowId: string; actionKey: string }>();
