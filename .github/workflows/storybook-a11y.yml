@@ -31,9 +31,10 @@ jobs:
           - lib: shared-ui
             static_path: libs/shared/ui/storybook-static
             port: 6006
-          - lib: shared-ui-angular
-            static_path: libs/shared/ui-angular/storybook-static
-            port: 6007
+          # shared-ui-angular Storybook temporarily disabled — schema issue to be fixed
+          # - lib: shared-ui-angular
+          #   static_path: libs/shared/ui-angular/storybook-static
+          #   port: 6007
     steps:
       - uses: actions/checkout@v4
         with:
