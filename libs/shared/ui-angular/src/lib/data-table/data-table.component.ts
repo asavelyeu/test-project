@@ -26,6 +26,7 @@ import {
   getInitials,
   getSelectAllAriaLabel,
   nextSortDirection,
+  normalizeRows,
   toggleAllSelection,
   toggleRowSelection,
 } from '@test-project/shared-ui';
@@ -59,7 +60,10 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   private static nextId = 0;
 
   @Input({ required: true }) columns: DataTableColumn<T>[] = [];
-  @Input({ required: true }) rows: DataTableRow<T>[] = [];
+  /** Pre-wrapped rows with explicit IDs. Takes precedence over `data` if both provided. */
+  @Input() rows?: DataTableRow<T>[];
+  /** Plain data array — rows are auto-generated with stable index-based IDs. */
+  @Input() data?: T[];
   @Input() caption = 'Data table';
   @Input() selectable = true;
   @Input() striped = false;
@@ -79,12 +83,16 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   private readonly document = inject(DOCUMENT);
   private internalSelectedIds = new Set<string>();
 
+  get effectiveRows(): DataTableRow<T>[] {
+    return this.rows ?? normalizeRows(this.data ?? []);
+  }
+
   get effectiveSelectedIds(): Set<string> {
     return this.selectedIds ?? this.internalSelectedIds;
   }
 
   get selectionState(): SelectionState {
-    return computeSelectionState(this.rows, this.effectiveSelectedIds);
+    return computeSelectionState(this.effectiveRows, this.effectiveSelectedIds);
   }
 
   get selectAllLabel(): string {
@@ -167,7 +175,7 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   toggleSelectAll(): void {
-    this.emitSelectionChange(toggleAllSelection(this.rows, this.effectiveSelectedIds));
+    this.emitSelectionChange(toggleAllSelection(this.effectiveRows, this.effectiveSelectedIds));
   }
 
   toggleRow(rowId: string): void {

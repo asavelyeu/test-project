@@ -240,4 +240,71 @@ describe('DataTable', () => {
       expect(screen.queryByRole('columnheader', { name: 'Score' })).not.toBeInTheDocument();
     });
   });
+
+  // NGI-14 AC: Data row rendering — plain `data` array prop
+  describe('data row rendering', () => {
+    interface PlainRow { city: string; country: string }
+
+    const dataCols: DataTableColumn<PlainRow>[] = [
+      { key: 'city', header: 'City', type: 'text' },
+      { key: 'country', header: 'Country', type: 'text' },
+    ];
+    const plainData: PlainRow[] = [
+      { city: 'Berlin', country: 'Germany' },
+      { city: 'Paris', country: 'France' },
+      { city: 'Tokyo', country: 'Japan' },
+    ];
+
+    // AC1: Each object in the data array is rendered as one table row
+    it('renders one row per object in the data array', () => {
+      render(<DataTable caption="Cities" columns={dataCols} data={plainData} />);
+      const bodyRows = screen.getAllByRole('row').slice(1); // skip header
+      expect(bodyRows).toHaveLength(plainData.length);
+    });
+
+    // AC2: Each cell displays the value corresponding to its column key
+    it('displays cell values matching column keys', () => {
+      render(<DataTable caption="Cities" columns={dataCols} data={plainData} />);
+      expect(screen.getByText('Berlin')).toBeInTheDocument();
+      expect(screen.getByText('Germany')).toBeInTheDocument();
+      expect(screen.getByText('Paris')).toBeInTheDocument();
+    });
+
+    // AC3: Rows maintain the same order as the source data array
+    it('renders rows in the same order as the data array', () => {
+      render(<DataTable caption="Cities" columns={dataCols} data={plainData} />);
+      const cells = screen.getAllByRole('cell').filter(
+        (td) => td.textContent && ['Berlin', 'Paris', 'Tokyo'].includes(td.textContent.trim())
+      );
+      expect(cells[0].textContent?.trim()).toBe('Berlin');
+      expect(cells[1].textContent?.trim()).toBe('Paris');
+      expect(cells[2].textContent?.trim()).toBe('Tokyo');
+    });
+
+    // AC4: The number of rendered rows equals the number of items in the data array
+    it('renders exactly as many rows as items in the data array', () => {
+      const { rerender } = render(<DataTable caption="Cities" columns={dataCols} data={plainData} />);
+      expect(screen.getAllByRole('row').slice(1)).toHaveLength(3);
+
+      rerender(<DataTable caption="Cities" columns={dataCols} data={plainData.slice(0, 1)} />);
+      expect(screen.getAllByRole('row').slice(1)).toHaveLength(1);
+    });
+
+    // rows prop still works (backward compat)
+    it('still accepts the rows prop for backward compatibility', () => {
+      const wrapped = [
+        { id: 'x1', data: { city: 'Madrid', country: 'Spain' } },
+      ];
+      render(<DataTable caption="Cities" columns={dataCols} rows={wrapped} />);
+      expect(screen.getByText('Madrid')).toBeInTheDocument();
+    });
+
+    // rows takes precedence over data when both provided
+    it('rows prop takes precedence over data when both are provided', () => {
+      const wrapped = [{ id: 'x1', data: { city: 'Madrid', country: 'Spain' } }];
+      render(<DataTable caption="Cities" columns={dataCols} rows={wrapped} data={plainData} />);
+      expect(screen.getByText('Madrid')).toBeInTheDocument();
+      expect(screen.queryByText('Berlin')).not.toBeInTheDocument();
+    });
+  });
 });

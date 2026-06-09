@@ -272,4 +272,68 @@ describe('DataTableComponent', () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  // NGI-14 AC: Data row rendering — plain `data` array input
+  describe('data row rendering', () => {
+    interface PlainRow { city: string; country: string }
+
+    const dataCols: DataTableColumn<PlainRow>[] = [
+      { key: 'city', header: 'City', type: 'text' },
+      { key: 'country', header: 'Country', type: 'text' },
+    ];
+    const plainData: PlainRow[] = [
+      { city: 'Berlin', country: 'Germany' },
+      { city: 'Paris', country: 'France' },
+      { city: 'Tokyo', country: 'Japan' },
+    ];
+
+    // AC1: Each object in the data array is rendered as one table row
+    it('renders one row per object in the data array', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Cities', columns: dataCols, data: plainData, selectable: false },
+      });
+      const bodyRows = screen.getAllByRole('row').slice(1);
+      expect(bodyRows).toHaveLength(plainData.length);
+    });
+
+    // AC2: Each cell displays the value corresponding to its column key
+    it('displays cell values matching column keys', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Cities', columns: dataCols, data: plainData },
+      });
+      expect(screen.getByText('Berlin')).toBeTruthy();
+      expect(screen.getByText('Germany')).toBeTruthy();
+      expect(screen.getByText('Paris')).toBeTruthy();
+    });
+
+    // AC3: Rows maintain the same order as the source data array
+    it('renders rows in the same order as the data array', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Cities', columns: dataCols, data: plainData, selectable: false },
+      });
+      const cityHeader = screen.getByRole('columnheader', { name: 'City' });
+      const colIndex = Array.from(cityHeader.parentElement!.children).indexOf(cityHeader);
+      const bodyCells = screen.getAllByRole('row').slice(1).map(
+        (row) => (row.children[colIndex] as HTMLElement).textContent?.trim()
+      );
+      expect(bodyCells).toEqual(['Berlin', 'Paris', 'Tokyo']);
+    });
+
+    // AC4: Number of rendered rows equals number of items in data array
+    it('renders exactly as many rows as items in the data array', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Cities', columns: dataCols, data: plainData, selectable: false },
+      });
+      expect(screen.getAllByRole('row').slice(1)).toHaveLength(3);
+    });
+
+    // backward compat: rows input still works
+    it('still accepts the rows input for backward compatibility', async () => {
+      const wrapped = [{ id: 'x1', data: { city: 'Madrid', country: 'Spain' } }];
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Cities', columns: dataCols, rows: wrapped },
+      });
+      expect(screen.getByText('Madrid')).toBeTruthy();
+    });
+  });
 });

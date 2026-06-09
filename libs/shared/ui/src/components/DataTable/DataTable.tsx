@@ -15,6 +15,7 @@ import {
   getCellValue,
   getInitials,
   nextSortDirection,
+  normalizeRows,
   toggleAllSelection,
   toggleRowSelection,
 } from '../../core/data-table/data-table.logic';
@@ -43,7 +44,8 @@ interface DataTableInternalProps<T> extends DataTableProps<T> {
 
 export function DataTable<T>({
   columns,
-  rows,
+  rows: rowsProp,
+  data,
   selectedIds: controlledSelectedIds,
   onSelectionChange,
   onActionSelect,
@@ -53,6 +55,7 @@ export function DataTable<T>({
   striped = false,
   className,
 }: DataTableInternalProps<T>) {
+  const rows = rowsProp ?? normalizeRows(data ?? []);
   const isControlled = controlledSelectedIds !== undefined;
   const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
   const selectedIds = isControlled ? controlledSelectedIds : internalSelectedIds;

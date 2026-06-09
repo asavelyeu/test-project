@@ -39,7 +39,10 @@ export interface SelectionState {
 
 export interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
-  rows: DataTableRow<T>[];
+  /** Pre-wrapped rows with explicit IDs. Takes precedence over `data` if both provided. */
+  rows?: DataTableRow<T>[];
+  /** Plain data array — rows are auto-generated with stable index-based IDs. */
+  data?: T[];
   /** Controlled selection. If omitted, component is uncontrolled */
   selectedIds?: Set<string>;
   onSelectionChange?: (selectedIds: Set<string>) => void;
