@@ -5,7 +5,8 @@
   "scripts": {
     "agent:epic": "node tools/scripts/epic-sync.mjs",
     "agent:cache": "node tools/scripts/fetch-cache.mjs",
-    "agent:contrast": "node tools/scripts/contrast-check.mjs"
+    "agent:contrast": "node tools/scripts/contrast-check.mjs",
+    "agent:doctor": "node tools/scripts/agent-doctor.mjs"
   },
   "private": true,
   "devDependencies": {

@@ -10,9 +10,9 @@
       "command": "uvx",
       "args": ["mcp-atlassian"],
       "env": {
-        "JIRA_URL": "${input:jiraUrl}",
-        "JIRA_USERNAME": "${input:jiraUsername}",
-        "JIRA_API_TOKEN": "${input:jiraApiToken}"
+        "JIRA_URL": "${env:JIRA_URL}",
+        "JIRA_USERNAME": "${env:JIRA_EMAIL}",
+        "JIRA_API_TOKEN": "${env:JIRA_API_TOKEN}"
       }
     },
     "playwright": {
@@ -51,29 +51,5 @@
         "GITHUB_TOKEN": "${env:GITHUB_TOKEN}"
       }
     }
-  },
-  "inputs": [
-    {
-      "id": "jiraUrl",
-      "type": "promptString",
-      "description": "Jira instance URL (e.g. https://yourcompany.atlassian.net)"
-    },
-    {
-      "id": "jiraUsername",
-      "type": "promptString",
-      "description": "Jira username (email)"
-    },
-    {
-      "id": "jiraApiToken",
-      "type": "promptString",
-      "description": "Jira API Token",
-      "password": true
-    },
-    {
-      "id": "figmaAccessToken",
-      "type": "promptString",
-      "description": "Figma Personal Access Token",
-      "password": true
-    }
-  ]
+  }
 }
