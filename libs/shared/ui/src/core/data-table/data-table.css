@@ -138,14 +138,10 @@
   --ui-data-table-loading-shimmer-to: var(--color-border, #e5e7eb);
 }
 
-.ui-data-table-empty-cell,
-.ui-data-table-loading-cell {
+.ui-data-table-empty-cell {
   padding: 40px var(--ui-data-table-cell-padding-x);
   text-align: center;
   vertical-align: middle;
-}
-
-.ui-data-table-empty-cell {
   color: var(--ui-data-table-empty-text);
 }
 

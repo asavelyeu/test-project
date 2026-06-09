@@ -34,6 +34,8 @@ function cn(...inputs: Parameters<typeof clsx>) {
   return twMerge(clsx(inputs));
 }
 
+const SKELETON_WIDTHS = ['72%', '55%', '80%', '45%', '65%', '50%', '38%', '70%'];
+
 function isAvatarTextValue(val: unknown): val is AvatarTextValue {
   return typeof val === 'object' && val !== null && 'name' in val;
 }
@@ -309,19 +311,29 @@ export function DataTable<T>({
           ))}
         </tr>
       </thead>
-      <tbody>
+      <tbody aria-busy={loading || undefined} aria-label={loading ? 'Loading data' : undefined}>
         {loading ? (
-          <tr>
-            <td
-              className="ui-data-table-loading-cell"
-              colSpan={columns.length + 1}
-              aria-busy="true"
-              aria-label="Loading data"
-            >
-              <span className="ui-data-table-skeleton" style={{ width: '60%' }} aria-hidden="true" />
-              <span className="sr-only">Loading data, please wait…</span>
-            </td>
-          </tr>
+          <>
+            <span className="sr-only">Loading data, please wait…</span>
+            {[0, 1, 2].map((rowIdx) => (
+              <tr key={rowIdx} aria-hidden="true">
+                <td className="ui-data-table-checkbox-cell">
+                  <span className="ui-data-table-skeleton" style={{ width: '16px', height: '16px', borderRadius: '4px', display: 'inline-block' }} />
+                </td>
+                {columns.map((col, colIdx) => (
+                  <td key={col.key} className={col.type === 'numeric' ? 'ui-data-table-numeric' : undefined}>
+                    <span
+                      className="ui-data-table-skeleton"
+                      style={{
+                        width: SKELETON_WIDTHS[(rowIdx * columns.length + colIdx) % SKELETON_WIDTHS.length],
+                        animationDelay: `${(rowIdx * columns.length + colIdx) * 0.07}s`,
+                      }}
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </>
         ) : rows.length === 0 ? (
           <tr>
             <td

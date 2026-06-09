@@ -37,19 +37,27 @@
     </tr>
   </thead>
 
-  <tbody>
+  <tbody [attr.aria-busy]="loading || null" [attr.aria-label]="loading ? 'Loading data' : null">
     @if (loading) {
-      <tr>
-        <td
-          class="ui-data-table-loading-cell"
-          [attr.colspan]="selectable ? columns.length + 1 : columns.length"
-          aria-busy="true"
-          aria-label="Loading data"
-        >
-          <span class="ui-data-table-skeleton" style="width: 60%" aria-hidden="true"></span>
-          <span class="sr-only">Loading data, please wait…</span>
-        </td>
-      </tr>
+      <span class="sr-only">Loading data, please wait…</span>
+      @for (rowIdx of skeletonRows; track rowIdx) {
+        <tr aria-hidden="true">
+          @if (selectable) {
+            <td class="ui-data-table-checkbox-cell">
+              <span class="ui-data-table-skeleton" style="width: 16px; height: 16px; border-radius: 4px; display: inline-block"></span>
+            </td>
+          }
+          @for (col of columns; track col.key; let colIdx = $index) {
+            <td [class.ui-data-table-numeric]="col.type === 'numeric'">
+              <span
+                class="ui-data-table-skeleton"
+                [style.width]="getSkeletonWidth(rowIdx, colIdx)"
+                [style.animation-delay]="getSkeletonDelay(rowIdx, colIdx)"
+              ></span>
+            </td>
+          }
+        </tr>
+      }
     } @else if (effectiveRows.length === 0) {
       <tr>
         <td
