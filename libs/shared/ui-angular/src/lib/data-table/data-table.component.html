@@ -38,7 +38,7 @@
   </thead>
 
   <tbody>
-    @for (row of rows; track row.id) {
+    @for (row of effectiveRows; track row.id) {
       <tr [attr.aria-selected]="selectable ? isRowSelected(row.id) : null">
         @if (selectable) {
           <td class="ui-data-table-checkbox-cell">

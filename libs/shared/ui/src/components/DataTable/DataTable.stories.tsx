@@ -196,3 +196,31 @@ export const StaticColumns: StoryObj<DataTableProps<ProductRow>> = {
     </div>
   ),
 };
+
+interface CityRow { city: string; country: string; population: number }
+
+const cityColumns: DataTableColumn<CityRow>[] = [
+  { key: 'city', header: 'City', type: 'text' },
+  { key: 'country', header: 'Country', type: 'text' },
+  { key: 'population', header: 'Population', type: 'numeric' },
+];
+
+const cityData: CityRow[] = [
+  { city: 'Berlin', country: 'Germany', population: 3645000 },
+  { city: 'Paris', country: 'France', population: 2161000 },
+  { city: 'Tokyo', country: 'Japan', population: 13960000 },
+];
+
+/** NGI-14: Data row rendering — plain `data` array prop, no row wrapping required. */
+export const DataProp: StoryObj<DataTableProps<CityRow>> = {
+  render: () => (
+    <div>
+      <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
+        <strong>Plain data prop:</strong> Pass a raw array of objects via the{' '}
+        <code>data</code> prop — no need to wrap each item in{' '}
+        <code>{'{ id, data }'}</code>. Row IDs are auto-generated from index.
+      </p>
+      <DataTable caption="Cities" columns={cityColumns} data={cityData} />
+    </div>
+  ),
+};

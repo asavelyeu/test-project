@@ -94,3 +94,18 @@ export function getCellValue<T>(
   }
   return (row.data as Record<string, unknown>)[column.key];
 }
+
+/**
+ * Converts a plain data array into DataTableRow objects with stable index-based IDs.
+ * Enables the `data` prop shorthand — no manual wrapping required.
+ * An optional `getRowId` callback can provide domain-specific IDs.
+ */
+export function normalizeRows<T>(
+  data: T[],
+  getRowId?: (item: T, index: number) => string
+): DataTableRow<T>[] {
+  return data.map((item, index) => ({
+    id: getRowId ? getRowId(item, index) : String(index),
+    data: item,
+  }));
+}

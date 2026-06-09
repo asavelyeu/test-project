@@ -17,6 +17,7 @@ export {
   getCellValue,
   getInitials,
   nextSortDirection,
+  normalizeRows,
   sortRows,
   toggleAllSelection,
   toggleRowSelection,
