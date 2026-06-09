@@ -102,6 +102,7 @@
   background-color: var(--ui-data-table-row-bg);
   border-bottom: 1px solid var(--ui-data-table-border);
   transition: background-color 0.1s ease;
+  forced-color-adjust: auto;
 }
 
 .ui-data-table tbody tr:last-child {
@@ -293,5 +294,20 @@
   .ui-data-table tbody tr,
   .ui-data-table .ui-data-table-action-btn {
     transition: none;
+  }
+}
+
+/* Forced colors (Windows High Contrast) */
+@media (forced-colors: active) {
+  .ui-data-table tbody tr:hover {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .ui-data-table tbody tr[aria-selected='true'] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+    background-color: Highlight;
+    color: HighlightText;
   }
 }

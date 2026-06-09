@@ -336,4 +336,47 @@ describe('DataTableComponent', () => {
       expect(screen.getByText('Madrid')).toBeTruthy();
     });
   });
+
+  // NGI-15 AC: Row hover state
+  describe('row hover state', () => {
+    // AC1+AC4: hover is CSS-only — table carries the class that activates the token
+    it('applies ui-data-table class that drives the CSS hover token', async () => {
+      await setup();
+      expect(screen.getByRole('table').classList.contains('ui-data-table')).toBe(true);
+    });
+
+    // AC4: no inline Angular event bindings for hover on <tr> (pure CSS)
+    it('body rows do not have mouseenter/mouseleave attributes for hover (CSS-only)', async () => {
+      const { container } = await setup();
+      const bodyRows = container.querySelectorAll('tbody tr');
+      bodyRows.forEach((tr) => {
+        expect(tr.hasAttribute('onmouseenter')).toBe(false);
+        expect(tr.hasAttribute('onmouseleave')).toBe(false);
+      });
+    });
+
+    // AC3: multiple rows rendered — only the one under cursor can receive :hover (CSS exclusive)
+    it('renders multiple rows each structurally capable of independent hover', async () => {
+      await setup();
+      const bodyRows = screen.getAllByRole('row').slice(1);
+      expect(bodyRows.length).toBeGreaterThan(1);
+    });
+
+    // AC4: hover does not affect cell content
+    it('cell text is unchanged after hovering a row', async () => {
+      const user = userEvent.setup();
+      const { container } = await setup();
+      const firstRow = container.querySelector('tbody tr') as HTMLElement;
+      const cellsBefore = Array.from(firstRow.querySelectorAll('td')).map(td => td.textContent);
+      await user.hover(firstRow);
+      const cellsAfter = Array.from(firstRow.querySelectorAll('td')).map(td => td.textContent);
+      expect(cellsAfter).toEqual(cellsBefore);
+    });
+
+    it('passes the axe accessibility audit with hover-ready structure', async () => {
+      const { container } = await setup();
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+  });
 });

@@ -110,6 +110,27 @@ export const AllStates: Story = {
   ),
 };
 
+/** NGI-15: Row hover state — move the cursor over any row to see the hover highlight.
+ *  Implemented entirely in CSS via `.ui-data-table tbody tr:hover` and the
+ *  `--ui-data-table-row-bg-hover` design-system token. No JS state involved. */
+export const HoverState: Story = {
+  render: () => (
+    <div>
+      <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
+        <strong>Row hover:</strong> Move the cursor over any row. The background changes
+        to <code>--ui-data-table-row-bg-hover</code>. Only the row under the cursor is
+        highlighted; the effect is removed when the cursor leaves. Cell content and
+        layout are unaffected.
+      </p>
+      <DataTable
+        caption="Hover state demo"
+        columns={columns}
+        rows={rows}
+      />
+    </div>
+  ),
+};
+
 export const TailwindTheme: Story = {
   render: () => (
     <DataTable
