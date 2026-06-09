@@ -1,8 +1,16 @@
-<div style="padding: 2rem; font-family: sans-serif">
-  <h1 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700">
+<div style="padding: 2rem; font-family: sans-serif; max-width: 1200px">
+  <h1 style="margin-bottom: 0.25rem; font-size: 1.5rem; font-weight: 700">
     Angular — Data Table Demo
   </h1>
-  <p style="margin-bottom: 1rem; color: #555">
+  <p style="margin-bottom: 2rem; color: #6B7280; font-size: 0.875rem">
+    Showcasing NGI-12 · NGI-13 · NGI-14
+  </p>
+
+  <h2 style="margin-bottom: 0.5rem; font-size: 1rem; font-weight: 600; color: #374151">
+    Employee Directory
+    <span style="font-weight: 400; color: #9CA3AF">(rows input · custom getValue)</span>
+  </h2>
+  <p style="margin-bottom: 0.75rem; color: #6B7280; font-size: 0.875rem">
     {{ selectionCount }} row{{ selectionCount !== 1 ? 's' : '' }} selected
   </p>
   <lib-data-table
@@ -15,5 +23,19 @@
     (selectionChange)="onSelectionChange($event)"
     (sortChange)="onSort($event)"
     (actionClick)="onActionSelect($event.rowId, $event.actionKey)"
+  />
+
+  <h2 style="margin-top: 3rem; margin-bottom: 0.5rem; font-size: 1rem; font-weight: 600; color: #374151">
+    City Population
+    <span style="font-weight: 400; color: #9CA3AF">(data input · static columns · no getValue)</span>
+  </h2>
+  <p style="margin-bottom: 0.75rem; color: #6B7280; font-size: 0.875rem">
+    NGI-13: column key auto-resolves cell value · NGI-14: plain <code>data</code> array, no row wrapping
+  </p>
+  <lib-data-table
+    [columns]="$any(cityColumns)"
+    [data]="$any(cityData)"
+    caption="City population"
+    [selectable]="false"
   />
 </div>

@@ -61,6 +61,22 @@ const ROWS: DataTableRow<Employee>[] = [
   { id: '5', data: { name: 'Eva Martinez', initials: 'EM', role: 'Engineer', department: 'Platform', joined: new Date('2019-11-05'), salary: 135000, status: 'active' } },
 ];
 
+// NGI-13: Static columns (no getValue) + NGI-14: plain data array
+interface City { city: string; country: string; population: number }
+
+const CITY_COLUMNS: DataTableColumn<City>[] = [
+  { key: 'city', header: 'City', type: 'text' },
+  { key: 'country', header: 'Country', type: 'text' },
+  { key: 'population', header: 'Population', type: 'numeric' },
+];
+
+const CITY_DATA: City[] = [
+  { city: 'Berlin', country: 'Germany', population: 3645000 },
+  { city: 'Paris', country: 'France', population: 2161000 },
+  { city: 'Tokyo', country: 'Japan', population: 13960000 },
+  { city: 'New York', country: 'USA', population: 8336817 },
+];
+
 @Component({
   imports: [DataTableComponent],
   selector: 'app-root',
@@ -70,6 +86,8 @@ const ROWS: DataTableRow<Employee>[] = [
 export class App {
   columns = COLUMNS;
   rows = ROWS;
+  cityColumns = CITY_COLUMNS;
+  cityData = CITY_DATA;
   selectedIds = signal<Set<string>>(new Set());
   sortConfig = signal<SortConfig>({ columnKey: 'name', direction: 'asc' });
 

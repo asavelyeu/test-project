@@ -65,16 +65,39 @@ const ROWS: DataTableRow<Employee>[] = [
   { id: '5', data: { name: 'Eva Martinez', initials: 'EM', role: 'Engineer', department: 'Platform', joined: new Date('2019-11-05'), salary: 135000, status: 'active' } },
 ];
 
+// NGI-13: Static columns (no getValue) + NGI-14: plain data array
+interface City { city: string; country: string; population: number }
+
+const CITY_COLUMNS: DataTableColumn<City>[] = [
+  { key: 'city', header: 'City', type: 'text' },
+  { key: 'country', header: 'Country', type: 'text' },
+  { key: 'population', header: 'Population', type: 'numeric' },
+];
+
+const CITY_DATA: City[] = [
+  { city: 'Berlin', country: 'Germany', population: 3645000 },
+  { city: 'Paris', country: 'France', population: 2161000 },
+  { city: 'Tokyo', country: 'Japan', population: 13960000 },
+  { city: 'New York', country: 'USA', population: 8336817 },
+];
+
 export function App() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortConfig, setSortConfig] = useState<SortConfig>({ columnKey: 'name', direction: 'asc' });
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 700 }}>
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '1200px' }}>
+      <h1 style={{ marginBottom: '0.25rem', fontSize: '1.5rem', fontWeight: 700 }}>
         React — Data Table Demo
       </h1>
-      <p style={{ marginBottom: '1rem', color: '#555' }}>
+      <p style={{ marginBottom: '2rem', color: '#6B7280', fontSize: '0.875rem' }}>
+        Showcasing NGI-12 · NGI-13 · NGI-14
+      </p>
+
+      <h2 style={{ marginBottom: '0.5rem', fontSize: '1rem', fontWeight: 600, color: '#374151' }}>
+        Employee Directory <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(rows prop · custom getValue)</span>
+      </h2>
+      <p style={{ marginBottom: '0.75rem', color: '#6B7280', fontSize: '0.875rem' }}>
         {selectedIds.size} row{selectedIds.size !== 1 ? 's' : ''} selected
       </p>
       <DataTable
@@ -85,10 +108,20 @@ export function App() {
         onSelectionChange={setSelectedIds}
         sortConfig={sortConfig}
         onSort={setSortConfig}
-        onActionSelect={(rowId, action) =>
-          alert(`Action "${action}" on row ${rowId}`)
-        }
+        onActionSelect={(rowId, action) => alert(`Action "${action}" on row ${rowId}`)}
         striped
+      />
+
+      <h2 style={{ marginTop: '3rem', marginBottom: '0.5rem', fontSize: '1rem', fontWeight: 600, color: '#374151' }}>
+        City Population <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(data prop · static columns · no getValue)</span>
+      </h2>
+      <p style={{ marginBottom: '0.75rem', color: '#6B7280', fontSize: '0.875rem' }}>
+        NGI-13: column key auto-resolves cell value · NGI-14: plain <code>data</code> array, no row wrapping
+      </p>
+      <DataTable
+        caption="City population"
+        columns={CITY_COLUMNS}
+        data={CITY_DATA}
       />
     </div>
   );
