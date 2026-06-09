@@ -12,14 +12,16 @@ Ask the user the following questions before starting the pipeline:
 1. **Jira ticket ID** (required) — if not already provided.
 2. **Frameworks** (required) — ask whether to build React only, Angular only,
    or both. Do NOT assume a default; always ask.
-3. **Figma source for THIS subticket** (required) — ALWAYS ask, even if a
+3. **Figma source for THIS subticket** (optional) — ALWAYS ask, even if a
    sibling subticket already had one. Each subticket usually shows a
    different state of the same component (e.g. NGI-12 = plain table,
    NGI-13 = table with pagination), so we always need the design for the
    current scope. Collect:
    - **Figma URL** (file/frame URL — preferred), and/or
    - **Figma screenshot path** (local PNG fallback).
-     At least one is required. The orchestrator caches it on the
+     Both are optional. If neither is provided, Phase 1 (design inspection)
+     is skipped and the architect works from the Jira description alone.
+     If at least one is provided, the orchestrator caches it on the
      **subticket** (not the epic) via `agent:epic set-design` in Phase 0.
 
 The architect (Phase 2) is responsible for diff-detecting what already
@@ -106,7 +108,7 @@ For each server:
 - chrome-devtools — required if the pipeline will reach Phase 4 QA
 
 **Degradable servers** (pipeline can continue without them):
-- Figma — only needed if no cached design exists in context.json
+- Figma — only needed if `design_source` is non-null and no cached design exists in context.json
 - Playwright — only needed for interaction testing in QA
 
 PHASE 0b — Resumability Check:
@@ -174,8 +176,8 @@ PHASE 0 — Epic Sync (MANDATORY, runs before everything else):
    architect and implementers MUST treat `must_respect.existing_exports`,
    `existing_tokens`, and `existing_files` as hard constraints — never
    redefine or rename them.
-6. Cache the per-subticket design source (always runs — the user provided
-   it in step 3 of the questions):
+6. Cache the per-subticket design source (**only if the user provided a
+   Figma URL or screenshot in step 3**; skip entirely otherwise):
    `pnpm agent:epic set-design --epic {epic_id} --subticket {subticket_id} \
 [--figma-url <url>] [--figma-file-key <key>] [--figma-node-id <id>] \
 [--screenshot <path>] [--notes "..."]`
@@ -184,17 +186,19 @@ PHASE 0 — Epic Sync (MANDATORY, runs before everything else):
    - `previous_designs[]` — pointers from all already-`done` sibling
      subtickets so the architect can compare the new design against what
      was implemented before.
+   If no design source was provided, set `design_source: null` in
+   `context.json` and Phase 1b (design inspection) will be skipped.
 
 In **single-ticket mode** (no parent, ignored epic, or user declined),
 state lives only at `.agent-run/{ticket_id}/context.json`. Phases 1–6
 run normally; Phase 7 (Epic Update) is SKIPPED.
 PHASE 1 — parallel:
 #file:.github/prompts/01-requirements.prompt.md
-#file:.github/prompts/02-design-inspector.prompt.md
+#file:.github/prompts/02-design-inspector.prompt.md (skip if `context.json design_source` is null)
 
 PHASE 1.5 — Fetch gate (deterministic, no LLM call):
-Read context.json. HALT and surface to user if ANY of these is true: - `fetch_status.jira === "error"` - `fetch_status.figma === "error"` (only required when
-`ticket.frameworks` is non-empty) - `fetch_status.jira` is missing entirely (Phase 1 never ran)
+Read context.json. HALT and surface to user if ANY of these is true: - `fetch_status.jira === "error"` - `fetch_status.figma === "error"` (only when
+`design_source` is non-null AND `ticket.frameworks` is non-empty) - `fetch_status.jira` is missing entirely (Phase 1 never ran)
 `"hit" | "ok" | "stale_refreshed"` are all acceptable.
 Log: `"Fetch gate: jira={...} confluence={...} figma={...}"`.
 

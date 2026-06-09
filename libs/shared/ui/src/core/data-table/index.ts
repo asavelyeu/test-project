@@ -14,6 +14,7 @@ export {
   computeSelectionState,
   formatDate,
   formatNumeric,
+  getCellValue,
   getInitials,
   nextSortDirection,
   sortRows,

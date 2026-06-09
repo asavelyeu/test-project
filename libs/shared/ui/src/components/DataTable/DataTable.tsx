@@ -12,6 +12,7 @@ import {
   computeSelectionState,
   formatDate,
   formatNumeric,
+  getCellValue,
   getInitials,
   nextSortDirection,
   toggleAllSelection,
@@ -132,7 +133,7 @@ export function DataTable<T>({
   }, [openActionRowId, handleCloseActionMenu]);
 
   function renderCell<U>(column: DataTableColumn<U>, row: DataTableRow<U>) {
-    const rawValue = column.getValue ? column.getValue(row.data) : undefined;
+    const rawValue = getCellValue(column, row);
 
     switch (column.type) {
       case 'avatar-text': {

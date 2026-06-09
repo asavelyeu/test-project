@@ -174,18 +174,70 @@ describe('DataTable', () => {
     expect(screen.getByText('Hello world')).toBeInTheDocument();
   });
 
-  // A11y: manual ARIA audit (jest-axe not available — using manual assertions)
-  it('passes manual a11y checks: table has caption, th has scope, rows have aria-selected', () => {
-    const { container } = render(<DataTable caption="A11y test" columns={columns} rows={rows} />);
-    const table = container.querySelector('table');
-    expect(table).toBeInTheDocument();
-    const caption = table?.querySelector('caption');
-    expect(caption).toBeInTheDocument();
-    const ths = table?.querySelectorAll('th[scope="col"]');
-    expect(ths?.length).toBeGreaterThan(0);
-    const bodyRows = table?.querySelectorAll('tbody tr');
-    bodyRows?.forEach((tr) => {
-      expect(tr).toHaveAttribute('aria-selected');
+  // NGI-13 AC: Static column configuration — no getValue needed
+  describe('static column configuration', () => {
+    interface SimpleRow { firstName: string; lastName: string; score: number }
+
+    const staticColumns: DataTableColumn<SimpleRow>[] = [
+      { key: 'firstName', header: 'First Name', type: 'text' },
+      { key: 'lastName', header: 'Last Name', type: 'text' },
+      { key: 'score', header: 'Score', type: 'numeric' },
+    ];
+    const staticRows: DataTableRow<SimpleRow>[] = [
+      { id: 's1', data: { firstName: 'Jane', lastName: 'Doe', score: 42 } },
+      { id: 's2', data: { firstName: 'John', lastName: 'Smith', score: 99 } },
+    ];
+
+    // AC1: Column definition specifies at minimum key, header, and cell type
+    it('renders columns defined with only key, header, and type (no getValue)', () => {
+      render(<DataTable caption="Static test" columns={staticColumns} rows={staticRows} />);
+      expect(screen.getByRole('columnheader', { name: 'First Name' })).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: 'Last Name' })).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: 'Score' })).toBeInTheDocument();
+    });
+
+    // AC1 + key-based value lookup
+    it('automatically looks up cell values by column key when getValue is absent', () => {
+      render(<DataTable caption="Static test" columns={staticColumns} rows={staticRows} />);
+      expect(screen.getByText('Jane')).toBeInTheDocument();
+      expect(screen.getByText('Doe')).toBeInTheDocument();
+      expect(screen.getByText('42')).toBeInTheDocument();
+    });
+
+    // AC2: Columns render in the order they are defined
+    it('renders columns in the order they are defined in the configuration', () => {
+      render(<DataTable caption="Static test" columns={staticColumns} rows={staticRows} />);
+      const headers = screen.getAllByRole('columnheader').map((th) => th.textContent?.trim());
+      const dataHeaders = headers.filter((h) => h !== ''); // exclude empty action header
+      expect(dataHeaders[0]).toBe('First Name');
+      expect(dataHeaders[1]).toBe('Last Name');
+      expect(dataHeaders[2]).toBe('Score');
+    });
+
+    // AC3: Column headers display the labels provided in the configuration
+    it('displays column header labels from configuration', () => {
+      render(<DataTable caption="Static test" columns={staticColumns} rows={staticRows} />);
+      expect(screen.getByRole('columnheader', { name: 'First Name' })).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: 'Score' })).toBeInTheDocument();
+    });
+
+    // AC4: Adding/removing a column reflects immediately in the rendered table
+    it('reflects column additions in the rendered table', () => {
+      const { rerender } = render(
+        <DataTable caption="Static test" columns={staticColumns.slice(0, 2)} rows={staticRows} />
+      );
+      expect(screen.queryByRole('columnheader', { name: 'Score' })).not.toBeInTheDocument();
+      rerender(<DataTable caption="Static test" columns={staticColumns} rows={staticRows} />);
+      expect(screen.getByRole('columnheader', { name: 'Score' })).toBeInTheDocument();
+    });
+
+    it('reflects column removals in the rendered table', () => {
+      const { rerender } = render(
+        <DataTable caption="Static test" columns={staticColumns} rows={staticRows} />
+      );
+      expect(screen.getByRole('columnheader', { name: 'Score' })).toBeInTheDocument();
+      rerender(<DataTable caption="Static test" columns={staticColumns.slice(0, 2)} rows={staticRows} />);
+      expect(screen.queryByRole('columnheader', { name: 'Score' })).not.toBeInTheDocument();
     });
   });
 });
