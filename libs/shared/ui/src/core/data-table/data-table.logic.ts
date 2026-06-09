@@ -1,4 +1,4 @@
-import type { DataTableRow, SelectionState, SortConfig } from './data-table.types';
+import type { DataTableColumn, DataTableRow, SelectionState, SortConfig } from './data-table.types';
 
 export function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '';
@@ -77,4 +77,20 @@ export function nextSortDirection(current: 'asc' | 'desc' | 'none'): 'asc' | 'de
   if (current === 'none') return 'asc';
   if (current === 'asc') return 'desc';
   return 'none';
+}
+
+/**
+ * Resolves the display value for a cell.
+ * If the column has a custom `getValue` getter, it is used.
+ * Otherwise, the value is looked up from `row.data` by `column.key`,
+ * enabling "static" column configuration without needing a getter per column.
+ */
+export function getCellValue<T>(
+  column: DataTableColumn<T>,
+  row: DataTableRow<T>
+): unknown {
+  if (column.getValue) {
+    return column.getValue(row.data);
+  }
+  return (row.data as Record<string, unknown>)[column.key];
 }

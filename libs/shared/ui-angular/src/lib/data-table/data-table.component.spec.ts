@@ -211,6 +211,61 @@ describe('DataTableComponent', () => {
     expect(screen.getByText('Hello world')).toBeTruthy();
   });
 
+  // NGI-13 AC: Static column configuration — no getValue needed
+  describe('static column configuration', () => {
+    interface SimpleRow { city: string; country: string; population: number }
+
+    const staticColumns: DataTableColumn<SimpleRow>[] = [
+      { key: 'city', header: 'City', type: 'text' },
+      { key: 'country', header: 'Country', type: 'text' },
+      { key: 'population', header: 'Population', type: 'numeric' },
+    ];
+    const staticRows: DataTableRow<SimpleRow>[] = [
+      { id: 'c1', data: { city: 'Berlin', country: 'Germany', population: 3645000 } },
+      { id: 'c2', data: { city: 'Paris', country: 'France', population: 2161000 } },
+    ];
+
+    // AC1: Column definition specifies at minimum key, header, and cell type
+    it('renders columns defined with only key, header, and type (no getValue)', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Cities', columns: staticColumns, rows: staticRows },
+      });
+      expect(screen.getByRole('columnheader', { name: 'City' })).toBeTruthy();
+      expect(screen.getByRole('columnheader', { name: 'Country' })).toBeTruthy();
+      expect(screen.getByRole('columnheader', { name: 'Population' })).toBeTruthy();
+    });
+
+    // AC1 + key-based value lookup
+    it('automatically looks up cell values by column key when getValue is absent', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Cities', columns: staticColumns, rows: staticRows },
+      });
+      expect(screen.getByText('Berlin')).toBeTruthy();
+      expect(screen.getByText('Germany')).toBeTruthy();
+      expect(screen.getByText('3,645,000')).toBeTruthy();
+    });
+
+    // AC2: Columns render in the order they are defined
+    it('renders columns in the order they are defined in the configuration', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Cities', columns: staticColumns, rows: staticRows, selectable: false },
+      });
+      const headers = screen.getAllByRole('columnheader').map((th) => th.textContent?.trim());
+      expect(headers[0]).toBe('City');
+      expect(headers[1]).toBe('Country');
+      expect(headers[2]).toBe('Population');
+    });
+
+    // AC3: Column headers display the labels provided in the configuration
+    it('displays column header labels from configuration', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Cities', columns: staticColumns, rows: staticRows },
+      });
+      expect(screen.getByRole('columnheader', { name: 'City' })).toBeTruthy();
+      expect(screen.getByRole('columnheader', { name: 'Population' })).toBeTruthy();
+    });
+  });
+
   it('passes the axe accessibility audit', async () => {
     const { container } = await setup();
 

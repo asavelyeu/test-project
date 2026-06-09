@@ -17,6 +17,7 @@ import {
   computeSelectionState,
   formatDate,
   formatNumeric,
+  getCellValue as getCellValueCore,
   getActionButtonAriaLabel,
   getActionMenuAriaLabel,
   getActionMenuKeyAction,
@@ -103,7 +104,7 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   getCellValue(column: DataTableColumn<T>, row: DataTableRow<T>): unknown {
-    return column.getValue ? column.getValue(row.data) : null;
+    return getCellValueCore(column, row);
   }
 
   isAvatarTextValue(value: unknown): value is AvatarTextValue {

@@ -62,6 +62,22 @@ and `CssTheme` Storybook stories.
 - a11y violations: {qa.wcag_violations.length}
 - Passes needed: {qa.passes}
 
+### Epic context (if applicable)
+<!-- Only include this section when context.epic.id exists (epic mode) -->
+<details>
+<summary>Epic {context.epic.id} — {context.epic.title}</summary>
+
+**Jira epic:** [{context.epic.id}]({jira_base_url}/browse/{context.epic.id})
+
+| Subticket | Title | Status | PR |
+|-----------|-------|--------|-----|
+{for each epic.subtickets: | {s.id} | {s.title} | {s.status} | {s.pr_url or '—'} |}
+
+**Component spec:** {spec.exports.length} exports, {spec.types.length} types
+**Tokens:** {count of --ui-* tokens in spec/tokens.css}
+**Constraints carried forward:** {must_respect.existing_exports.length} exports, {must_respect.existing_tokens.length} tokens
+</details>
+
 ### Tests
 {implementation.*.test_files as bullet list}
 All tests: ✅
@@ -87,8 +103,9 @@ All tests: ✅
 6. Create PR via GitHub MCP. Label = ticket.type. Reviewer = `PR_REVIEWER` env.
 7. Transition Jira to "In Review" (skip if unavailable).
 8. Set `pr.branch`, `pr.commit_message`, `pr.pr_url`, `pr.pr_number`. Merge.
-9. Epic memory update — only if `context.epic.id` exists.
-   Build a `produced` payload from the merged implementation slices:
+9. Epic context prep — only if `context.epic.id` exists.
+   Populate the `pr.produced` payload from the merged implementation slices
+   so Phase 7 (Epic Update) can pass it to `pnpm agent:epic complete`:
 
    ```json
    {
@@ -100,12 +117,7 @@ All tests: ✅
    }
    ```
 
-   Pipe it to:
-   `printf '%s' '<json>' | pnpm agent:epic complete \
- --epic {context.epic.id} --subticket {ticket.id} \
- --pr-url {pr.pr_url} --produced -`
-
-   The CLI handles atomic JSON writes, dedup, journal append, and
-   recomputes `epic.next_action`. Do not edit `epic.json` directly.
+   Merge `pr.produced` into context.json. Do NOT call `pnpm agent:epic complete`
+   here — that is Phase 7's responsibility.
 
 Output: "PR created: {pr_url}. Next subticket: {epic.next_action.subticket_id ?? 'none — epic done'}"

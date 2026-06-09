@@ -160,3 +160,39 @@ export const A11yShowcase: Story = {
     </div>
   ),
 };
+
+interface ProductRow {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+}
+
+const staticProductColumns: DataTableColumn<ProductRow>[] = [
+  { key: 'id', header: 'ID', type: 'text' },
+  { key: 'name', header: 'Product Name', type: 'text' },
+  { key: 'category', header: 'Category', type: 'text' },
+  { key: 'price', header: 'Price', type: 'numeric' },
+];
+
+const staticProductRows: DataTableRow<ProductRow>[] = [
+  { id: 'p1', data: { id: 'SKU-001', name: 'Wireless Keyboard', category: 'Electronics', price: 79 } },
+  { id: 'p2', data: { id: 'SKU-002', name: 'USB-C Hub', category: 'Electronics', price: 49 } },
+  { id: 'p3', data: { id: 'SKU-003', name: 'Desk Lamp', category: 'Office', price: 34 } },
+];
+
+/** NGI-13: Static column configuration — columns defined with key, header, and type only.
+ *  No `getValue` getter required; values are resolved automatically by column key. */
+export const StaticColumns: StoryObj<DataTableProps<ProductRow>> = {
+  render: () => (
+    <div>
+      <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
+        <strong>Static column config:</strong> Each column is defined with only{' '}
+        <code>key</code>, <code>header</code>, and <code>type</code> — no custom{' '}
+        <code>getValue</code> getter. Cell values are resolved automatically from{' '}
+        <code>row.data[column.key]</code>.
+      </p>
+      <DataTable caption="Products" columns={staticProductColumns} rows={staticProductRows} />
+    </div>
+  ),
+};

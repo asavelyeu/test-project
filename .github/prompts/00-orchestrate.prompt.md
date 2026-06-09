@@ -12,14 +12,16 @@ Ask the user the following questions before starting the pipeline:
 1. **Jira ticket ID** (required) — if not already provided.
 2. **Frameworks** (required) — ask whether to build React only, Angular only,
    or both. Do NOT assume a default; always ask.
-3. **Figma source for THIS subticket** (required) — ALWAYS ask, even if a
+3. **Figma source for THIS subticket** (optional) — ALWAYS ask, even if a
    sibling subticket already had one. Each subticket usually shows a
    different state of the same component (e.g. NGI-12 = plain table,
    NGI-13 = table with pagination), so we always need the design for the
    current scope. Collect:
    - **Figma URL** (file/frame URL — preferred), and/or
    - **Figma screenshot path** (local PNG fallback).
-     At least one is required. The orchestrator caches it on the
+     Both are optional. If neither is provided, Phase 1 (design inspection)
+     is skipped and the architect works from the Jira description alone.
+     If at least one is provided, the orchestrator caches it on the
      **subticket** (not the epic) via `agent:epic set-design` in Phase 0.
 
 The architect (Phase 2) is responsible for diff-detecting what already
@@ -65,6 +67,76 @@ All epic-level memory operations go through the deterministic CLI
 `.agent-run/epics/**/epic.json` or `spec/component.json` — always shell
 out so the schema and merges stay deterministic.
 
+PHASE 0a — MCP Preflight (MANDATORY, runs before everything):
+
+Run `pnpm agent:doctor`. Examine the output.
+
+- If ANY **required** check fails (exit code 1): **HALT immediately**.
+  Surface the doctor's output to the user with this message:
+  > "Pipeline cannot start — required dependencies are missing. Run
+  > `pnpm agent:doctor` and fix the items marked ✘ above."
+  Do NOT proceed to Phase 0 or any other phase.
+- If only **optional** checks fail (exit code 0 with warnings): log
+  the warnings to `.agent-run/{ticket_id}/pipeline.log` and continue.
+  Note which MCP servers may be unavailable (e.g. Figma, Confluence)
+  so downstream phases can degrade gracefully.
+
+After the doctor passes, **ping each MCP server** to verify it is actually
+running (not just configured). A configured-but-stopped server will silently
+break downstream phases:
+
+| MCP Server | Ping call | Required for |
+|------------|-----------|--------------|
+| **Jira** | `jira_get_issue` with the target ticket ID | Phase 0 (requirements) |
+| **chrome-devtools** | `chrome_devtools_take_screenshot` (any tab) | Phase 4 (QA visual checks) |
+| **Playwright** | `playwright_navigate` to `about:blank` | Phase 4 (QA keyboard/interaction) |
+| **Figma** | `figma_get_file` with a known file key | Phase 1 (design inspection) |
+
+For each server:
+- If the ping call **succeeds** → mark the server as `alive` in memory.
+- If the ping call **errors or times out (>10 s)** → notify the user:
+  > "⚠️ MCP server `{name}` is configured but not responding.
+  > Please restart it in VS Code (Cmd+Shift+P → 'MCP: Restart Server')
+  > then confirm to continue."
+  Wait for user confirmation before proceeding.
+- If the server is **optional** for the current ticket (e.g. Figma when
+  design is already cached, or Playwright when only React is in scope)
+  → log the warning and continue without blocking.
+
+**Critical servers** that MUST be alive to proceed:
+- Jira — always required (ticket fetch is Phase 0 step 1)
+- chrome-devtools — required if the pipeline will reach Phase 4 QA
+
+**Degradable servers** (pipeline can continue without them):
+- Figma — only needed if `design_source` is non-null and no cached design exists in context.json
+- Playwright — only needed for interaction testing in QA
+
+PHASE 0b — Resumability Check:
+
+Before starting Phase 0, check for existing progress:
+
+1. **Epic mode:** If the ticket has an epic parent, check
+   `.agent-run/epics/{epic_id}/subtickets/{ticket_id}/context.json`.
+2. **Single-ticket mode:** Check `.agent-run/{ticket_id}/context.json`.
+
+If the context file exists AND has `last_completed_phase` set:
+> "Found existing progress for {ticket_id}: last completed phase =
+> {last_completed_phase}. Resume from phase {last_completed_phase + 1}?
+> [Y/n]"
+
+- **yes** → Load the existing context. Skip all phases up to and
+  including `last_completed_phase`. Continue from
+  `last_completed_phase + 1`.
+- **no** → Wipe the context file (`phases` and `last_completed_phase`
+  keys only — preserve `epic`, `must_respect`, `design_source` if
+  present) and start from Phase 0.
+
+At the end of each phase, persist progress via:
+`pnpm agent:epic checkpoint --epic {epic_id} --subticket {subticket_id} \
+  --phase {N} --slice -`
+(In single-ticket mode, write `last_completed_phase` directly into
+`.agent-run/{ticket_id}/context.json` instead.)
+
 PHASE 0 — Epic Sync (MANDATORY, runs before everything else):
 
 1. Fetch the ticket from Jira (Jira MCP). Extract `parent` (the epic).
@@ -104,8 +176,8 @@ PHASE 0 — Epic Sync (MANDATORY, runs before everything else):
    architect and implementers MUST treat `must_respect.existing_exports`,
    `existing_tokens`, and `existing_files` as hard constraints — never
    redefine or rename them.
-6. Cache the per-subticket design source (always runs — the user provided
-   it in step 3 of the questions):
+6. Cache the per-subticket design source (**only if the user provided a
+   Figma URL or screenshot in step 3**; skip entirely otherwise):
    `pnpm agent:epic set-design --epic {epic_id} --subticket {subticket_id} \
 [--figma-url <url>] [--figma-file-key <key>] [--figma-node-id <id>] \
 [--screenshot <path>] [--notes "..."]`
@@ -114,17 +186,19 @@ PHASE 0 — Epic Sync (MANDATORY, runs before everything else):
    - `previous_designs[]` — pointers from all already-`done` sibling
      subtickets so the architect can compare the new design against what
      was implemented before.
+   If no design source was provided, set `design_source: null` in
+   `context.json` and Phase 1b (design inspection) will be skipped.
 
 In **single-ticket mode** (no parent, ignored epic, or user declined),
 state lives only at `.agent-run/{ticket_id}/context.json`. Phases 1–6
 run normally; Phase 7 (Epic Update) is SKIPPED.
 PHASE 1 — parallel:
 #file:.github/prompts/01-requirements.prompt.md
-#file:.github/prompts/02-design-inspector.prompt.md
+#file:.github/prompts/02-design-inspector.prompt.md (skip if `context.json design_source` is null)
 
 PHASE 1.5 — Fetch gate (deterministic, no LLM call):
-Read context.json. HALT and surface to user if ANY of these is true: - `fetch_status.jira === "error"` - `fetch_status.figma === "error"` (only required when
-`ticket.frameworks` is non-empty) - `fetch_status.jira` is missing entirely (Phase 1 never ran)
+Read context.json. HALT and surface to user if ANY of these is true: - `fetch_status.jira === "error"` - `fetch_status.figma === "error"` (only when
+`design_source` is non-null AND `ticket.frameworks` is non-empty) - `fetch_status.jira` is missing entirely (Phase 1 never ran)
 `"hit" | "ok" | "stale_refreshed"` are all acceptable.
 Log: `"Fetch gate: jira={...} confluence={...} figma={...}"`.
 
