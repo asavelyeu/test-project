@@ -379,4 +379,85 @@ describe('DataTableComponent', () => {
       expect(results).toHaveNoViolations();
     });
   });
+
+  // NGI-16 AC: Empty state
+  describe('empty state', () => {
+    // AC1: No data rows when data is empty
+    it('renders no data rows when data is an empty array', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Empty', columns, data: [] },
+      });
+      const bodyRows = screen.getAllByRole('row').slice(1);
+      expect(bodyRows).toHaveLength(1); // only empty-state row
+    });
+
+    // AC2: Empty state message displayed
+    it('displays the default empty message when data is empty', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Empty', columns, data: [] },
+      });
+      expect(screen.getByText('No data available')).toBeTruthy();
+    });
+
+    // AC5: Custom message
+    it('renders a custom emptyMessage when provided', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Empty', columns, data: [], emptyMessage: 'Nothing here yet' },
+      });
+      expect(screen.getByText('Nothing here yet')).toBeTruthy();
+    });
+
+    // AC4: Column headers remain visible
+    it('keeps column headers visible when data is empty', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Empty', columns, data: [] },
+      });
+      expect(screen.getByRole('columnheader', { name: 'Name' })).toBeTruthy();
+    });
+
+    // AC3: Empty vs loading — empty shows message, not spinner
+    it('shows empty message (not loading indicator) when data is empty and loading is false', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Empty', columns, data: [], loading: false },
+      });
+      expect(screen.getByText('No data available')).toBeTruthy();
+      expect(screen.queryByLabelText('Loading data')).toBeNull();
+    });
+
+    // AC3: Loading state distinct from empty state
+    it('shows loading indicator (not empty message) when loading is true', async () => {
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Loading', columns, data: [], loading: true },
+      });
+      expect(screen.queryByText('No data available')).toBeNull();
+      expect(screen.getByLabelText('Loading data')).toBeTruthy();
+    });
+
+    // AC3: Loading cell is aria-busy
+    it('marks the loading cell as aria-busy', async () => {
+      const { container } = await render(DataTableComponent, {
+        componentInputs: { caption: 'Loading', columns, data: [], loading: true },
+      });
+      const loadingCell = container.querySelector('[aria-busy="true"]');
+      expect(loadingCell).not.toBeNull();
+    });
+
+    // Rows render normally when data is non-empty
+    it('renders data rows normally when data is non-empty', async () => {
+      const data = [{ name: 'Alice', initials: 'AL', description: 'Admin', date: '2023-01-01', label: 'Active', amount: 10 }];
+      await render(DataTableComponent, {
+        componentInputs: { caption: 'Non-empty', columns, data },
+      });
+      expect(screen.getByText('Alice')).toBeTruthy();
+      expect(screen.queryByText('No data available')).toBeNull();
+    });
+
+    it('passes the axe accessibility audit on empty state', async () => {
+      const { container } = await render(DataTableComponent, {
+        componentInputs: { caption: 'Empty a11y', columns, data: [] },
+      });
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+  });
 });

@@ -91,8 +91,21 @@ export class App {
   selectedIds = signal<Set<string>>(new Set());
   sortConfig = signal<SortConfig>({ columnKey: 'name', direction: 'asc' });
 
+  // NGI-16: loading state simulation
+  isLoading = signal(false);
+  loadedData = signal<Employee[] | null>(null);
+  fetchTimer: ReturnType<typeof setTimeout> | null = null;
+
   get selectionCount() {
     return this.selectedIds().size;
+  }
+
+  get dynamicData(): Employee[] {
+    return this.loadedData() ?? [];
+  }
+
+  get dynamicEmptyMessage(): string {
+    return "Click 'Simulate fetch' above to load data.";
   }
 
   onSelectionChange(ids: Set<string>) {
@@ -105,5 +118,23 @@ export class App {
 
   onActionSelect(rowId: string, actionKey: string) {
     alert(`Action "${actionKey}" on row ${rowId}`);
+  }
+
+  simulateFetch() {
+    this.isLoading.set(true);
+    this.loadedData.set(null);
+    this.fetchTimer = setTimeout(() => {
+      this.isLoading.set(false);
+      this.loadedData.set([
+        { name: 'Alice Johnson', initials: 'AJ', role: 'Engineer', department: 'Platform', joined: new Date('2021-03-15'), salary: 120000, status: 'active' },
+        { name: 'Bob Smith', initials: 'BS', role: 'Designer', department: 'Product', joined: new Date('2022-07-01'), salary: 98000, status: 'inactive' },
+      ]);
+    }, 2000);
+  }
+
+  resetDemo() {
+    if (this.fetchTimer) clearTimeout(this.fetchTimer);
+    this.isLoading.set(false);
+    this.loadedData.set(null);
   }
 }

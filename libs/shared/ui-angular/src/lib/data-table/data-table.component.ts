@@ -69,6 +69,13 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   @Input() striped = false;
   @Input() selectedIds?: Set<string>;
   @Input() sortConfig?: SortConfig;
+  /** When true, shows a loading skeleton in place of rows */
+  @Input() loading = false;
+  /** Message shown when data is empty and not loading. Defaults to "No data available" */
+  @Input() emptyMessage = 'No data available';
+
+  readonly skeletonRows = [0, 1, 2];
+  private readonly skeletonWidths = ['72%', '55%', '80%', '45%', '65%', '50%', '38%', '70%'];
 
   @Output() readonly selectionChange = new EventEmitter<Set<string>>();
   @Output() readonly actionClick = new EventEmitter<{ rowId: string; actionKey: string }>();
@@ -263,6 +270,14 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     ) {
       this.closeActionMenu();
     }
+  }
+
+  getSkeletonWidth(rowIdx: number, colIdx: number): string {
+    return this.skeletonWidths[(rowIdx * this.columns.length + colIdx) % this.skeletonWidths.length];
+  }
+
+  getSkeletonDelay(rowIdx: number, colIdx: number): string {
+    return `${(rowIdx * this.columns.length + colIdx) * 0.07}s`;
   }
 
   private emitSelectionChange(nextSelectedIds: Set<string>): void {

@@ -37,8 +37,53 @@
     </tr>
   </thead>
 
-  <tbody>
-    @for (row of effectiveRows; track row.id) {
+  <tbody [attr.aria-busy]="loading || null" [attr.aria-label]="loading ? 'Loading data' : null">
+    @if (loading) {
+      <span class="sr-only">Loading data, please wait…</span>
+      @for (rowIdx of skeletonRows; track rowIdx) {
+        <tr aria-hidden="true">
+          @if (selectable) {
+            <td class="ui-data-table-checkbox-cell">
+              <span class="ui-data-table-skeleton" style="width: 16px; height: 16px; border-radius: 4px; display: inline-block"></span>
+            </td>
+          }
+          @for (col of columns; track col.key; let colIdx = $index) {
+            <td [class.ui-data-table-numeric]="col.type === 'numeric'">
+              <span
+                class="ui-data-table-skeleton"
+                [style.width]="getSkeletonWidth(rowIdx, colIdx)"
+                [style.animation-delay]="getSkeletonDelay(rowIdx, colIdx)"
+              ></span>
+            </td>
+          }
+        </tr>
+      }
+    } @else if (effectiveRows.length === 0) {
+      <tr>
+        <td
+          class="ui-data-table-empty-cell"
+          [attr.colspan]="selectable ? columns.length + 1 : columns.length"
+          [attr.aria-label]="emptyMessage"
+        >
+          <svg
+            class="ui-data-table-empty-icon"
+            aria-hidden="true"
+            width="40"
+            height="40"
+            viewBox="0 0 40 40"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <rect x="4" y="8" width="32" height="24" rx="3" />
+            <line x1="4" y1="15" x2="36" y2="15" />
+            <line x1="13" y1="8" x2="13" y2="32" />
+          </svg>
+          <span class="ui-data-table-empty-message">{{ emptyMessage }}</span>
+        </td>
+      </tr>
+    } @else {
+      @for (row of effectiveRows; track row.id) {
       <tr [attr.aria-selected]="selectable ? isRowSelected(row.id) : null">
         @if (selectable) {
           <td class="ui-data-table-checkbox-cell">
@@ -138,6 +183,7 @@
           }
         }
       </tr>
-    }
+    } <!-- end @for rows -->
+    } <!-- end @else -->
   </tbody>
 </table>

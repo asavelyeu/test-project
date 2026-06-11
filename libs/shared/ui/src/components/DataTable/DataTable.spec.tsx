@@ -365,4 +365,68 @@ describe('DataTable', () => {
       expect(cellsAfter).toEqual(cellsBefore);
     });
   });
+
+  // NGI-16 AC: Empty state
+  describe('empty state', () => {
+    // AC1: When data is empty array, no data rows are rendered
+    it('renders no data rows when data is an empty array', () => {
+      render(<DataTable caption="Empty" columns={columns} data={[]} />);
+      const bodyRows = screen.getAllByRole('row').slice(1); // skip header
+      expect(bodyRows).toHaveLength(1); // only the empty-state row
+      expect(bodyRows[0].querySelector('td')).not.toBeNull();
+    });
+
+    // AC2: Empty state message is displayed in place of rows
+    it('displays the empty state message when data is empty', () => {
+      render(<DataTable caption="Empty" columns={columns} data={[]} />);
+      expect(screen.getByText('No data available')).toBeInTheDocument();
+    });
+
+    // AC5: Meaningful default message
+    it('uses "No data available" as the default empty message', () => {
+      render(<DataTable caption="Empty" columns={columns} data={[]} />);
+      expect(screen.getByText('No data available')).toBeInTheDocument();
+    });
+
+    // AC5: Custom empty message
+    it('renders a custom emptyMessage when provided', () => {
+      render(<DataTable caption="Empty" columns={columns} data={[]} emptyMessage="Nothing here yet" />);
+      expect(screen.getByText('Nothing here yet')).toBeInTheDocument();
+    });
+
+    // AC4: Column headers remain visible during empty state
+    it('keeps column headers visible when data is empty', () => {
+      render(<DataTable caption="Empty" columns={columns} data={[]} />);
+      expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
+    });
+
+    // AC3: Empty state is distinct from loading state
+    it('shows empty state message (not loading indicator) when data is empty and loading is false', () => {
+      render(<DataTable caption="Empty" columns={columns} data={[]} loading={false} />);
+      expect(screen.getByText('No data available')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Loading data')).not.toBeInTheDocument();
+    });
+
+    // AC3: Loading state is clearly distinguished from empty state
+    it('shows loading indicator (not empty message) when loading is true', () => {
+      render(<DataTable caption="Loading" columns={columns} data={[]} loading />);
+      expect(screen.queryByText('No data available')).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Loading data')).toBeInTheDocument();
+    });
+
+    // AC3: Loading state has aria-busy
+    it('marks the loading cell as aria-busy', () => {
+      render(<DataTable caption="Loading" columns={columns} data={[]} loading />);
+      const loadingCell = screen.getByLabelText('Loading data');
+      expect(loadingCell).toHaveAttribute('aria-busy', 'true');
+    });
+
+    // Shows rows normally when data is non-empty
+    it('renders rows normally when data is non-empty', () => {
+      const data = [{ name: 'Alice', role: 'Admin', status: 'Active', joinDate: new Date('2023-01-01'), score: 10 }];
+      render(<DataTable caption="Non-empty" columns={columns} data={data} />);
+      expect(screen.getByText('Alice')).toBeInTheDocument();
+      expect(screen.queryByText('No data available')).not.toBeInTheDocument();
+    });
+  });
 });

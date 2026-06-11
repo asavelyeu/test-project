@@ -130,6 +130,54 @@
   background-color: var(--ui-data-table-row-bg-selected);
 }
 
+/* Empty state */
+.ui-data-table {
+  --ui-data-table-empty-text: var(--color-text-secondary, #6b7280);
+  --ui-data-table-empty-icon: var(--color-border, #d1d5db);
+  --ui-data-table-loading-shimmer-from: var(--color-surface-subtle, #f3f4f6);
+  --ui-data-table-loading-shimmer-to: var(--color-border, #e5e7eb);
+}
+
+.ui-data-table-empty-cell {
+  padding: 40px var(--ui-data-table-cell-padding-x);
+  text-align: center;
+  vertical-align: middle;
+  color: var(--ui-data-table-empty-text);
+}
+
+.ui-data-table-empty-icon {
+  display: block;
+  margin: 0 auto 12px;
+  color: var(--ui-data-table-empty-icon);
+}
+
+.ui-data-table-empty-message {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ui-data-table-empty-text);
+}
+
+/* Loading skeleton shimmer */
+@keyframes ui-data-table-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.ui-data-table-skeleton {
+  display: inline-block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--ui-data-table-loading-shimmer-from) 25%,
+    var(--ui-data-table-loading-shimmer-to) 50%,
+    var(--ui-data-table-loading-shimmer-from) 75%
+  );
+  background-size: 800px 100%;
+  animation: ui-data-table-shimmer 1.4s ease-in-out infinite;
+}
+
 /* Cells */
 .ui-data-table td {
   padding: var(--ui-data-table-cell-padding-y) var(--ui-data-table-cell-padding-x);

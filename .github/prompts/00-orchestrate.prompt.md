@@ -210,16 +210,37 @@ PHASE 3 — implementation (sequential, only run adapters the ticket needs):
 #file:.github/prompts/05-implement-react.prompt.md (if frameworks includes react)
 #file:.github/prompts/06-implement-angular.prompt.md (if frameworks includes angular)
 
+PHASE 3.5 — Implementation gate (deterministic, no LLM call):
+Run `pnpm agent:context validate --ticket {ticket_id}`.
+If `issues` is non-empty, HALT and surface to user:
+> "Implementation gate failed: {issues}. Fix the listed issues before QA."
+This catches malformed architecture or missing implementation slices
+before the QA agent consumes them in a fresh context.
+
 PHASE 4 — QA loop (max 3 iterations across all implemented adapters):
-#file:.github/prompts/07-qa.prompt.md
-When the base QA checks pass, ALSO invoke the deep WCAG auditor once per
-built adapter:
-#file:.github/prompts/07b-wcag-auditor.prompt.md
-Effective `qa.passed = base.qa.passed && every adapter's qa.wcag_audit.passed`.
-If qa.passed is false AND iteration < 3: re-run the relevant implement-\* prompts
-with qa feedback (including any `qa.wcag_audit` failures bucketed into
-`feedback_for_core/react/angular`), then re-run QA.
-If qa.passed is false AND iteration == 3: stop, report to user.
+
+Spawn the `qa-verifier` agent via Task. This agent runs in a FRESH context
+(no accumulated tokens from Phases 0–3) and handles BOTH the base QA checks
+AND the deep WCAG 2.1 AA audit internally (no nested sub-agent dispatch).
+
+For each iteration (1–3):
+
+1. Spawn agent `qa-verifier` with prompt:
+   > "Ticket: {ticket_id}. Iteration: {N}. Adapters built: {react/angular/both}.
+   >  Read context via: pnpm agent:context read --ticket {ticket_id}
+   >  Write results via: pnpm agent:context merge --ticket {ticket_id} --slice qa"
+
+2. Wait for agent to complete.
+
+3. Read result: `pnpm agent:context read --ticket {ticket_id} --slice qa`
+
+4. Check `qa.passed`:
+   - `true` → proceed to Phase 5.
+   - `false` AND iteration < 3 → re-run the relevant implement-\* prompts
+     with qa feedback (the agent wrote `feedback_for_core/react/angular`
+     into the qa slice), then re-spawn `qa-verifier` for next iteration.
+   - `false` AND iteration == 3 → stop, report to user with
+     `qa.iteration_diff` summary.
 
 PHASE 5:
 #file:.github/prompts/08-pr-creator.prompt.md

@@ -34,6 +34,8 @@ function cn(...inputs: Parameters<typeof clsx>) {
   return twMerge(clsx(inputs));
 }
 
+const SKELETON_WIDTHS = ['72%', '55%', '80%', '45%', '65%', '50%', '38%', '70%'];
+
 function isAvatarTextValue(val: unknown): val is AvatarTextValue {
   return typeof val === 'object' && val !== null && 'name' in val;
 }
@@ -54,6 +56,8 @@ export function DataTable<T>({
   caption,
   striped = false,
   className,
+  loading = false,
+  emptyMessage = 'No data available',
 }: DataTableInternalProps<T>) {
   const rows = rowsProp ?? normalizeRows(data ?? []);
   const isControlled = controlledSelectedIds !== undefined;
@@ -307,8 +311,55 @@ export function DataTable<T>({
           ))}
         </tr>
       </thead>
-      <tbody>
-        {rows.map((row) => {
+      <tbody aria-busy={loading || undefined} aria-label={loading ? 'Loading data' : undefined}>
+        {loading ? (
+          <>
+            <span className="sr-only">Loading data, please wait…</span>
+            {[0, 1, 2].map((rowIdx) => (
+              <tr key={rowIdx} aria-hidden="true">
+                <td className="ui-data-table-checkbox-cell">
+                  <span className="ui-data-table-skeleton" style={{ width: '16px', height: '16px', borderRadius: '4px', display: 'inline-block' }} />
+                </td>
+                {columns.map((col, colIdx) => (
+                  <td key={col.key} className={col.type === 'numeric' ? 'ui-data-table-numeric' : undefined}>
+                    <span
+                      className="ui-data-table-skeleton"
+                      style={{
+                        width: SKELETON_WIDTHS[(rowIdx * columns.length + colIdx) % SKELETON_WIDTHS.length],
+                        animationDelay: `${(rowIdx * columns.length + colIdx) * 0.07}s`,
+                      }}
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </>
+        ) : rows.length === 0 ? (
+          <tr>
+            <td
+              className="ui-data-table-empty-cell"
+              colSpan={columns.length + 1}
+              aria-label={emptyMessage}
+            >
+              <svg
+                className="ui-data-table-empty-icon"
+                aria-hidden="true"
+                width="40"
+                height="40"
+                viewBox="0 0 40 40"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <rect x="4" y="8" width="32" height="24" rx="3" />
+                <line x1="4" y1="15" x2="36" y2="15" />
+                <line x1="13" y1="8" x2="13" y2="32" />
+              </svg>
+              <span className="ui-data-table-empty-message">{emptyMessage}</span>
+            </td>
+          </tr>
+        ) : (
+          rows.map((row) => {
           const isSelected = selectedIds.has(row.id);
           const rowLabel = String(row.id);
           return (
@@ -334,7 +385,8 @@ export function DataTable<T>({
               {columns.map((col) => renderCell(col, row))}
             </tr>
           );
-        })}
+        })
+        )}
       </tbody>
     </table>
   );
