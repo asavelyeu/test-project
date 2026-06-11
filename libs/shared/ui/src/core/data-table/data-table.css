@@ -4,13 +4,22 @@
 .ui-data-table {
   /* Layout */
   --ui-data-table-radius: 8px;
-  --ui-data-table-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --ui-data-table-shadow: 0px 8px 24px 0 rgba(0, 0, 0, 0.05);
   --ui-data-table-cell-padding-x: 16px;
   --ui-data-table-cell-padding-y: 12px;
   --ui-data-table-row-height: 52px;
   --ui-data-table-header-height: 44px;
   --ui-data-table-avatar-size: 32px;
   --ui-data-table-checkbox-size: 16px;
+
+  /* Typography */
+  --ui-data-table-font-family: var(--font-family-base, 'Inter', sans-serif);
+  --ui-data-table-font-size-body: 14px;
+  --ui-data-table-font-weight-body: 400;
+  --ui-data-table-line-height-body: 16px;
+  --ui-data-table-font-size-header: 14px;
+  --ui-data-table-font-weight-header: 600;
+  --ui-data-table-line-height-header: 16px;
 
   /* Backgrounds */
   --ui-data-table-row-bg: var(--color-surface, #ffffff);
@@ -64,8 +73,10 @@
   border-radius: var(--ui-data-table-radius);
   box-shadow: var(--ui-data-table-shadow);
   overflow: hidden;
-  font-size: 14px;
-  line-height: 20px;
+  font-family: var(--ui-data-table-font-family);
+  font-size: var(--ui-data-table-font-size-body);
+  font-weight: var(--ui-data-table-font-weight-body);
+  line-height: var(--ui-data-table-line-height-body);
 }
 
 /* Header row */
@@ -77,10 +88,10 @@
 .ui-data-table th {
   padding: var(--ui-data-table-cell-padding-y) var(--ui-data-table-cell-padding-x);
   text-align: left;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.05em;
+  font-size: var(--ui-data-table-font-size-header);
+  font-weight: var(--ui-data-table-font-weight-header);
+  line-height: var(--ui-data-table-line-height-header);
+  letter-spacing: 0;
   color: var(--ui-data-table-text-header);
   border-bottom: 1px solid var(--ui-data-table-border);
   white-space: nowrap;
