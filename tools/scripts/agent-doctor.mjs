@@ -48,8 +48,6 @@ const PROMPT_FILES = [
   '04-implement-core.prompt.md',
   '05-implement-react.prompt.md',
   '06-implement-angular.prompt.md',
-  '07-qa.prompt.md',
-  '07b-wcag-auditor.prompt.md',
   '08-pr-creator.prompt.md',
   '09-code-reviewer.prompt.md',
 ];

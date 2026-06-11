@@ -1,7 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe, toHaveNoViolations } from 'jest-axe';
 import { DataTable } from './DataTable';
 import type { DataTableColumn, DataTableRow } from '../../core/data-table/data-table.types';
+
+expect.extend(toHaveNoViolations);
 
 interface TestRow {
   name: string;
@@ -427,6 +430,93 @@ describe('DataTable', () => {
       render(<DataTable caption="Non-empty" columns={columns} data={data} />);
       expect(screen.getByText('Alice')).toBeInTheDocument();
       expect(screen.queryByText('No data available')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('NGI-17: Loading / Skeleton State', () => {
+    const columns = [
+      { key: 'name', header: 'Name', type: 'text' as const },
+      { key: 'role', header: 'Role', type: 'text' as const },
+    ];
+
+    it('AC1: renders skeleton rows when loading=true', () => {
+      render(<DataTable caption="Test" columns={columns} rows={[]} loading={true} />);
+      const skeletonRows = document.querySelectorAll('tr[aria-hidden="true"]');
+      expect(skeletonRows.length).toBeGreaterThan(0);
+    });
+
+    it('AC1: skeletonRowCount prop controls number of skeleton rows', () => {
+      render(
+        <DataTable
+          caption="Test"
+          columns={columns}
+          rows={[]}
+          loading={true}
+          skeletonRowCount={3}
+        />
+      );
+      const skeletonRows = document.querySelectorAll('tr[aria-hidden="true"]');
+      expect(skeletonRows).toHaveLength(3);
+    });
+
+    it('AC2: skeleton maintains column structure (correct td count per row)', () => {
+      render(
+        <DataTable
+          caption="Test"
+          columns={columns}
+          rows={[]}
+          loading={true}
+          skeletonRowCount={2}
+        />
+      );
+      const skeletonRows = document.querySelectorAll('tr[aria-hidden="true"]');
+      skeletonRows.forEach((row) => {
+        expect(row.querySelectorAll('td')).toHaveLength(columns.length + 1);
+      });
+    });
+
+    it('AC3: tbody has aria-busy=true when loading', () => {
+      const { container } = render(
+        <DataTable caption="Test" columns={columns} rows={[]} loading={true} />
+      );
+      expect(container.querySelector('tbody')).toHaveAttribute('aria-busy', 'true');
+    });
+
+    it('AC3: sr-only loading announcement is present', () => {
+      render(<DataTable caption="Test" columns={columns} rows={[]} loading={true} />);
+      expect(screen.getByText(/loading data/i)).toBeInTheDocument();
+    });
+
+    it('AC3: does not render aria-busy when not loading', () => {
+      const { container } = render(
+        <DataTable caption="Test" columns={columns} rows={[]} loading={false} />
+      );
+      expect(container.querySelector('tbody')).not.toHaveAttribute('aria-busy');
+    });
+
+    it('AC4: replaces skeleton with data rows when loading ends', () => {
+      const rows = [{ id: '1', data: { name: 'Alice', role: 'Admin' } }];
+      const { rerender } = render(
+        <DataTable caption="Test" columns={columns} rows={[]} loading={true} />
+      );
+      expect(document.querySelectorAll('tr[aria-hidden="true"]').length).toBeGreaterThan(0);
+
+      rerender(<DataTable caption="Test" columns={columns} rows={rows} loading={false} />);
+      expect(document.querySelectorAll('tr[aria-hidden="true"]')).toHaveLength(0);
+      expect(screen.getByText('Alice')).toBeInTheDocument();
+    });
+
+    it('passes axe accessibility audit in loading state', async () => {
+      const { container } = render(
+        <DataTable
+          caption="Loading table"
+          columns={columns}
+          rows={[]}
+          loading={true}
+        />
+      );
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
     });
   });
 });

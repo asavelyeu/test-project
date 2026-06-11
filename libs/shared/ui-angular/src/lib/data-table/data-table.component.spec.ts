@@ -312,7 +312,8 @@ describe('DataTableComponent', () => {
         componentInputs: { caption: 'Cities', columns: dataCols, data: plainData, selectable: false },
       });
       const cityHeader = screen.getByRole('columnheader', { name: 'City' });
-      const colIndex = Array.from(cityHeader.parentElement!.children).indexOf(cityHeader);
+      expect(cityHeader.parentElement).toBeTruthy();
+      const colIndex = Array.from(cityHeader.parentElement?.children ?? []).indexOf(cityHeader);
       const bodyCells = screen.getAllByRole('row').slice(1).map(
         (row) => (row.children[colIndex] as HTMLElement).textContent?.trim()
       );
@@ -456,6 +457,80 @@ describe('DataTableComponent', () => {
       const { container } = await render(DataTableComponent, {
         componentInputs: { caption: 'Empty a11y', columns, data: [] },
       });
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+  });
+
+  describe('NGI-17: Loading / Skeleton State', () => {
+    const loadingColumns: DataTableColumn<{ name: string; role: string }>[] = [
+      { key: 'name', header: 'Name', type: 'text', getValue: (row) => row.name },
+      { key: 'role', header: 'Role', type: 'text', getValue: (row) => row.role },
+    ];
+
+    async function renderLoading(
+      overrides: Partial<{
+        loading: boolean;
+        skeletonRowCount: number;
+        rows: DataTableRow<{ name: string; role: string }>[];
+      }> = {}
+    ) {
+      return render(DataTableComponent, {
+        componentInputs: {
+          columns: loadingColumns,
+          rows: overrides.rows ?? [],
+          loading: overrides.loading ?? true,
+          skeletonRowCount: overrides.skeletonRowCount ?? 3,
+          caption: 'Test table',
+        },
+      });
+    }
+
+    it('AC1: renders skeleton rows when loading=true', async () => {
+      const { container } = await renderLoading({ loading: true });
+      const skeletonRows = container.querySelectorAll('tr[aria-hidden="true"]');
+      expect(skeletonRows.length).toBeGreaterThan(0);
+    });
+
+    it('AC1: skeletonRowCount controls number of skeleton rows', async () => {
+      const { container } = await renderLoading({ loading: true, skeletonRowCount: 4 });
+      expect(container.querySelectorAll('tr[aria-hidden="true"]')).toHaveLength(4);
+    });
+
+    it('AC2: each skeleton row has correct td count (columns + checkbox)', async () => {
+      const { container } = await renderLoading({ loading: true, skeletonRowCount: 2 });
+      const skeletonRows = container.querySelectorAll('tr[aria-hidden="true"]');
+      skeletonRows.forEach((row) => {
+        expect(row.querySelectorAll('td')).toHaveLength(loadingColumns.length + 1);
+      });
+    });
+
+    it('AC3: tbody has aria-busy=true when loading', async () => {
+      const { container } = await renderLoading({ loading: true });
+      expect(container.querySelector('tbody')?.getAttribute('aria-busy')).toBe('true');
+    });
+
+    it('AC3: sr-only loading text is present', async () => {
+      await renderLoading({ loading: true });
+      expect(screen.getByText(/loading data/i)).toBeTruthy();
+    });
+
+    it('AC3: aria-busy absent when not loading', async () => {
+      const { container } = await renderLoading({ loading: false });
+      expect(container.querySelector('tbody')?.hasAttribute('aria-busy')).toBe(false);
+    });
+
+    it('AC4: shows data rows when loading=false and rows provided', async () => {
+      const loadingRows: DataTableRow<{ name: string; role: string }>[] = [
+        { id: '1', data: { name: 'Alice', role: 'Admin' } },
+      ];
+      const { container } = await renderLoading({ loading: false, rows: loadingRows });
+      expect(screen.getByText('Alice')).toBeTruthy();
+      expect(container.querySelectorAll('tr[aria-hidden="true"]')).toHaveLength(0);
+    });
+
+    it('passes axe accessibility audit in loading state', async () => {
+      const { container } = await renderLoading({ loading: true });
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });

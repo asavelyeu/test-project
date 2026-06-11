@@ -29,7 +29,7 @@ import {
   normalizeRows,
   toggleAllSelection,
   toggleRowSelection,
-} from '@test-project/shared-ui';
+} from '../../../../ui/src/core/data-table';
 import type {
   ActionMenuItem,
   AvatarTextValue,
@@ -37,7 +37,7 @@ import type {
   DataTableRow,
   SelectionState,
   SortConfig,
-} from '@test-project/shared-ui';
+} from '../../../../ui/src/core/data-table';
 
 @Component({
   selector: 'lib-data-table',
@@ -71,10 +71,11 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   @Input() sortConfig?: SortConfig;
   /** When true, shows a loading skeleton in place of rows */
   @Input() loading = false;
+  /** Number of placeholder rows shown during loading. Defaults to 5. */
+  @Input() skeletonRowCount = 5;
   /** Message shown when data is empty and not loading. Defaults to "No data available" */
   @Input() emptyMessage = 'No data available';
 
-  readonly skeletonRows = [0, 1, 2];
   private readonly skeletonWidths = ['72%', '55%', '80%', '45%', '65%', '50%', '38%', '70%'];
 
   @Output() readonly selectionChange = new EventEmitter<Set<string>>();
@@ -96,6 +97,10 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
 
   get effectiveSelectedIds(): Set<string> {
     return this.selectedIds ?? this.internalSelectedIds;
+  }
+
+  get skeletonRows(): number[] {
+    return Array.from({ length: this.skeletonRowCount }, (_value, index) => index);
   }
 
   get selectionState(): SelectionState {

@@ -56,6 +56,8 @@ export interface DataTableProps<T> {
   className?: string;
   /** When true, shows a loading skeleton in place of rows */
   loading?: boolean;
+  /** Number of placeholder rows shown during loading. Defaults to 5. */
+  skeletonRowCount?: number;
   /** Message shown when data is empty and not loading. Defaults to "No data available" */
   emptyMessage?: string;
 }

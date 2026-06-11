@@ -1,3 +1,4 @@
+import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { DataTable } from './DataTable';
 import type { DataTableColumn, DataTableProps, DataTableRow } from '../../core/data-table/data-table.types';
@@ -273,6 +274,14 @@ export const EmptyStateCustomMessage: Story = {
 
 /** NGI-16: Loading state — clearly distinct from empty state. */
 export const LoadingState: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Displays aria-hidden skeleton rows while data is loading. Use `skeletonRowCount` to match the expected payload size and keep the final column structure visible.',
+      },
+    },
+  },
   render: () => (
     <div>
       <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
@@ -282,4 +291,44 @@ export const LoadingState: Story = {
       <DataTable caption="Loading table demo" columns={columns} data={[]} loading />
     </div>
   ),
+};
+
+export const LoadingToData: Story = {
+  name: 'Loading → Data transition',
+  tags: ['autodocs'],
+  render: function LoadingToDataRender() {
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+      const t = setTimeout(() => setLoading(false), 2000);
+      return () => clearTimeout(t);
+    }, []);
+
+    return (
+      <DataTable
+        columns={[
+          { key: 'name', header: 'Name', type: 'text' },
+          { key: 'role', header: 'Role', type: 'text' },
+        ]}
+        rows={
+          loading
+            ? []
+            : [
+                { id: '1', data: { name: 'Alice', role: 'Admin' } },
+                { id: '2', data: { name: 'Bob', role: 'Editor' } },
+              ]
+        }
+        loading={loading}
+        caption="Team members"
+        skeletonRowCount={3}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'After 2 seconds the skeleton is replaced by real data.',
+      },
+    },
+  },
 };

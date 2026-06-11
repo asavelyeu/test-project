@@ -152,6 +152,25 @@ export const AllStates: Story = {
   },
 };
 
+export const LoadingState: Story = {
+  name: 'Loading State',
+  args: {
+    columns,
+    rows: [],
+    loading: true,
+    skeletonRowCount: 5,
+    caption: 'Team members',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'When `loading=true` the table renders animated skeleton placeholder rows. The number of rows is controlled by `skeletonRowCount` (default 5). The shimmer animation respects `prefers-reduced-motion`.',
+      },
+    },
+  },
+};
+
 export const TailwindTheme: Story = {
   render: (args) => ({
     props: args,

@@ -40,10 +40,6 @@ function isAvatarTextValue(val: unknown): val is AvatarTextValue {
   return typeof val === 'object' && val !== null && 'name' in val;
 }
 
-interface DataTableInternalProps<T> extends DataTableProps<T> {
-  className?: string;
-}
-
 export function DataTable<T>({
   columns,
   rows: rowsProp,
@@ -57,8 +53,9 @@ export function DataTable<T>({
   striped = false,
   className,
   loading = false,
+  skeletonRowCount = 5,
   emptyMessage = 'No data available',
-}: DataTableInternalProps<T>) {
+}: DataTableProps<T>) {
   const rows = rowsProp ?? normalizeRows(data ?? []);
   const isControlled = controlledSelectedIds !== undefined;
   const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
@@ -315,15 +312,18 @@ export function DataTable<T>({
         {loading ? (
           <>
             <span className="sr-only">Loading data, please wait…</span>
-            {[0, 1, 2].map((rowIdx) => (
+            {Array.from({ length: skeletonRowCount }, (_, i) => i).map((rowIdx) => (
               <tr key={rowIdx} aria-hidden="true">
                 <td className="ui-data-table-checkbox-cell">
-                  <span className="ui-data-table-skeleton" style={{ width: '16px', height: '16px', borderRadius: '4px', display: 'inline-block' }} />
+                  <span
+                    className="ui-data-table-skeleton ui-data-table__skeleton-cell"
+                    style={{ width: '16px', display: 'inline-block' }}
+                  />
                 </td>
                 {columns.map((col, colIdx) => (
                   <td key={col.key} className={col.type === 'numeric' ? 'ui-data-table-numeric' : undefined}>
                     <span
-                      className="ui-data-table-skeleton"
+                      className="ui-data-table-skeleton ui-data-table__skeleton-cell"
                       style={{
                         width: SKELETON_WIDTHS[(rowIdx * columns.length + colIdx) % SKELETON_WIDTHS.length],
                         animationDelay: `${(rowIdx * columns.length + colIdx) * 0.07}s`,

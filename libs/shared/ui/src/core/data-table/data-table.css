@@ -136,6 +136,11 @@
   --ui-data-table-empty-icon: var(--color-border, #d1d5db);
   --ui-data-table-loading-shimmer-from: var(--color-surface-subtle, #f3f4f6);
   --ui-data-table-loading-shimmer-to: var(--color-border, #e5e7eb);
+  /* Skeleton / loading state */
+  --ui-data-table-skeleton-bg: var(--color-surface-subtle, #e2e8f0);
+  --ui-data-table-skeleton-shine: var(--color-surface-default, #f8fafc);
+  --ui-data-table-skeleton-radius: 4px;
+  --ui-data-table-skeleton-row-count: 5;
 }
 
 .ui-data-table-empty-cell {
@@ -176,6 +181,34 @@
   );
   background-size: 800px 100%;
   animation: ui-data-table-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.ui-data-table__skeleton-cell {
+  background: linear-gradient(
+    90deg,
+    var(--ui-data-table-skeleton-bg) 25%,
+    var(--ui-data-table-skeleton-shine) 50%,
+    var(--ui-data-table-skeleton-bg) 75%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--ui-data-table-skeleton-radius);
+  height: 1rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ui-data-table__skeleton-cell {
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
 }
 
 /* Cells */
@@ -345,6 +378,13 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .ui-data-table-skeleton,
+  .ui-data-table__skeleton-cell {
+    animation: none;
+  }
+}
+
 /* Forced colors (Windows High Contrast) */
 @media (forced-colors: active) {
   .ui-data-table tbody tr:hover {
@@ -357,5 +397,12 @@
     outline-offset: -2px;
     background-color: Highlight;
     color: HighlightText;
+  }
+}
+
+@media (forced-colors: active) {
+  .ui-data-table__skeleton-cell {
+    forced-color-adjust: auto;
+    border: 1px solid ButtonText;
   }
 }

@@ -1,3 +1,7 @@
+@if (loading) {
+  <span class="sr-only">Loading data, please wait…</span>
+}
+
 <table class="ui-data-table" [attr.data-variant]="striped ? 'striped' : 'default'">
   <caption class="sr-only" [id]="captionId">{{ caption }}</caption>
 
@@ -39,18 +43,17 @@
 
   <tbody [attr.aria-busy]="loading || null" [attr.aria-label]="loading ? 'Loading data' : null">
     @if (loading) {
-      <span class="sr-only">Loading data, please wait…</span>
       @for (rowIdx of skeletonRows; track rowIdx) {
         <tr aria-hidden="true">
           @if (selectable) {
             <td class="ui-data-table-checkbox-cell">
-              <span class="ui-data-table-skeleton" style="width: 16px; height: 16px; border-radius: 4px; display: inline-block"></span>
+              <span class="ui-data-table-skeleton ui-data-table__skeleton-cell" style="width: 16px;"></span>
             </td>
           }
           @for (col of columns; track col.key; let colIdx = $index) {
             <td [class.ui-data-table-numeric]="col.type === 'numeric'">
               <span
-                class="ui-data-table-skeleton"
+                class="ui-data-table-skeleton ui-data-table__skeleton-cell"
                 [style.width]="getSkeletonWidth(rowIdx, colIdx)"
                 [style.animation-delay]="getSkeletonDelay(rowIdx, colIdx)"
               ></span>
