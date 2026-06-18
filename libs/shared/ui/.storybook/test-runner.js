@@ -12,7 +12,7 @@
 //   parameters.a11y.config.rules = [{ id: 'color-contrast', enabled: false }]
 // — but those must be justified in code review.
 
-const { injectAxe, checkA11y, configureAxe } = require('axe-playwright');
+const { injectAxe, getAxeResults, configureAxe } = require('axe-playwright');
 
 /** @type {import('@storybook/test-runner').TestRunnerConfig} */
 const config = {
@@ -21,16 +21,25 @@ const config = {
   },
   async postVisit(page) {
     await configureAxe(page, { rules: [] });
-    await checkA11y(page, '#storybook-root', {
-      detailedReport: true,
-      detailedReportOptions: { html: true },
-      axeOptions: {
-        runOnly: {
-          type: 'tag',
-          values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'],
-        },
+    const results = await getAxeResults(page, '#storybook-root', {
+      runOnly: {
+        type: 'tag',
+        values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'],
       },
     });
+    if (results.violations.length > 0) {
+      const summary = results.violations
+        .map((v) => {
+          const nodes = v.nodes
+            .map((n) => `    - ${n.html}\n      Fix: ${n.failureSummary}`)
+            .join('\n');
+          return `[${v.id}] ${v.help} (${v.impact})\n  ${v.helpUrl}\n${nodes}`;
+        })
+        .join('\n\n');
+      throw new Error(
+        `${results.violations.length} accessibility violation(s):\n\n${summary}`,
+      );
+    }
   },
 };
 
