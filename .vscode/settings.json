@@ -1,0 +1,8 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "npx pnpm": true
+  },
+  "github.copilot.chat.agent.enabled": true,
+  "chat.mcp.access": "all",
+  "chat.promptFiles": true
+}

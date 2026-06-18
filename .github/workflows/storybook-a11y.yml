@@ -1,6 +1,15 @@
 name: Storybook a11y (CI gate)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'libs/shared/ui/**'
+      - 'libs/shared/ui-angular/**'
+      - 'libs/**/.storybook/**'
+      - '.github/workflows/storybook-a11y.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
   pull_request:
     paths:
       - 'libs/shared/ui/**'
@@ -9,11 +18,23 @@ on:
       - '.github/workflows/storybook-a11y.yml'
       - 'package.json'
       - 'pnpm-lock.yaml'
+  merge_group:
 
 jobs:
   storybook-a11y:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lib: shared-ui
+            static_path: libs/shared/ui/storybook-static
+            port: 6006
+          # shared-ui-angular Storybook temporarily disabled — schema issue to be fixed
+          # - lib: shared-ui-angular
+          #   static_path: libs/shared/ui-angular/storybook-static
+          #   port: 6007
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,20 +55,20 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
 
-      - name: Build Storybook (shared-ui)
-        run: pnpm nx build-storybook shared-ui
+      - name: Build Storybook (${{ matrix.lib }})
+        run: pnpm nx build-storybook ${{ matrix.lib }}
 
-      - name: Serve + test Storybook with axe (shared-ui)
+      - name: Serve + test Storybook with axe (${{ matrix.lib }})
         run: |
-          npx serve libs/shared/ui/storybook-static -p 6006 &
-          npx wait-on http://localhost:6006 --timeout 30000
-          pnpm nx test-storybook shared-ui --ci --url http://localhost:6006
+          npx serve ${{ matrix.static_path }} -p ${{ matrix.port }} &
+          npx wait-on http://localhost:${{ matrix.port }} --timeout 30000
+          pnpm nx test-storybook ${{ matrix.lib }} --ci --url http://localhost:${{ matrix.port }}
           kill %1 2>/dev/null || true
 
       - name: Upload Storybook artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: storybook-a11y-report
-          path: libs/shared/ui/storybook-static
+          name: storybook-a11y-report-${{ matrix.lib }}
+          path: ${{ matrix.static_path }}
           if-no-files-found: ignore

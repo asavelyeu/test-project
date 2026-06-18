@@ -2,23 +2,22 @@
 
 ## Project Overview
 
-test-project mobile app built with Expo (React Native) in an Nx monorepo.
+test-project web React app in an Nx monorepo.
 
 ## Tech Stack
 
-- **Framework**: Expo SDK 54 with Expo Router (file-based routing)
+- **Framework**: React 19 with Vite
 - **Language**: TypeScript (strict)
-- **Styling**: NativeWind v5 (Tailwind CSS for React Native)
+- **Styling**: Tailwind CSS v4
 - **Monorepo**: Nx 22 with pnpm
-- **Testing**: jest-expo
-- **Platform**: iOS and Android (React Native), with web support via react-native-web
+- **Testing**: Jest and Vitest
+- **Platform**: Web
 
 ## Project Structure
 
 ```
 test-project/
 ├── apps/                        # Thin, deployable entry points only
-│   ├── mobile-client/           # Expo mobile app (bootstrapping, navigation shell)
 │   └── web-client/              # Web app (bootstrapping, routing shell)
 │
 ├── libs/                        # Where the actual code lives
@@ -61,15 +60,42 @@ test-project/
 
 ## Code Conventions
 
-- Use **Expo Router** for navigation — file-based routing under `app/` directory
-- Use **NativeWind** (`className` prop) for all styling — no StyleSheet.create
+- Use React with Vite for the web app
+- Use Tailwind utility classes where appropriate for styling
 - All reusable components go in `libs/shared/ui/` or `libs/client/` — never inside `apps/`
 - Prefer functional components with hooks
-- Use `expo-constants`, `expo-linking`, and other Expo SDK modules over bare React Native equivalents
-- Platform-specific code: use `.ios.tsx` / `.android.tsx` file extensions or `Platform.select()`
 
 ## Important
 
 - Always use `pnpm` as the package manager
-- Run tasks via `pnpm nx` (e.g., `pnpm nx run mobile-client:start`)
-- Never use `react-navigation` directly — use Expo Router which wraps it
+- Run tasks via `pnpm nx` (e.g., `pnpm nx run web-client:serve`)
+
+## Cross-framework component rules (added by agent pipeline)
+
+- **Three-layer pattern:** every reusable UI component has a framework-agnostic
+  `core/` slice (types, logic, CSS tokens) plus thin React and (optionally)
+  Angular adapters. See `.github/instructions/cross-framework-ui.instructions.md`.
+- **Theming contract:** the public styling surface of every component is a set
+  of `--ui-<component>-*` CSS custom properties defined in the core CSS file.
+  Consumers override them with Tailwind arbitrary values or plain CSS.
+  No hardcoded colors / pixels inside `libs/shared/ui/src/core/**`.
+- **New React components** go under `libs/shared/ui/src/components/<Pascal>/`,
+  not `libs/shared/ui/src/lib/`.
+- **Angular adapters** live in `libs/shared/ui-angular/` (alias
+  `@test-project/shared-ui-angular`) and import core from
+  `@test-project/shared-ui`.
+- **Storybook** stays inside each UI lib (per-lib config) until a dedicated
+  `apps/storybook` is requested.
+
+## Branch / commit / PR naming
+
+- Branch: `{ticket-lowercase}-{type}-{title-kebab}` e.g. `apd-1332-feat-implement-data-table`
+- Commit: `{ticket-lowercase}-{type}-{title-kebab}` (same format, also conventional-commits compatible)
+- PR title: `{TICKET-UPPER}: {type}({scope}): {human title}`
+  e.g. `APD-1332: feat(shared-ui): implement data table component`
+
+## Pipeline state
+
+Each pipeline run writes to `.agent-run/{ticket_id}/context.json`.
+At the start of every agent: read this file if it exists.
+At the end of every agent: **merge** your output slice in — never overwrite.

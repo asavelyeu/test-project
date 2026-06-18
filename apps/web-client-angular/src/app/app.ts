@@ -1,0 +1,140 @@
+import { Component, signal } from '@angular/core';
+import { DataTableComponent } from '@test-project/shared-ui-angular';
+import type { DataTableColumn, DataTableRow, SortConfig } from '@test-project/shared-ui/core';
+
+interface Employee {
+  name: string;
+  initials: string;
+  role: string;
+  department: string;
+  joined: Date;
+  salary: number;
+  status: 'active' | 'inactive';
+}
+
+const COLUMNS: DataTableColumn<Employee>[] = [
+  {
+    key: 'name',
+    header: 'Name',
+    type: 'avatar-text',
+    sortable: true,
+    getValue: (r) => ({ name: r.name, initials: r.initials }),
+  },
+  { key: 'role', header: 'Role', type: 'text', sortable: true },
+  { key: 'department', header: 'Department', type: 'text', sortable: true },
+  {
+    key: 'joined',
+    header: 'Joined',
+    type: 'date',
+    sortable: true,
+    getValue: (r) => r.joined,
+  },
+  {
+    key: 'salary',
+    header: 'Salary',
+    type: 'numeric',
+    sortable: true,
+    getValue: (r) => r.salary,
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    type: 'label',
+    getLabelVariant: (v) => (v === 'active' ? 'active' : 'default'),
+  },
+  {
+    key: 'actions',
+    header: 'Actions',
+    type: 'action',
+    actions: [
+      { key: 'edit', label: 'Edit' },
+      { key: 'delete', label: 'Delete' },
+    ],
+  },
+];
+
+const ROWS: DataTableRow<Employee>[] = [
+  { id: '1', data: { name: 'Alice Johnson', initials: 'AJ', role: 'Engineer', department: 'Platform', joined: new Date('2021-03-15'), salary: 120000, status: 'active' } },
+  { id: '2', data: { name: 'Bob Smith', initials: 'BS', role: 'Designer', department: 'Product', joined: new Date('2022-07-01'), salary: 98000, status: 'active' } },
+  { id: '3', data: { name: 'Carol White', initials: 'CW', role: 'Manager', department: 'Operations', joined: new Date('2020-01-20'), salary: 140000, status: 'active' } },
+  { id: '4', data: { name: 'David Lee', initials: 'DL', role: 'Analyst', department: 'Finance', joined: new Date('2023-02-10'), salary: 85000, status: 'inactive' } },
+  { id: '5', data: { name: 'Eva Martinez', initials: 'EM', role: 'Engineer', department: 'Platform', joined: new Date('2019-11-05'), salary: 135000, status: 'active' } },
+];
+
+// NGI-13: Static columns (no getValue) + NGI-14: plain data array
+interface City { city: string; country: string; population: number }
+
+const CITY_COLUMNS: DataTableColumn<City>[] = [
+  { key: 'city', header: 'City', type: 'text' },
+  { key: 'country', header: 'Country', type: 'text' },
+  { key: 'population', header: 'Population', type: 'numeric' },
+];
+
+const CITY_DATA: City[] = [
+  { city: 'Berlin', country: 'Germany', population: 3645000 },
+  { city: 'Paris', country: 'France', population: 2161000 },
+  { city: 'Tokyo', country: 'Japan', population: 13960000 },
+  { city: 'New York', country: 'USA', population: 8336817 },
+];
+
+@Component({
+  imports: [DataTableComponent],
+  selector: 'app-root',
+  templateUrl: './app.html',
+  styleUrl: './app.css',
+})
+export class App {
+  columns = COLUMNS;
+  rows = ROWS;
+  cityColumns = CITY_COLUMNS;
+  cityData = CITY_DATA;
+  selectedIds = signal<Set<string>>(new Set());
+  sortConfig = signal<SortConfig>({ columnKey: 'name', direction: 'asc' });
+
+  // NGI-16: loading state simulation
+  isLoading = signal(false);
+  loadedData = signal<Employee[] | null>(null);
+  fetchTimer: ReturnType<typeof setTimeout> | null = null;
+
+  get selectionCount() {
+    return this.selectedIds().size;
+  }
+
+  get dynamicData(): Employee[] {
+    return this.loadedData() ?? [];
+  }
+
+  get dynamicEmptyMessage(): string {
+    return "Click 'Simulate fetch' above to load data.";
+  }
+
+  onSelectionChange(ids: Set<string>) {
+    this.selectedIds.set(ids);
+  }
+
+  onSort(config: SortConfig) {
+    this.sortConfig.set(config);
+  }
+
+  onActionSelect(rowId: string, actionKey: string) {
+    alert(`Action "${actionKey}" on row ${rowId}`);
+  }
+
+  simulateFetch() {
+    this.isLoading.set(true);
+    this.loadedData.set(null);
+    this.fetchTimer = setTimeout(() => {
+      this.isLoading.set(false);
+      this.loadedData.set([
+        { name: 'Alice Johnson', initials: 'AJ', role: 'Engineer', department: 'Platform', joined: new Date('2021-03-15'), salary: 120000, status: 'active' },
+        { name: 'Bob Smith', initials: 'BS', role: 'Designer', department: 'Product', joined: new Date('2022-07-01'), salary: 98000, status: 'inactive' },
+      ]);
+    }, 2000);
+  }
+
+  resetDemo() {
+    if (this.fetchTimer) clearTimeout(this.fetchTimer);
+    this.isLoading.set(false);
+    this.loadedData.set(null);
+  }
+}

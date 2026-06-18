@@ -48,6 +48,8 @@ Thumbs.db
 
 # Expo
 node_modules/
+
+.agent-run/
 .expo/
 .yarn/
 dist/
@@ -63,3 +65,4 @@ cache/
 vite.config.*.timestamp*
 
 storybook-static
+.angular
