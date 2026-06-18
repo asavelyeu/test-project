@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { DataTable } from './DataTable';
-import type { DataTableColumn, DataTableProps, DataTableRow, LinkValue, IconTextValue } from '../../core/data-table/data-table.types';
+import type { DataTableColumn, DataTableProps, DataTableRow } from '../../core/data-table/data-table.types';
 
 interface SampleRow {
   name: string;
