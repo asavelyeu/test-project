@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { DataTable } from './DataTable';
-import type { DataTableColumn, DataTableProps, DataTableRow } from '../../core/data-table/data-table.types';
+import type { DataTableColumn, DataTableProps, DataTableRow, LinkValue, IconTextValue } from '../../core/data-table/data-table.types';
 
 interface SampleRow {
   name: string;
@@ -331,4 +331,111 @@ export const LoadingToData: Story = {
       },
     },
   },
+};
+
+/* ──────────────────────────────────────────────────────────────
+   NGI-19 through NGI-30: All Cell Types Demo
+   ────────────────────────────────────────────────────────────── */
+
+interface CellTypeDemoRow {
+  text: string;
+  number: number;
+  date: string;
+  currency: number;
+  status: string;
+  progress: number;
+  avatar: { name: string; initials: string };
+  link: { label: string; href: string };
+  boolean: boolean;
+  iconText: { icon: string; text: string };
+  multiline: string;
+  tags: string[];
+}
+
+const cellTypeDemoColumns: DataTableColumn<CellTypeDemoRow>[] = [
+  { key: 'text', header: 'Text', type: 'text' },
+  { key: 'number', header: 'Number', type: 'numeric', sortable: true },
+  { key: 'date', header: 'Date', type: 'date' },
+  { key: 'currency', header: 'Amount', type: 'currency', currencyConfig: { currency: 'USD', locale: 'en-US' } },
+  { key: 'status', header: 'Status', type: 'label', getLabelVariant: (v) => (v === 'Active' ? 'active' : 'default') },
+  { key: 'progress', header: 'Progress', type: 'progress', showProgressLabel: true },
+  { key: 'avatar', header: 'User', type: 'avatar-text', getValue: (row) => ({ name: row.avatar.name, initials: row.avatar.initials }) },
+  { key: 'link', header: 'Link', type: 'link', linkTarget: '_blank' },
+  { key: 'boolean', header: 'Active', type: 'boolean', booleanDisplay: 'icon' },
+  { key: 'iconText', header: 'Category', type: 'icon-text' },
+  { key: 'multiline', header: 'Description', type: 'multiline', maxLines: 2, width: '200px' },
+  { key: 'tags', header: 'Tags', type: 'tags', width: '160px' },
+];
+
+const cellTypeDemoData: DataTableRow<CellTypeDemoRow>[] = [
+  {
+    id: 'ct-1',
+    data: {
+      text: 'Project Alpha — a very long cell text that should be truncated with an ellipsis',
+      number: 42500,
+      date: '2024-06-15',
+      currency: 1299.99,
+      status: 'Active',
+      progress: 75,
+      avatar: { name: 'Alice Johnson', initials: 'AJ' },
+      link: { label: 'View docs', href: 'https://example.com' },
+      boolean: true,
+      iconText: { icon: '📁', text: 'Design' },
+      multiline: 'This is a multiline description that spans multiple lines to demonstrate the wrapping behavior of the cell.',
+      tags: ['React', 'TypeScript', 'UI'],
+    },
+  },
+  {
+    id: 'ct-2',
+    data: {
+      text: 'Task Beta',
+      number: 8750,
+      date: '2024-01-22',
+      currency: 450.0,
+      status: 'Inactive',
+      progress: 30,
+      avatar: { name: 'Bob Smith', initials: 'BS' },
+      link: { label: 'GitHub', href: 'https://github.com' },
+      boolean: false,
+      iconText: { icon: '🔧', text: 'Engineering' },
+      multiline: 'Short description.',
+      tags: ['Angular', 'Testing'],
+    },
+  },
+  {
+    id: 'ct-3',
+    data: {
+      text: 'Feature Gamma',
+      number: 156000,
+      date: '2025-03-01',
+      currency: 2999.5,
+      status: 'Active',
+      progress: 100,
+      avatar: { name: 'Carol White', initials: 'CW' },
+      link: { label: 'Jira', href: 'https://jira.example.com' },
+      boolean: true,
+      iconText: { icon: '🎨', text: 'Product' },
+      multiline: 'Another longer description that should wrap to multiple lines and then get clamped at the configured max-lines value set on the column.',
+      tags: ['Storybook', 'CSS', 'Tokens', 'A11y'],
+    },
+  },
+];
+
+/** NGI-19 to NGI-30: All cell types rendered in a single table. */
+export const AllCellTypes: StoryObj<DataTableProps<CellTypeDemoRow>> = {
+  render: () => (
+    <div>
+      <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
+        <strong>All cell types:</strong> Text, Number, Date, Currency, Status/Badge, Progress,
+        Avatar, Link, Boolean, Icon+Text, Multiline, and Tags — each with consistent styling
+        and proper a11y attributes.
+      </p>
+      <DataTable
+        caption="Cell types demo"
+        columns={cellTypeDemoColumns}
+        rows={cellTypeDemoData}
+        selectable={false}
+      />
+    </div>
+  ),
 };
