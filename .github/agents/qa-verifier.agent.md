@@ -15,6 +15,24 @@ All input comes from `context.json`.
 3. Extract: `design`, `architecture`, `implementation` (which adapters were
    built: core, react, angular), and any prior `qa.feedback_for_*` slices.
 
+### Batch mode
+
+If `batch.enabled === true` in the context:
+- The context contains `batch.ticket_ids` — ALL tickets in the batch.
+- Designs are per-ticket: read from `tickets.{ID}.design` for each ticket.
+- Implementation slices are per-ticket: `implementation.{ticket_id}.react`,
+  `implementation.{ticket_id}.angular`, etc.
+- Validate ALL tickets' output together (combined component state on disk).
+- When emitting feedback, include `ticket_id` in each finding so the
+  orchestrator can route fixes to the correct implementer iteration:
+  ```jsonc
+  {
+    "feedback_for_react": [
+      { "ticket_id": "NGI-13", "file": "TablePagination.tsx", "issue": "..." }
+    ]
+  }
+  ```
+
 ## Tool access
 
 PERMITTED: chrome-devtools MCP (read-only),

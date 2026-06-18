@@ -16,7 +16,74 @@ FORBIDDEN: stage `.env*`, `node_modules`, build outputs, `.agent-run/`.
 
 Read context.json. Read `.agent-config.yml`.
 
-## Naming
+## Batch mode awareness
+
+If `batch.enabled === true`, this is a multi-ticket PR. Key differences:
+
+- **Branch already exists** with N commits (one per ticket, created in Phase 3).
+  Do NOT run `git checkout -b` — just `git push origin {branch_name}`.
+- **Branch name** uses the primary ticket:
+  `{primary_ticket_id_lower}-{type}-{title_kebab}`
+- **PR title** uses the primary ticket but mentions the batch:
+  `{PRIMARY_ID}: {type}({scope}): {primary_title} (+{N-1} tickets)`
+  Example: `NGI-12: feat(ui): implement data table (+2 tickets)`
+- **PR body** uses the batch template (see below).
+- **Jira transition**: transition ALL tickets in `batch.ticket_ids` to
+  "In Review".
+
+### Batch PR body template
+
+```
+## Batch: {batch.ticket_ids joined with ", "}
+
+{For each ticket in batch.ticket_ids:}
+### {ticket.id} — {ticket.title}
+**Jira:** [{ticket.id}]({jira_base_url}/browse/{ticket.id})
+**Commit:** `{implementation.{ticket.id}.commit_sha}`
+
+#### Files
+{implementation.{ticket.id}.files_created as bullet list}
+
+{End for each}
+
+### Shared Figma
+**Figma:** [{design.component_name}]({batch.shared_design_source.figma_url})
+{Per-ticket overrides listed if any}
+
+### Adapters built
+{implementation.* keys as bullet list}
+
+### Theming
+Consumers override per-project via Tailwind arbitrary values or plain CSS
+targeting the `--ui-<component>-*` custom properties.
+
+### WCAG compliance
+{architecture.wcag_requirements as bullets}
+
+### QA
+- React pixel score: {qa.pixel_diff_score.react}/100
+- Angular pixel score: {qa.pixel_diff_score.angular}/100 (if built)
+- a11y violations: {qa.wcag_violations.length}
+- Passes needed: {qa.passes}
+
+### Epic context (if applicable)
+<!-- Same as single-ticket mode -->
+
+### Tests
+{All test files across all tickets}
+All tests: ✅
+
+### Checklist
+- [x] Follows copilot-instructions.md + cross-framework-ui.instructions.md
+- [x] Semantic HTML verified
+- [x] WCAG 2.1 AA compliant
+- [x] Token override surface tested
+- [x] Unit tests passing
+- [x] Storybook stories added
+- [x] No console.log / TODOs / any
+```
+
+## Naming (single-ticket mode — unchanged)
 
 Branch: {ticket.id.toLowerCase()}-{ticket.type}-{ticket.title_kebab}
 Commit: {ticket.id.toLowerCase()}-{ticket.type}-{ticket.title_kebab}
@@ -95,15 +162,22 @@ All tests: ✅
 ## Steps
 
 1. `git status` — if any forbidden path is dirty: STOP and ask the user.
-2. `git checkout -b {branch_name}` from `git.default_branch`.
+2. **Single-ticket mode:** `git checkout -b {branch_name}` from `git.default_branch`.
+   **Batch mode:** branch already exists — skip this step.
 3. `git add` ONLY files in `implementation.*.files_created` + `files_modified`
    - `test_files` + Storybook stories.
-4. `git commit -m "{commit_message}"`.
+   **Batch mode:** all files are already committed — skip this step.
+4. **Single-ticket mode:** `git commit -m "{commit_message}"`.
+   **Batch mode:** all commits already exist — skip this step.
 5. `git push origin {branch_name}`.
 6. Create PR via GitHub MCP. Label = ticket.type. Reviewer = `PR_REVIEWER` env.
+   **Batch mode:** label with primary ticket's type. Add all ticket IDs as labels.
 7. Transition Jira to "In Review" (skip if unavailable).
+   **Batch mode:** transition ALL tickets in `batch.ticket_ids`.
 8. Set `pr.branch`, `pr.commit_message`, `pr.pr_url`, `pr.pr_number`. Merge.
+   **Batch mode:** also set `pr.batch_ticket_ids` and `pr.commits[]`.
 9. Epic context prep — only if `context.epic.id` exists.
+   **Batch mode:** build `pr.produced` aggregating ALL tickets' implementation.
    Populate the `pr.produced` payload from the merged implementation slices
    so Phase 7 (Epic Update) can pass it to `pnpm agent:epic complete`:
 

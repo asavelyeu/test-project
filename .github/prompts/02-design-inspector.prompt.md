@@ -15,6 +15,15 @@ Read `.agent-run/{ticket_id}/context.json` for `ticket.title`,
 `ticket.title_kebab`, and the per-subticket `epic.subticket.design_source`
 seeded by Phase 0. Read `.agent-config.yml` for the Figma file key.
 
+### Batch mode awareness
+
+If `batch.enabled === true` in the context file, this prompt is being run
+once per ticket in the batch. The current ticket's data is at
+`tickets.{CURRENT_TICKET_ID}` and its resolved `design_source` is at
+`tickets.{CURRENT_TICKET_ID}.design_source`. Store output under
+`tickets.{CURRENT_TICKET_ID}.design` and merge
+`tickets.{CURRENT_TICKET_ID}.fetch_status.figma` accordingly.
+
 STEP 0 — Fetch cache (TTL 6h).
 Compute `cache_key = "figma:" + figma_file_key + ":" + (figma_node_id || "root")`
 using the file key + node id from `design_source` (falls back to

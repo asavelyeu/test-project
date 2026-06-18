@@ -2,8 +2,15 @@
   <span class="sr-only">Loading data, please wait…</span>
 }
 
-<table class="ui-data-table" [attr.data-variant]="striped ? 'striped' : 'default'">
-  <caption class="sr-only" [id]="captionId">{{ caption }}</caption>
+<table
+  class="ui-data-table"
+  [attr.data-variant]="striped ? 'striped' : 'default'"
+>
+  <caption class="sr-only" [id]="captionId">
+    {{
+      caption
+    }}
+  </caption>
 
   <thead>
     <tr>
@@ -14,7 +21,9 @@
             class="ui-data-table-checkbox"
             [checked]="selectionState.allSelected"
             [indeterminate]="selectionState.someSelected"
-            [attr.aria-checked]="selectionState.someSelected ? 'mixed' : selectionState.allSelected"
+            [attr.aria-checked]="
+              selectionState.someSelected ? 'mixed' : selectionState.allSelected
+            "
             [attr.aria-label]="selectAllLabel"
             (change)="toggleSelectAll()"
           />
@@ -41,13 +50,19 @@
     </tr>
   </thead>
 
-  <tbody [attr.aria-busy]="loading || null" [attr.aria-label]="loading ? 'Loading data' : null">
+  <tbody
+    [attr.aria-busy]="loading || null"
+    [attr.aria-label]="loading ? 'Loading data' : null"
+  >
     @if (loading) {
       @for (rowIdx of skeletonRows; track rowIdx) {
         <tr aria-hidden="true">
           @if (selectable) {
             <td class="ui-data-table-checkbox-cell">
-              <span class="ui-data-table-skeleton ui-data-table__skeleton-cell" style="width: 16px;"></span>
+              <span
+                class="ui-data-table-skeleton ui-data-table__skeleton-cell"
+                style="width: 16px"
+              ></span>
             </td>
           }
           @for (col of columns; track col.key; let colIdx = $index) {
@@ -87,106 +102,240 @@
       </tr>
     } @else {
       @for (row of effectiveRows; track row.id) {
-      <tr [attr.aria-selected]="selectable ? isRowSelected(row.id) : null">
-        @if (selectable) {
-          <td class="ui-data-table-checkbox-cell">
-            <input
-              type="checkbox"
-              class="ui-data-table-checkbox"
-              [checked]="isRowSelected(row.id)"
-              [attr.aria-label]="getCheckboxLabel(row)"
-              (change)="toggleRow(row.id)"
-            />
-          </td>
-        }
+        <tr [attr.aria-selected]="selectable ? isRowSelected(row.id) : null">
+          @if (selectable) {
+            <td class="ui-data-table-checkbox-cell">
+              <input
+                type="checkbox"
+                class="ui-data-table-checkbox"
+                [checked]="isRowSelected(row.id)"
+                [attr.aria-label]="getCheckboxLabel(row)"
+                (change)="toggleRow(row.id)"
+              />
+            </td>
+          }
 
-        @for (column of columns; track column.key) {
-          @switch (column.type) {
-            @case ('avatar-text') {
-              <td>
-                @if (getAvatarValue(column, row); as avatar) {
-                  <div class="ui-data-table-avatar-cell">
-                    <div class="ui-data-table-avatar" aria-hidden="true">
-                      @if (avatar.avatarUrl) {
-                        <img [src]="avatar.avatarUrl" alt="" />
-                      } @else {
-                        <span>{{ getAvatarInitials(avatar) }}</span>
-                      }
+          @for (column of columns; track column.key) {
+            @switch (column.type) {
+              @case ('avatar-text') {
+                <td>
+                  @if (getAvatarValue(column, row); as avatar) {
+                    <div class="ui-data-table-avatar-cell">
+                      <div class="ui-data-table-avatar" aria-hidden="true">
+                        @if (avatar.avatarUrl) {
+                          <img [src]="avatar.avatarUrl" alt="" />
+                        } @else {
+                          <span>{{ getAvatarInitials(avatar) }}</span>
+                        }
+                      </div>
+                      <span>{{ avatar.name }}</span>
                     </div>
-                    <span>{{ avatar.name }}</span>
-                  </div>
-                } @else {
-                  {{ getCellValue(column, row) ?? '' }}
-                }
-              </td>
-            }
-            @case ('date') {
-              <td>{{ formatDateValue(getCellValue(column, row)) }}</td>
-            }
-            @case ('label') {
-              <td>
-                <span
-                  class="ui-data-table-label"
-                  [attr.data-variant]="getLabelVariant(column, getCellValue(column, row))"
-                >
-                  {{ getCellValue(column, row) ?? '' }}
-                </span>
-              </td>
-            }
-            @case ('numeric') {
-              <td class="ui-data-table-numeric">{{ formatNumericValue(getCellValue(column, row)) }}</td>
-            }
-            @case ('action') {
-              <td class="ui-data-table-action-cell">
-                <button
-                  #actionTrigger
-                  type="button"
-                  class="ui-data-table-action-btn"
-                  [attr.data-row-id]="row.id"
-                  [attr.aria-controls]="getActionMenuId(row.id)"
-                  [attr.aria-expanded]="openActionRowId === row.id"
-                  aria-haspopup="menu"
-                  [attr.aria-label]="getActionButtonLabel(row)"
-                  (click)="toggleActionMenu(row.id)"
-                  (keydown.escape)="closeActionMenu(row.id)"
-                >
-                  <span aria-hidden="true">⋮</span>
-                </button>
-
-                @if (openActionRowId === row.id) {
-                  <ul
-                    #actionMenu
-                    class="ui-data-table-action-menu"
-                    [attr.data-row-id]="row.id"
-                    [id]="getActionMenuId(row.id)"
-                    role="menu"
-                    tabindex="-1"
-                    [attr.aria-label]="getActionMenuLabel(row)"
-                    (keydown)="onActionMenuKeydown($event, row.id)"
+                  } @else {
+                    {{ getCellValue(column, row) ?? '' }}
+                  }
+                </td>
+              }
+              @case ('date') {
+                <td>{{ formatDateValue(getCellValue(column, row)) }}</td>
+              }
+              @case ('label') {
+                <td>
+                  <span
+                    class="ui-data-table-label"
+                    [attr.data-variant]="
+                      getLabelVariant(column, getCellValue(column, row))
+                    "
                   >
-                    @for (action of column.actions ?? []; track action.key) {
-                      <li role="none">
-                        <button
-                          type="button"
-                          role="menuitem"
-                          class="ui-data-table-action-menu-item"
-                          (click)="handleAction(row.id, action.key)"
-                        >
-                          {{ action.label }}
-                        </button>
-                      </li>
+                    {{ getCellValue(column, row) ?? '' }}
+                  </span>
+                </td>
+              }
+              @case ('numeric') {
+                <td class="ui-data-table-numeric">
+                  {{ formatNumericValue(getCellValue(column, row)) }}
+                </td>
+              }
+              @case ('action') {
+                <td class="ui-data-table-action-cell">
+                  <button
+                    #actionTrigger
+                    type="button"
+                    class="ui-data-table-action-btn"
+                    [attr.data-row-id]="row.id"
+                    [attr.aria-controls]="getActionMenuId(row.id)"
+                    [attr.aria-expanded]="openActionRowId === row.id"
+                    aria-haspopup="menu"
+                    [attr.aria-label]="getActionButtonLabel(row)"
+                    (click)="toggleActionMenu(row.id)"
+                    (keydown.escape)="closeActionMenu(row.id)"
+                  >
+                    <span aria-hidden="true">⋮</span>
+                  </button>
+
+                  @if (openActionRowId === row.id) {
+                    <ul
+                      #actionMenu
+                      class="ui-data-table-action-menu"
+                      [attr.data-row-id]="row.id"
+                      [id]="getActionMenuId(row.id)"
+                      role="menu"
+                      tabindex="-1"
+                      [attr.aria-label]="getActionMenuLabel(row)"
+                      (keydown)="onActionMenuKeydown($event, row.id)"
+                    >
+                      @for (action of column.actions ?? []; track action.key) {
+                        <li role="none">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            class="ui-data-table-action-menu-item"
+                            (click)="handleAction(row.id, action.key)"
+                          >
+                            {{ action.label }}
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </td>
+              }
+              @case ('text') {
+                <td
+                  class="ui-data-table-text-cell"
+                  [title]="getCellValue(column, row) ?? ''"
+                >
+                  {{ getCellValue(column, row) ?? '' }}
+                </td>
+              }
+              @case ('currency') {
+                <td class="ui-data-table-currency">
+                  {{ formatCurrencyValue(getCellValue(column, row), column) }}
+                </td>
+              }
+              @case ('progress') {
+                <td>
+                  @let prog = getProgressData(getCellValue(column, row));
+                  <div class="ui-data-table-progress-cell">
+                    <div
+                      class="ui-data-table-progress-track"
+                      role="progressbar"
+                      [attr.aria-valuenow]="prog.percent"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      [attr.aria-label]="column.header + ': ' + prog.label"
+                    >
+                      <div
+                        class="ui-data-table-progress-fill"
+                        [style.width.%]="prog.percent"
+                      ></div>
+                    </div>
+                    @if (column.showProgressLabel !== false) {
+                      <span class="ui-data-table-progress-label">{{
+                        prog.label
+                      }}</span>
                     }
-                  </ul>
-                }
-              </td>
-            }
-            @default {
-              <td>{{ getCellValue(column, row) ?? '' }}</td>
+                  </div>
+                </td>
+              }
+              @case ('link') {
+                <td>
+                  @if (getLinkValue(column, row); as link) {
+                    <a
+                      class="ui-data-table-link"
+                      [href]="link.href"
+                      [target]="column.linkTarget ?? '_blank'"
+                      [rel]="
+                        column.linkTarget === '_self'
+                          ? null
+                          : 'noopener noreferrer'
+                      "
+                    >
+                      {{ link.label }}
+                    </a>
+                  } @else {
+                    {{ getCellValue(column, row) ?? '' }}
+                  }
+                </td>
+              }
+              @case ('boolean') {
+                <td>
+                  @let boolData =
+                    getBooleanData(getCellValue(column, row), column);
+                  <span
+                    class="ui-data-table-boolean"
+                    [attr.data-state]="boolData.state"
+                    [attr.role]="
+                      column.booleanDisplay === 'icon' ? 'img' : null
+                    "
+                    [attr.aria-label]="boolData.label"
+                  >
+                    @if (column.booleanDisplay === 'icon') {
+                      <svg
+                        class="ui-data-table-boolean-icon"
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        @if (boolData.state) {
+                          <path
+                            d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"
+                          />
+                        } @else {
+                          <path
+                            d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"
+                          />
+                        }
+                      </svg>
+                    } @else {
+                      <span>{{ boolData.label }}</span>
+                    }
+                  </span>
+                </td>
+              }
+              @case ('icon-text') {
+                <td>
+                  @if (getIconTextValue(column, row); as iconText) {
+                    <div class="ui-data-table-icon-text">
+                      <span
+                        class="ui-data-table-icon-text-icon"
+                        aria-hidden="true"
+                        >{{ iconText.icon }}</span
+                      >
+                      <span>{{ iconText.text }}</span>
+                    </div>
+                  } @else {
+                    {{ getCellValue(column, row) ?? '' }}
+                  }
+                </td>
+              }
+              @case ('multiline') {
+                <td>
+                  <div
+                    class="ui-data-table-multiline"
+                    [ngStyle]="getMultilineStyle(column)"
+                  >
+                    {{ getCellValue(column, row) ?? '' }}
+                  </div>
+                </td>
+              }
+              @case ('tags') {
+                <td>
+                  <div class="ui-data-table-tags">
+                    @for (tag of getTagsArray(column, row); track tag) {
+                      <span class="ui-data-table-tag">{{ tag }}</span>
+                    }
+                  </div>
+                </td>
+              }
+              @default {
+                <td>{{ getCellValue(column, row) ?? '' }}</td>
+              }
             }
           }
-        }
-      </tr>
-    } <!-- end @for rows -->
-    } <!-- end @else -->
+        </tr>
+      }
+      <!-- end @for rows -->
+    }
+    <!-- end @else -->
   </tbody>
 </table>

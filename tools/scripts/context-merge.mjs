@@ -71,6 +71,9 @@ const VALID_SLICES = new Set([
   'previous_designs',
   'spec_paths',
   'design_source',
+  // Batch mode slices
+  'batch',
+  'tickets',
 ]);
 
 // ─── CLI parser (no deps) ────────────────────────────────────────────
@@ -377,6 +380,69 @@ function cmdValidate(args) {
 
   const issues = [];
 
+  // ─── Batch mode validation ──────────────────────────────────────────
+  if (context.batch?.enabled) {
+    const ticketIds = context.batch.ticket_ids || [];
+    if (ticketIds.length === 0) {
+      issues.push('batch.ticket_ids is empty');
+    }
+
+    // Check that all tickets have requirements
+    for (const id of ticketIds) {
+      const t = context.tickets?.[id];
+      if (!t) {
+        issues.push(`missing tickets.${id} entry`);
+        continue;
+      }
+      if (!t.ticket) issues.push(`tickets.${id}.ticket is missing`);
+      if (!t.fetch_status)
+        issues.push(`tickets.${id}.fetch_status is missing`);
+      if (t.design_source && !t.design)
+        issues.push(
+          `tickets.${id}.design_source is set but design is missing`,
+        );
+    }
+
+    // Check architecture has batch_scopes
+    if (context.architecture) {
+      if (!context.architecture.batch_scopes)
+        issues.push('architecture.batch_scopes is missing (required in batch mode)');
+      if (context.architecture.file_plan) {
+        const planIds = new Set(
+          context.architecture.file_plan.map((f) => f.ticket_id).filter(Boolean),
+        );
+        for (const id of ticketIds) {
+          if (!planIds.has(id))
+            issues.push(
+              `architecture.file_plan has no entries for ticket ${id}`,
+            );
+        }
+      }
+    }
+
+    // Check implementation per ticket
+    if (context.last_completed_phase >= 3) {
+      for (const id of ticketIds) {
+        if (!context.implementation?.[id])
+          issues.push(`missing implementation.${id} (batch mode requires per-ticket slices)`);
+      }
+    }
+
+    ok({
+      ok: issues.length === 0,
+      ticket_id: ticketId,
+      batch_mode: true,
+      batch_ticket_ids: ticketIds,
+      last_completed_phase: context.last_completed_phase ?? null,
+      issues,
+      slices_present: Object.keys(context).filter(
+        (k) => k !== '_merge_log' && !k.startsWith('_'),
+      ),
+    });
+    return;
+  }
+
+  // ─── Single-ticket validation (existing logic) ─────────────────────
   // Check required top-level slices after Phase 1
   if (context.last_completed_phase >= 1) {
     if (!context.ticket) issues.push('missing "ticket" slice (Phase 1 output)');

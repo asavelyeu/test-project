@@ -441,7 +441,21 @@ function cmdStart(args) {
   const doneIds = new Set(
     epic.subtickets.filter((s) => s.status === 'done').map((s) => s.id),
   );
-  const unmet = (sub.depends_on || []).filter((d) => !doneIds.has(d));
+
+  // In batch mode (--batch flag), intra-batch dependencies are managed by
+  // the architect's batch_scopes ordering, not by epic-sync. Only check
+  // dependencies on tickets OUTSIDE the batch.
+  const batchIds = args.batch
+    ? new Set(
+        (typeof args.batch === 'string' ? args.batch.split(',') : []).map(
+          (id) => id.trim(),
+        ),
+      )
+    : new Set();
+
+  const unmet = (sub.depends_on || []).filter(
+    (d) => !doneIds.has(d) && !batchIds.has(d),
+  );
   if (unmet.length > 0) {
     fail(`cannot start ${subId}: unmet dependencies ${unmet.join(', ')}`, {
       unmet_dependencies: unmet,

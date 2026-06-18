@@ -13,6 +13,17 @@ FORBIDDEN: git, Figma, source files outside `.agent-run/`.
 
 You receive a Jira ticket ID (e.g. APD-1332). Ask if missing.
 
+### Batch mode awareness
+
+If the context file at `.agent-run/{ticket_id}/context.json` contains
+`batch.enabled === true`, this prompt is being run once PER ticket in the
+batch. The orchestrator passes `--ticket {CURRENT_TICKET_ID}` each time.
+Store output under `tickets.{CURRENT_TICKET_ID}.ticket`,
+`tickets.{CURRENT_TICKET_ID}.confluence`, and
+`tickets.{CURRENT_TICKET_ID}.fetch_status` instead of the top-level keys.
+Also set the top-level `ticket` key when processing the primary ticket
+(first in `batch.ticket_ids`).
+
 STEP 0 — Fetch cache (TTL 6h).
 Compute `cache_key = "jira:" + ticket_id`.
 Run `pnpm agent:cache get --key "{cache_key}" --ttl-seconds 21600`.

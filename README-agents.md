@@ -4,7 +4,7 @@
 > explain it in 2 minutes, jump to [the standup cheat-sheet](#standup-cheat-sheet).
 
 A Jira → Figma → React/Angular component pipeline built on top of GitHub
-Copilot Chat (Agent mode) and MCP servers. It supports two modes:
+Copilot Chat (Agent mode) and MCP servers. It supports three modes:
 
 - **Single-ticket mode** — one Jira ticket with no parent epic. The
   pipeline runs end-to-end and writes a PR. No persistent memory.
@@ -12,8 +12,13 @@ Copilot Chat (Agent mode) and MCP servers. It supports two modes:
   durable per-epic memory under `.agent-run/epics/<EPIC_ID>/` so that
   sibling subtickets (worked on different days) share decisions, tokens,
   exports, design source, and ADRs.
+- **Batch mode** — multiple related Jira tickets implemented together on
+  one branch. The architect sees all requirements at once and produces a
+  unified plan. Implementation proceeds per ticket (one commit each), then
+  QA runs once on the final state. Result: one PR with N commits.
 
-Both modes are auto-detected from the Jira ticket — you don't pick.
+Single-ticket and epic modes are auto-detected from the Jira ticket.
+Batch mode is triggered by providing a comma-separated list of ticket IDs.
 
 ---
 
@@ -53,6 +58,32 @@ Rule of thumb:
 - **NO (single-ticket)** — "Q3 performance sweep", "Backlog bugfixes",
   "Dependency upgrades". Unrelated tickets that happen to be siblings.
 
+**How do I implement multiple related tickets at once (batch mode)?**
+Pass a comma-separated list of ticket IDs when the orchestrator asks:
+```
+NGI-12, NGI-13, NGI-14
+```
+The pipeline will:
+1. Fetch requirements for all tickets in parallel
+2. Ask for a shared Figma link (optional), then per-ticket overrides
+3. Run a single unified architecture phase (architect sees everything)
+4. Implement each ticket sequentially, committing after each one
+5. Run QA once on the combined output
+6. Create one PR with N commits
+
+**When should I use batch mode vs epic mode?**
+- **Batch mode** — tickets you want implemented RIGHT NOW in one session.
+  Best for closely related tickets from the same design that should ship
+  together (e.g. table body + pagination + sorting all in one PR).
+- **Epic mode** — tickets you work on over multiple days/sessions. The
+  pipeline remembers decisions, exports, and tokens across sessions.
+- **Both together** — you can batch tickets that belong to an epic. The
+  batch will use epic memory for constraints and update the epic when done.
+
+**Can I mix epic and non-epic tickets in a batch?**
+No. All tickets in a batch must share the same parent epic or all be
+parentless. The orchestrator validates this in Phase 0.
+
 **When I work on an epic, do I have to re-attach Figma every subticket?**
 Yes — and this is intentional. Each subticket usually shows a different
 state of the same component (NGI-12 = plain table, NGI-13 = table with
@@ -82,6 +113,9 @@ The architect (Phase 2) then performs **delta detection**: it reads
 ├── {TICKET_ID}/                         ← single-ticket mode artifacts
 │   ├── context.json
 │   └── pipeline.log
+├── {PRIMARY_TICKET_ID}/                 ← batch mode (same path as single-ticket,
+│   ├── context.json                       but context.json contains batch{} slice
+│   └── pipeline.log                       + tickets{} map for all batch tickets)
 └── epics/{EPIC_ID}/                     ← epic-mode memory (managed)
     ├── epic.json                        ← never hand-edit
     ├── IGNORED.json                     ← present iff this epic is opted-out
@@ -107,9 +141,12 @@ edit `epic.json` directly.
 
 **What we built:**
 We have an AI-powered component pipeline that takes a Jira ticket number
-as input and produces a merged, reviewed pull request with zero manual
-boilerplate. A single `/00-orchestrate` command drives 9 sequential agent
-phases, each scoped to one responsibility.
+(or a comma-separated list of related tickets) as input and produces a
+merged, reviewed pull request with zero manual boilerplate. A single
+`/00-orchestrate` command drives 9 sequential agent phases, each scoped to
+one responsibility. Batch mode lets you implement multiple related tickets
+in one branch with one commit per ticket, unified architecture, and a
+single QA pass.
 
 **The 9 phases at a glance:**
 
@@ -168,8 +205,11 @@ phases, each scoped to one responsibility.
 **Commands team members interact with day-to-day:**
 
 ```bash
-# Start a pipeline run
+# Start a pipeline run (single ticket)
 #file:.github/prompts/00-orchestrate.prompt.md  → then type the ticket ID
+
+# Start a pipeline run (batch — multiple related tickets)
+#file:.github/prompts/00-orchestrate.prompt.md  → then type: NGI-12, NGI-13, NGI-14
 
 # Cache management (rarely needed manually)
 pnpm agent:cache list

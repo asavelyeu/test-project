@@ -5,7 +5,20 @@ export interface SortConfig {
   direction: SortDirection;
 }
 
-export type DataTableColumnType = 'text' | 'avatar-text' | 'date' | 'label' | 'numeric' | 'action';
+export type DataTableColumnType =
+  | 'text'
+  | 'avatar-text'
+  | 'date'
+  | 'label'
+  | 'numeric'
+  | 'action'
+  | 'currency'
+  | 'progress'
+  | 'link'
+  | 'boolean'
+  | 'icon-text'
+  | 'multiline'
+  | 'tags';
 
 export interface DataTableColumn<T> {
   key: string;
@@ -18,7 +31,41 @@ export interface DataTableColumn<T> {
   /** For action columns: list of available actions */
   actions?: ActionMenuItem[];
   /** Custom cell value getter */
-  getValue?: (row: T) => string | number | Date | AvatarTextValue | null | undefined;
+  getValue?: (
+    row: T,
+  ) => string | number | Date | AvatarTextValue | null | undefined;
+  /** For currency columns: locale and currency code */
+  currencyConfig?: CurrencyConfig;
+  /** For link columns: target attribute */
+  linkTarget?: '_blank' | '_self';
+  /** For boolean columns: display mode */
+  booleanDisplay?: 'text' | 'icon';
+  /** For multiline columns: max visible lines (0 = unlimited) */
+  maxLines?: number;
+  /** For progress columns: show numeric label */
+  showProgressLabel?: boolean;
+  /** For icon-text columns: icon position */
+  iconPosition?: 'left' | 'right';
+}
+
+export interface CurrencyConfig {
+  currency?: string;
+  locale?: string;
+}
+
+export interface LinkValue {
+  label: string;
+  href: string;
+}
+
+export interface IconTextValue {
+  icon: string;
+  text: string;
+}
+
+export interface ProgressValue {
+  value: number;
+  max?: number;
 }
 
 export interface ActionMenuItem {

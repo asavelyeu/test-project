@@ -14,6 +14,18 @@ FORBIDDEN: writing anything under `components/`, Angular paths, or git.
 Read context.json (ticket, design, architecture). If `qa.feedback_for_core`
 exists, fix every listed issue first.
 
+### Batch mode awareness
+
+If `batch.enabled === true`, the orchestrator calls this prompt once per
+ticket in dependency order. The current ticket ID is in
+`batch.current_ticket`. You MUST only create/modify files whose
+`architecture.file_plan[].ticket_id` matches the current ticket. Read
+this ticket's requirements from `tickets.{current_ticket}.ticket` and
+design from `tickets.{current_ticket}.design`.
+
+After completing implementation for the current ticket, the orchestrator
+handles the git commit — do NOT run git commands yourself.
+
 ### Delta guard (MANDATORY when `architecture.delta_plan` exists)
 
 - You MUST only create files listed in `architecture.delta_plan.create`
@@ -67,5 +79,6 @@ Run `pnpm nx lint shared-ui` and `pnpm nx test shared-ui` (filter to core
 files). All green before completing.
 
 Merge `implementation.core` { files_created[], files_modified[] } into context.json.
+In batch mode: merge under `implementation.{batch.current_ticket}.core` instead.
 
 Output: "Core complete. Files: {count}. Tokens: {token_count}. Lint/tests: clean."
