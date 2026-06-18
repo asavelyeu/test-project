@@ -152,9 +152,26 @@ Phases marked "(batch-aware)" have modified behaviour in batch mode.
    If mixed → HALT: "All tickets in a batch must share the same parent
    epic (or all be parentless). Found: {ticket_id} → {parent}, ..."
 3. If the tickets have a shared parent epic, follow the normal epic opt-in
-   flow from the "Epic memory is OPT-IN" section above. If epic mode is
-   chosen, run `pnpm agent:epic start` only for the primary ticket — the
-   others will be marked `started` as implementation reaches them.
+   flow from the "Epic memory is OPT-IN" section above. Then:
+   a. Run `pnpm agent:epic status --epic {epic_id}` to see which
+      sibling subtickets are already `done` (e.g. NGI-18 completed in a
+      prior session). This confirms the epic already has accumulated
+      `must_respect` constraints, exports, and tokens from prior work.
+   b. Run `pnpm agent:epic start --epic {epic_id} --subticket {ID} \
+      --batch {comma_separated_batch_ids}` for EACH ticket in the batch.
+      The `--batch` flag tells epic-sync to skip dependency checks for
+      sibling tickets within this batch (the architect's `batch_scopes`
+      handles intra-batch ordering instead). Each `start` call returns
+      `context_seed` with `must_respect`, `previous_designs`, and
+      `spec_paths` accumulated from all previously completed siblings
+      (e.g. NGI-18 done in a prior session).
+   c. Merge the returned `must_respect`, `previous_designs`, and
+      `spec_paths` into the shared batch context (top-level keys).
+      These constraints apply to ALL tickets in the batch.
+   d. Load `spec/component.json`, `spec/tokens.css`, and the last 50
+      lines of `progress.md` into working context — same as single-ticket
+      epic mode. The architect and implementers treat these as hard
+      constraints.
 4. Create the batch context at `.agent-run/{primary_ticket_id}/context.json`
    with the `batch` slice populated.
 5. Store each ticket's resolved `design_source` under
