@@ -1,7 +1,11 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { DataTable } from './DataTable';
-import type { DataTableColumn, DataTableProps, DataTableRow } from '../../core/data-table/data-table.types';
+import type {
+  DataTableColumn,
+  DataTableProps,
+  DataTableRow,
+} from '../../core/data-table/data-table.types';
 
 interface SampleRow {
   name: string;
@@ -58,10 +62,50 @@ const columns: DataTableColumn<SampleRow>[] = [
 ];
 
 const rows: DataTableRow<SampleRow>[] = [
-  { id: '1', data: { name: 'Alice Johnson', avatarInitials: 'AJ', description: 'Product manager', date: '2024-03-15', label: 'Active', amount: 12500 } },
-  { id: '2', data: { name: 'Bob Smith', avatarInitials: 'BS', description: 'Engineer', date: '2024-01-22', label: 'Inactive', amount: 9800 } },
-  { id: '3', data: { name: 'Carol White', avatarInitials: 'CW', description: 'Designer', date: '2024-06-01', label: 'Active', amount: 11200 } },
-  { id: '4', data: { name: 'David Lee', avatarInitials: 'DL', description: 'Analyst', date: '2023-11-30', label: 'Inactive', amount: 7400 } },
+  {
+    id: '1',
+    data: {
+      name: 'Alice Johnson',
+      avatarInitials: 'AJ',
+      description: 'Product manager',
+      date: '2024-03-15',
+      label: 'Active',
+      amount: 12500,
+    },
+  },
+  {
+    id: '2',
+    data: {
+      name: 'Bob Smith',
+      avatarInitials: 'BS',
+      description: 'Engineer',
+      date: '2024-01-22',
+      label: 'Inactive',
+      amount: 9800,
+    },
+  },
+  {
+    id: '3',
+    data: {
+      name: 'Carol White',
+      avatarInitials: 'CW',
+      description: 'Designer',
+      date: '2024-06-01',
+      label: 'Active',
+      amount: 11200,
+    },
+  },
+  {
+    id: '4',
+    data: {
+      name: 'David Lee',
+      avatarInitials: 'DL',
+      description: 'Analyst',
+      date: '2023-11-30',
+      label: 'Inactive',
+      amount: 7400,
+    },
+  },
 ];
 
 const meta: Meta<DataTableProps<SampleRow>> = {
@@ -69,8 +113,14 @@ const meta: Meta<DataTableProps<SampleRow>> = {
   component: DataTable,
   tags: ['autodocs'],
   argTypes: {
-    striped: { control: 'boolean', description: 'Enable alternating row backgrounds' },
-    caption: { control: 'text', description: 'Accessible table caption (screen-reader only)' },
+    striped: {
+      control: 'boolean',
+      description: 'Enable alternating row backgrounds',
+    },
+    caption: {
+      control: 'text',
+      description: 'Accessible table caption (screen-reader only)',
+    },
   },
 };
 
@@ -89,12 +139,21 @@ export const AllVariants: Story = {
   render: () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       <div>
-        <h3 style={{ marginBottom: '8px', fontSize: '14px', color: '#374151' }}>Default</h3>
+        <h3 style={{ marginBottom: '8px', fontSize: '14px', color: '#374151' }}>
+          Default
+        </h3>
         <DataTable caption="Default variant" columns={columns} rows={rows} />
       </div>
       <div>
-        <h3 style={{ marginBottom: '8px', fontSize: '14px', color: '#374151' }}>Striped</h3>
-        <DataTable caption="Striped variant" columns={columns} rows={rows} striped />
+        <h3 style={{ marginBottom: '8px', fontSize: '14px', color: '#374151' }}>
+          Striped
+        </h3>
+        <DataTable
+          caption="Striped variant"
+          columns={columns}
+          rows={rows}
+          striped
+        />
       </div>
     </div>
   ),
@@ -118,16 +177,12 @@ export const HoverState: Story = {
   render: () => (
     <div>
       <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
-        <strong>Row hover:</strong> Move the cursor over any row. The background changes
-        to <code>--ui-data-table-row-bg-hover</code>. Only the row under the cursor is
-        highlighted; the effect is removed when the cursor leaves. Cell content and
-        layout are unaffected.
+        <strong>Row hover:</strong> Move the cursor over any row. The background
+        changes to <code>--ui-data-table-row-bg-hover</code>. Only the row under
+        the cursor is highlighted; the effect is removed when the cursor leaves.
+        Cell content and layout are unaffected.
       </p>
-      <DataTable
-        caption="Hover state demo"
-        columns={columns}
-        rows={rows}
-      />
+      <DataTable caption="Hover state demo" columns={columns} rows={rows} />
     </div>
   ),
 };
@@ -170,9 +225,10 @@ export const A11yShowcase: Story = {
   render: () => (
     <div>
       <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
-        <strong>Keyboard navigation:</strong> Tab to reach checkboxes and action buttons.
-        Space to toggle row selection. Enter/Space on sortable column headers to sort.
-        Click the three-dot menu, then use Arrow keys to navigate items, Escape to close.
+        <strong>Keyboard navigation:</strong> Tab to reach checkboxes and action
+        buttons. Space to toggle row selection. Enter/Space on sortable column
+        headers to sort. Click the three-dot menu, then use Arrow keys to
+        navigate items, Escape to close.
       </p>
       <DataTable
         caption="Accessible team members table — keyboard and screen reader ready"
@@ -198,9 +254,28 @@ const staticProductColumns: DataTableColumn<ProductRow>[] = [
 ];
 
 const staticProductRows: DataTableRow<ProductRow>[] = [
-  { id: 'p1', data: { id: 'SKU-001', name: 'Wireless Keyboard', category: 'Electronics', price: 79 } },
-  { id: 'p2', data: { id: 'SKU-002', name: 'USB-C Hub', category: 'Electronics', price: 49 } },
-  { id: 'p3', data: { id: 'SKU-003', name: 'Desk Lamp', category: 'Office', price: 34 } },
+  {
+    id: 'p1',
+    data: {
+      id: 'SKU-001',
+      name: 'Wireless Keyboard',
+      category: 'Electronics',
+      price: 79,
+    },
+  },
+  {
+    id: 'p2',
+    data: {
+      id: 'SKU-002',
+      name: 'USB-C Hub',
+      category: 'Electronics',
+      price: 49,
+    },
+  },
+  {
+    id: 'p3',
+    data: { id: 'SKU-003', name: 'Desk Lamp', category: 'Office', price: 34 },
+  },
 ];
 
 /** NGI-13: Static column configuration — columns defined with key, header, and type only.
@@ -211,15 +286,23 @@ export const StaticColumns: StoryObj<DataTableProps<ProductRow>> = {
       <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
         <strong>Static column config:</strong> Each column is defined with only{' '}
         <code>key</code>, <code>header</code>, and <code>type</code> — no custom{' '}
-        <code>getValue</code> getter. Cell values are resolved automatically from{' '}
-        <code>row.data[column.key]</code>.
+        <code>getValue</code> getter. Cell values are resolved automatically
+        from <code>row.data[column.key]</code>.
       </p>
-      <DataTable caption="Products" columns={staticProductColumns} rows={staticProductRows} />
+      <DataTable
+        caption="Products"
+        columns={staticProductColumns}
+        rows={staticProductRows}
+      />
     </div>
   ),
 };
 
-interface CityRow { city: string; country: string; population: number }
+interface CityRow {
+  city: string;
+  country: string;
+  population: number;
+}
 
 const cityColumns: DataTableColumn<CityRow>[] = [
   { key: 'city', header: 'City', type: 'text' },
@@ -252,8 +335,9 @@ export const EmptyState: Story = {
   render: () => (
     <div>
       <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
-        <strong>Empty state:</strong> When <code>data</code> is an empty array, the table shows
-        a meaningful placeholder with column headers still visible.
+        <strong>Empty state:</strong> When <code>data</code> is an empty array,
+        the table shows a meaningful placeholder with column headers still
+        visible.
       </p>
       <DataTable caption="Empty table demo" columns={columns} data={[]} />
     </div>
@@ -285,10 +369,15 @@ export const LoadingState: Story = {
   render: () => (
     <div>
       <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
-        <strong>Loading state:</strong> When <code>loading</code> is true, a shimmer skeleton
-        is shown — distinct from the empty-state illustration.
+        <strong>Loading state:</strong> When <code>loading</code> is true, a
+        shimmer skeleton is shown — distinct from the empty-state illustration.
       </p>
-      <DataTable caption="Loading table demo" columns={columns} data={[]} loading />
+      <DataTable
+        caption="Loading table demo"
+        columns={columns}
+        data={[]}
+        loading
+      />
     </div>
   ),
 };
@@ -356,14 +445,43 @@ const cellTypeDemoColumns: DataTableColumn<CellTypeDemoRow>[] = [
   { key: 'text', header: 'Text', type: 'text' },
   { key: 'number', header: 'Number', type: 'numeric', sortable: true },
   { key: 'date', header: 'Date', type: 'date' },
-  { key: 'currency', header: 'Amount', type: 'currency', currencyConfig: { currency: 'USD', locale: 'en-US' } },
-  { key: 'status', header: 'Status', type: 'label', getLabelVariant: (v) => (v === 'Active' ? 'active' : 'default') },
-  { key: 'progress', header: 'Progress', type: 'progress', showProgressLabel: true },
-  { key: 'avatar', header: 'User', type: 'avatar-text', getValue: (row) => ({ name: row.avatar.name, initials: row.avatar.initials }) },
+  {
+    key: 'currency',
+    header: 'Amount',
+    type: 'currency',
+    currencyConfig: { currency: 'USD', locale: 'en-US' },
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    type: 'label',
+    getLabelVariant: (v) => (v === 'Active' ? 'active' : 'default'),
+  },
+  {
+    key: 'progress',
+    header: 'Progress',
+    type: 'progress',
+    showProgressLabel: true,
+  },
+  {
+    key: 'avatar',
+    header: 'User',
+    type: 'avatar-text',
+    getValue: (row) => ({
+      name: row.avatar.name,
+      initials: row.avatar.initials,
+    }),
+  },
   { key: 'link', header: 'Link', type: 'link', linkTarget: '_blank' },
   { key: 'boolean', header: 'Active', type: 'boolean', booleanDisplay: 'icon' },
   { key: 'iconText', header: 'Category', type: 'icon-text' },
-  { key: 'multiline', header: 'Description', type: 'multiline', maxLines: 2, width: '200px' },
+  {
+    key: 'multiline',
+    header: 'Description',
+    type: 'multiline',
+    maxLines: 2,
+    width: '200px',
+  },
   { key: 'tags', header: 'Tags', type: 'tags', width: '160px' },
 ];
 
@@ -381,7 +499,8 @@ const cellTypeDemoData: DataTableRow<CellTypeDemoRow>[] = [
       link: { label: 'View docs', href: 'https://example.com' },
       boolean: true,
       iconText: { icon: '📁', text: 'Design' },
-      multiline: 'This is a multiline description that spans multiple lines to demonstrate the wrapping behavior of the cell.',
+      multiline:
+        'This is a multiline description that spans multiple lines to demonstrate the wrapping behavior of the cell.',
       tags: ['React', 'TypeScript', 'UI'],
     },
   },
@@ -415,7 +534,8 @@ const cellTypeDemoData: DataTableRow<CellTypeDemoRow>[] = [
       link: { label: 'Jira', href: 'https://jira.example.com' },
       boolean: true,
       iconText: { icon: '🎨', text: 'Product' },
-      multiline: 'Another longer description that should wrap to multiple lines and then get clamped at the configured max-lines value set on the column.',
+      multiline:
+        'Another longer description that should wrap to multiple lines and then get clamped at the configured max-lines value set on the column.',
       tags: ['Storybook', 'CSS', 'Tokens', 'A11y'],
     },
   },
@@ -426,9 +546,9 @@ export const AllCellTypes: StoryObj<DataTableProps<CellTypeDemoRow>> = {
   render: () => (
     <div>
       <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6B7280' }}>
-        <strong>All cell types:</strong> Text, Number, Date, Currency, Status/Badge, Progress,
-        Avatar, Link, Boolean, Icon+Text, Multiline, and Tags — each with consistent styling
-        and proper a11y attributes.
+        <strong>All cell types:</strong> Text, Number, Date, Currency,
+        Status/Badge, Progress, Avatar, Link, Boolean, Icon+Text, Multiline, and
+        Tags — each with consistent styling and proper a11y attributes.
       </p>
       <DataTable
         caption="Cell types demo"
@@ -441,7 +561,10 @@ export const AllCellTypes: StoryObj<DataTableProps<CellTypeDemoRow>> = {
 };
 
 /* ──── NGI-21: Date Cell ──── */
-interface DateRow { event: string; date: string }
+interface DateRow {
+  event: string;
+  date: string;
+}
 const dateColumns: DataTableColumn<DateRow>[] = [
   { key: 'event', header: 'Event', type: 'text' },
   { key: 'date', header: 'Date', type: 'date', sortable: true },
@@ -453,14 +576,29 @@ const dateData: DateRow[] = [
 ];
 /** NGI-21: Date cells render in DD MMM YYYY format with locale support. */
 export const DateCell: StoryObj<DataTableProps<DateRow>> = {
-  render: () => <DataTable caption="Date cells" columns={dateColumns} data={dateData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Date cells"
+      columns={dateColumns}
+      data={dateData}
+      selectable={false}
+    />
+  ),
 };
 
 /* ──── NGI-22: Currency Cell ──── */
-interface CurrencyRow { item: string; price: number }
+interface CurrencyRow {
+  item: string;
+  price: number;
+}
 const currencyColumns: DataTableColumn<CurrencyRow>[] = [
   { key: 'item', header: 'Item', type: 'text' },
-  { key: 'price', header: 'Price (USD)', type: 'currency', currencyConfig: { currency: 'USD', locale: 'en-US' } },
+  {
+    key: 'price',
+    header: 'Price (USD)',
+    type: 'currency',
+    currencyConfig: { currency: 'USD', locale: 'en-US' },
+  },
 ];
 const currencyData: CurrencyRow[] = [
   { item: 'Laptop', price: 1499.99 },
@@ -469,14 +607,29 @@ const currencyData: CurrencyRow[] = [
 ];
 /** NGI-22: Currency cells format values with locale-aware currency symbols. */
 export const CurrencyCell: StoryObj<DataTableProps<CurrencyRow>> = {
-  render: () => <DataTable caption="Currency cells" columns={currencyColumns} data={currencyData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Currency cells"
+      columns={currencyColumns}
+      data={currencyData}
+      selectable={false}
+    />
+  ),
 };
 
 /* ──── NGI-23: Badge / Status Cell ──── */
-interface BadgeRow { name: string; status: string }
+interface BadgeRow {
+  name: string;
+  status: string;
+}
 const badgeColumns: DataTableColumn<BadgeRow>[] = [
   { key: 'name', header: 'Name', type: 'text' },
-  { key: 'status', header: 'Status', type: 'label', getLabelVariant: (v) => (v === 'Active' ? 'active' : 'default') },
+  {
+    key: 'status',
+    header: 'Status',
+    type: 'label',
+    getLabelVariant: (v) => (v === 'Active' ? 'active' : 'default'),
+  },
 ];
 const badgeData: BadgeRow[] = [
   { name: 'Service A', status: 'Active' },
@@ -485,14 +638,29 @@ const badgeData: BadgeRow[] = [
 ];
 /** NGI-23: Badge cells render color-coded chips for statuses. */
 export const BadgeCell: StoryObj<DataTableProps<BadgeRow>> = {
-  render: () => <DataTable caption="Badge cells" columns={badgeColumns} data={badgeData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Badge cells"
+      columns={badgeColumns}
+      data={badgeData}
+      selectable={false}
+    />
+  ),
 };
 
 /* ──── NGI-24: Progress Cell ──── */
-interface ProgressRow { task: string; progress: number }
+interface ProgressRow {
+  task: string;
+  progress: number;
+}
 const progressColumns: DataTableColumn<ProgressRow>[] = [
   { key: 'task', header: 'Task', type: 'text' },
-  { key: 'progress', header: 'Progress', type: 'progress', showProgressLabel: true },
+  {
+    key: 'progress',
+    header: 'Progress',
+    type: 'progress',
+    showProgressLabel: true,
+  },
 ];
 const progressData: ProgressRow[] = [
   { task: 'Design', progress: 100 },
@@ -502,13 +670,29 @@ const progressData: ProgressRow[] = [
 ];
 /** NGI-24: Progress cells render a horizontal bar with optional percentage label. */
 export const ProgressCell: StoryObj<DataTableProps<ProgressRow>> = {
-  render: () => <DataTable caption="Progress cells" columns={progressColumns} data={progressData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Progress cells"
+      columns={progressColumns}
+      data={progressData}
+      selectable={false}
+    />
+  ),
 };
 
 /* ──── NGI-25: Avatar / User Cell ──── */
-interface AvatarRow { user: string; initials: string; role: string }
+interface AvatarRow {
+  user: string;
+  initials: string;
+  role: string;
+}
 const avatarColumns: DataTableColumn<AvatarRow>[] = [
-  { key: 'user', header: 'User', type: 'avatar-text', getValue: (row) => ({ name: row.user, initials: row.initials }) },
+  {
+    key: 'user',
+    header: 'User',
+    type: 'avatar-text',
+    getValue: (row) => ({ name: row.user, initials: row.initials }),
+  },
   { key: 'role', header: 'Role', type: 'text' },
 ];
 const avatarData: DataTableRow<AvatarRow>[] = [
@@ -518,29 +702,60 @@ const avatarData: DataTableRow<AvatarRow>[] = [
 ];
 /** NGI-25: Avatar cells render a circular avatar with initials alongside the name. */
 export const AvatarCell: StoryObj<DataTableProps<AvatarRow>> = {
-  render: () => <DataTable caption="Avatar cells" columns={avatarColumns} rows={avatarData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Avatar cells"
+      columns={avatarColumns}
+      rows={avatarData}
+      selectable={false}
+    />
+  ),
 };
 
 /* ──── NGI-26: Link Cell ──── */
-interface LinkRow { title: string; link: { label: string; href: string } }
+interface LinkRow {
+  title: string;
+  link: { label: string; href: string };
+}
 const linkColumns: DataTableColumn<LinkRow>[] = [
   { key: 'title', header: 'Title', type: 'text' },
   { key: 'link', header: 'URL', type: 'link', linkTarget: '_blank' },
 ];
 const linkData: LinkRow[] = [
-  { title: 'Documentation', link: { label: 'Docs site', href: 'https://example.com/docs' } },
-  { title: 'Repository', link: { label: 'GitHub', href: 'https://github.com' } },
+  {
+    title: 'Documentation',
+    link: { label: 'Docs site', href: 'https://example.com/docs' },
+  },
+  {
+    title: 'Repository',
+    link: { label: 'GitHub', href: 'https://github.com' },
+  },
 ];
 /** NGI-26: Link cells render clickable anchors with proper target and rel attributes. */
 export const LinkCell: StoryObj<DataTableProps<LinkRow>> = {
-  render: () => <DataTable caption="Link cells" columns={linkColumns} data={linkData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Link cells"
+      columns={linkColumns}
+      data={linkData}
+      selectable={false}
+    />
+  ),
 };
 
 /* ──── NGI-27: Boolean / Yes-No Cell ──── */
-interface BooleanRow { feature: string; enabled: boolean }
+interface BooleanRow {
+  feature: string;
+  enabled: boolean;
+}
 const booleanColumns: DataTableColumn<BooleanRow>[] = [
   { key: 'feature', header: 'Feature', type: 'text' },
-  { key: 'enabled', header: 'Enabled (icon)', type: 'boolean', booleanDisplay: 'icon' },
+  {
+    key: 'enabled',
+    header: 'Enabled (icon)',
+    type: 'boolean',
+    booleanDisplay: 'icon',
+  },
 ];
 const booleanData: BooleanRow[] = [
   { feature: 'Dark mode', enabled: true },
@@ -549,13 +764,28 @@ const booleanData: BooleanRow[] = [
 ];
 /** NGI-27: Boolean cells render check/cross icons or Yes/No text. */
 export const BooleanCell: StoryObj<DataTableProps<BooleanRow>> = {
-  render: () => <DataTable caption="Boolean cells" columns={booleanColumns} data={booleanData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Boolean cells"
+      columns={booleanColumns}
+      data={booleanData}
+      selectable={false}
+    />
+  ),
 };
 
 /* ──── NGI-28: Icon + Text Cell ──── */
-interface IconTextRow { category: { icon: string; text: string }; count: number }
+interface IconTextRow {
+  category: { icon: string; text: string };
+  count: number;
+}
 const iconTextColumns: DataTableColumn<IconTextRow>[] = [
-  { key: 'category', header: 'Category', type: 'icon-text', iconPosition: 'left' },
+  {
+    key: 'category',
+    header: 'Category',
+    type: 'icon-text',
+    iconPosition: 'left',
+  },
   { key: 'count', header: 'Count', type: 'numeric' },
 ];
 const iconTextData: IconTextRow[] = [
@@ -565,26 +795,56 @@ const iconTextData: IconTextRow[] = [
 ];
 /** NGI-28: Icon+Text cells render an icon alongside text, position configurable. */
 export const IconTextCell: StoryObj<DataTableProps<IconTextRow>> = {
-  render: () => <DataTable caption="Icon+Text cells" columns={iconTextColumns} data={iconTextData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Icon+Text cells"
+      columns={iconTextColumns}
+      data={iconTextData}
+      selectable={false}
+    />
+  ),
 };
 
 /* ──── NGI-29: Multiline / Description Cell ──── */
-interface MultilineRow { title: string; description: string }
+interface MultilineRow {
+  title: string;
+  description: string;
+}
 const multilineColumns: DataTableColumn<MultilineRow>[] = [
   { key: 'title', header: 'Title', type: 'text' },
-  { key: 'description', header: 'Description', type: 'multiline', maxLines: 2, width: '300px' },
+  {
+    key: 'description',
+    header: 'Description',
+    type: 'multiline',
+    maxLines: 2,
+    width: '300px',
+  },
 ];
 const multilineData: MultilineRow[] = [
-  { title: 'Task A', description: 'This is a longer description that should wrap to multiple lines and be clamped at the configured max-lines value, demonstrating the truncation behavior with -webkit-line-clamp.' },
+  {
+    title: 'Task A',
+    description:
+      'This is a longer description that should wrap to multiple lines and be clamped at the configured max-lines value, demonstrating the truncation behavior with -webkit-line-clamp.',
+  },
   { title: 'Task B', description: 'Short note.' },
 ];
 /** NGI-29: Multiline cells render wrapping text with configurable max-lines clamping. */
 export const MultilineCell: StoryObj<DataTableProps<MultilineRow>> = {
-  render: () => <DataTable caption="Multiline cells" columns={multilineColumns} data={multilineData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Multiline cells"
+      columns={multilineColumns}
+      data={multilineData}
+      selectable={false}
+    />
+  ),
 };
 
 /* ──── NGI-30: Tags / Labels Cell ──── */
-interface TagsRow { name: string; tags: string[] }
+interface TagsRow {
+  name: string;
+  tags: string[];
+}
 const tagsColumns: DataTableColumn<TagsRow>[] = [
   { key: 'name', header: 'Name', type: 'text' },
   { key: 'tags', header: 'Tags', type: 'tags', width: '200px' },
@@ -596,5 +856,12 @@ const tagsData: TagsRow[] = [
 ];
 /** NGI-30: Tags cells render an array of styled chips/labels. */
 export const TagsCell: StoryObj<DataTableProps<TagsRow>> = {
-  render: () => <DataTable caption="Tags cells" columns={tagsColumns} data={tagsData} selectable={false} />,
+  render: () => (
+    <DataTable
+      caption="Tags cells"
+      columns={tagsColumns}
+      data={tagsData}
+      selectable={false}
+    />
+  ),
 };

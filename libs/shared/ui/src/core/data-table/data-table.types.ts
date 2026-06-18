@@ -31,7 +31,9 @@ export interface DataTableColumn<T> {
   /** For action columns: list of available actions */
   actions?: ActionMenuItem[];
   /** Custom cell value getter */
-  getValue?: (row: T) => string | number | Date | AvatarTextValue | null | undefined;
+  getValue?: (
+    row: T,
+  ) => string | number | Date | AvatarTextValue | null | undefined;
   /** For currency columns: locale and currency code */
   currencyConfig?: CurrencyConfig;
   /** For link columns: target attribute */

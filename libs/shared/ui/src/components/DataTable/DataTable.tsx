@@ -39,18 +39,31 @@ function cn(...inputs: Parameters<typeof clsx>) {
   return twMerge(clsx(inputs));
 }
 
-const SKELETON_WIDTHS = ['72%', '55%', '80%', '45%', '65%', '50%', '38%', '70%'];
+const SKELETON_WIDTHS = [
+  '72%',
+  '55%',
+  '80%',
+  '45%',
+  '65%',
+  '50%',
+  '38%',
+  '70%',
+];
 
 function isAvatarTextValue(val: unknown): val is AvatarTextValue {
   return typeof val === 'object' && val !== null && 'name' in val;
 }
 
 function isLinkValue(val: unknown): val is LinkValue {
-  return typeof val === 'object' && val !== null && 'href' in val && 'label' in val;
+  return (
+    typeof val === 'object' && val !== null && 'href' in val && 'label' in val
+  );
 }
 
 function isIconTextValue(val: unknown): val is IconTextValue {
-  return typeof val === 'object' && val !== null && 'icon' in val && 'text' in val;
+  return (
+    typeof val === 'object' && val !== null && 'icon' in val && 'text' in val
+  );
 }
 
 export function DataTable<T>({
@@ -71,8 +84,12 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const rows = rowsProp ?? normalizeRows(data ?? []);
   const isControlled = controlledSelectedIds !== undefined;
-  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
-  const selectedIds = isControlled ? controlledSelectedIds : internalSelectedIds;
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const selectedIds = isControlled
+    ? controlledSelectedIds
+    : internalSelectedIds;
 
   const [openActionRowId, setOpenActionRowId] = useState<string | null>(null);
   const actionMenuRefs = useRef<Record<string, HTMLUListElement | null>>({});
@@ -85,7 +102,7 @@ export function DataTable<T>({
       if (!isControlled) setInternalSelectedIds(nextIds);
       onSelectionChange?.(nextIds);
     },
-    [isControlled, onSelectionChange]
+    [isControlled, onSelectionChange],
   );
 
   const handleSelectAll = useCallback(() => {
@@ -96,7 +113,7 @@ export function DataTable<T>({
     (rowId: string) => {
       handleSelectionChange(toggleRowSelection(rowId, selectedIds));
     },
-    [selectedIds, handleSelectionChange]
+    [selectedIds, handleSelectionChange],
   );
 
   const handleSort = useCallback(
@@ -106,27 +123,25 @@ export function DataTable<T>({
         sortConfig?.columnKey === columnKey ? sortConfig.direction : 'none';
       onSort({ columnKey, direction: nextSortDirection(currentDir) });
     },
-    [onSort, sortConfig]
+    [onSort, sortConfig],
   );
 
   const handleOpenActionMenu = useCallback((rowId: string) => {
     setOpenActionRowId((prev) => (prev === rowId ? null : rowId));
   }, []);
 
-  const handleCloseActionMenu = useCallback(
-    (returnFocusRowId?: string) => {
-      setOpenActionRowId(null);
-      if (returnFocusRowId) {
-        actionBtnRefs.current[returnFocusRowId]?.focus();
-      }
-    },
-    []
-  );
+  const handleCloseActionMenu = useCallback((returnFocusRowId?: string) => {
+    setOpenActionRowId(null);
+    if (returnFocusRowId) {
+      actionBtnRefs.current[returnFocusRowId]?.focus();
+    }
+  }, []);
 
   useEffect(() => {
     if (openActionRowId) {
       const menu = actionMenuRefs.current[openActionRowId];
-      const firstItem = menu?.querySelector<HTMLButtonElement>('[role="menuitem"]');
+      const firstItem =
+        menu?.querySelector<HTMLButtonElement>('[role="menuitem"]');
       firstItem?.focus();
     }
   }, [openActionRowId]);
@@ -205,7 +220,9 @@ export function DataTable<T>({
         return (
           <td key={column.key} className="ui-data-table-action-cell">
             <button
-              ref={(el) => { actionBtnRefs.current[row.id] = el; }}
+              ref={(el) => {
+                actionBtnRefs.current[row.id] = el;
+              }}
               type="button"
               className="ui-data-table-action-btn"
               aria-haspopup="menu"
@@ -216,7 +233,13 @@ export function DataTable<T>({
                 if (e.key === 'Escape') handleCloseActionMenu(row.id);
               }}
             >
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <svg
+                aria-hidden="true"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+              >
                 <circle cx="8" cy="3" r="1.5" />
                 <circle cx="8" cy="8" r="1.5" />
                 <circle cx="8" cy="13" r="1.5" />
@@ -224,14 +247,20 @@ export function DataTable<T>({
             </button>
             {isOpen && (
               <ul
-                ref={(el) => { actionMenuRefs.current[row.id] = el; }}
+                ref={(el) => {
+                  actionMenuRefs.current[row.id] = el;
+                }}
                 role="menu"
                 aria-label={getActionMenuAriaLabel(rowLabel)}
                 className="ui-data-table-action-menu"
                 onKeyDown={(e) => {
                   const action = getActionMenuKeyAction(e.key);
                   const items = Array.from(
-                    actionMenuRefs.current[row.id]?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []
+                    actionMenuRefs.current[
+                      row.id
+                    ]?.querySelectorAll<HTMLButtonElement>(
+                      '[role="menuitem"]',
+                    ) ?? [],
                   );
                   const focused = document.activeElement as HTMLButtonElement;
                   const idx = items.indexOf(focused);
@@ -276,7 +305,11 @@ export function DataTable<T>({
 
       case 'text':
         return (
-          <td key={column.key} className="ui-data-table-text-cell" title={String(rawValue ?? '')}>
+          <td
+            key={column.key}
+            className="ui-data-table-text-cell"
+            title={String(rawValue ?? '')}
+          >
             {String(rawValue ?? '')}
           </td>
         );
@@ -284,7 +317,10 @@ export function DataTable<T>({
       case 'currency':
         return (
           <td key={column.key} className="ui-data-table-currency">
-            {formatCurrency(rawValue as number | null | undefined, column.currencyConfig)}
+            {formatCurrency(
+              rawValue as number | null | undefined,
+              column.currencyConfig,
+            )}
           </td>
         );
 
@@ -307,7 +343,9 @@ export function DataTable<T>({
                 />
               </div>
               {column.showProgressLabel !== false && (
-                <span className="ui-data-table-progress-label">{prog.label}</span>
+                <span className="ui-data-table-progress-label">
+                  {prog.label}
+                </span>
               )}
             </div>
           </td>
@@ -322,7 +360,11 @@ export function DataTable<T>({
                 className="ui-data-table-link"
                 href={rawValue.href}
                 target={column.linkTarget ?? '_blank'}
-                rel={column.linkTarget === '_self' ? undefined : 'noopener noreferrer'}
+                rel={
+                  column.linkTarget === '_self'
+                    ? undefined
+                    : 'noopener noreferrer'
+                }
               >
                 {rawValue.label}
               </a>
@@ -342,7 +384,12 @@ export function DataTable<T>({
               aria-label={boolResult.label}
             >
               {column.booleanDisplay === 'icon' ? (
-                <svg className="ui-data-table-boolean-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <svg
+                  className="ui-data-table-boolean-icon"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
                   {boolResult.state ? (
                     <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
                   ) : (
@@ -362,7 +409,10 @@ export function DataTable<T>({
           return (
             <td key={column.key}>
               <div className="ui-data-table-icon-text">
-                <span className="ui-data-table-icon-text-icon" aria-hidden="true">
+                <span
+                  className="ui-data-table-icon-text-icon"
+                  aria-hidden="true"
+                >
                   {rawValue.icon}
                 </span>
                 <span>{rawValue.text}</span>
@@ -425,7 +475,7 @@ export function DataTable<T>({
               }}
               aria-label={getSelectAllAriaLabel(
                 selectionState.allSelected,
-                selectionState.someSelected
+                selectionState.someSelected,
               )}
               onChange={handleSelectAll}
             />
@@ -434,13 +484,20 @@ export function DataTable<T>({
             <th
               key={col.key}
               scope="col"
-              aria-sort={col.sortable ? getAriaSortValue(col.key, sortConfig) : undefined}
+              aria-sort={
+                col.sortable ? getAriaSortValue(col.key, sortConfig) : undefined
+              }
               tabIndex={col.sortable ? 0 : undefined}
               style={col.width ? { width: col.width } : undefined}
               onClick={col.sortable ? () => handleSort(col.key) : undefined}
               onKeyDown={
                 col.sortable
-                  ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSort(col.key); } }
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSort(col.key);
+                      }
+                    }
                   : undefined
               }
             >
@@ -449,30 +506,46 @@ export function DataTable<T>({
           ))}
         </tr>
       </thead>
-      <tbody aria-busy={loading || undefined} aria-label={loading ? 'Loading data, please wait…' : undefined}>
+      <tbody
+        aria-busy={loading || undefined}
+        aria-label={loading ? 'Loading data, please wait…' : undefined}
+      >
         {loading ? (
           <>
-            {Array.from({ length: skeletonRowCount }, (_, i) => i).map((rowIdx) => (
-              <tr key={rowIdx} aria-hidden="true">
-                <td className="ui-data-table-checkbox-cell">
-                  <span
-                    className="ui-data-table-skeleton ui-data-table__skeleton-cell"
-                    style={{ width: '16px', display: 'inline-block' }}
-                  />
-                </td>
-                {columns.map((col, colIdx) => (
-                  <td key={col.key} className={col.type === 'numeric' ? 'ui-data-table-numeric' : undefined}>
+            {Array.from({ length: skeletonRowCount }, (_, i) => i).map(
+              (rowIdx) => (
+                <tr key={rowIdx} aria-hidden="true">
+                  <td className="ui-data-table-checkbox-cell">
                     <span
                       className="ui-data-table-skeleton ui-data-table__skeleton-cell"
-                      style={{
-                        width: SKELETON_WIDTHS[(rowIdx * columns.length + colIdx) % SKELETON_WIDTHS.length],
-                        animationDelay: `${(rowIdx * columns.length + colIdx) * 0.07}s`,
-                      }}
+                      style={{ width: '16px', display: 'inline-block' }}
                     />
                   </td>
-                ))}
-              </tr>
-            ))}
+                  {columns.map((col, colIdx) => (
+                    <td
+                      key={col.key}
+                      className={
+                        col.type === 'numeric'
+                          ? 'ui-data-table-numeric'
+                          : undefined
+                      }
+                    >
+                      <span
+                        className="ui-data-table-skeleton ui-data-table__skeleton-cell"
+                        style={{
+                          width:
+                            SKELETON_WIDTHS[
+                              (rowIdx * columns.length + colIdx) %
+                                SKELETON_WIDTHS.length
+                            ],
+                          animationDelay: `${(rowIdx * columns.length + colIdx) * 0.07}s`,
+                        }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ),
+            )}
           </>
         ) : rows.length === 0 ? (
           <tr>
@@ -495,37 +568,39 @@ export function DataTable<T>({
                 <line x1="4" y1="15" x2="36" y2="15" />
                 <line x1="13" y1="8" x2="13" y2="32" />
               </svg>
-              <span className="ui-data-table-empty-message">{emptyMessage}</span>
+              <span className="ui-data-table-empty-message">
+                {emptyMessage}
+              </span>
             </td>
           </tr>
         ) : (
           rows.map((row) => {
-          const isSelected = selectedIds.has(row.id);
-          const rowLabel = String(row.id);
-          return (
-            <tr
-              key={row.id}
-              aria-selected={isSelected}
-              onKeyDown={(e) => {
-                if (e.key === ' ' && e.target === e.currentTarget) {
-                  e.preventDefault();
-                  handleRowSelect(row.id);
-                }
-              }}
-            >
-              <td className="ui-data-table-checkbox-cell">
-                <input
-                  type="checkbox"
-                  className="ui-data-table-checkbox"
-                  checked={isSelected}
-                  aria-label={getCheckboxAriaLabel(rowLabel, isSelected)}
-                  onChange={() => handleRowSelect(row.id)}
-                />
-              </td>
-              {columns.map((col) => renderCell(col, row))}
-            </tr>
-          );
-        })
+            const isSelected = selectedIds.has(row.id);
+            const rowLabel = String(row.id);
+            return (
+              <tr
+                key={row.id}
+                aria-selected={isSelected}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' && e.target === e.currentTarget) {
+                    e.preventDefault();
+                    handleRowSelect(row.id);
+                  }
+                }}
+              >
+                <td className="ui-data-table-checkbox-cell">
+                  <input
+                    type="checkbox"
+                    className="ui-data-table-checkbox"
+                    checked={isSelected}
+                    aria-label={getCheckboxAriaLabel(rowLabel, isSelected)}
+                    onChange={() => handleRowSelect(row.id)}
+                  />
+                </td>
+                {columns.map((col) => renderCell(col, row))}
+              </tr>
+            );
+          })
         )}
       </tbody>
     </table>

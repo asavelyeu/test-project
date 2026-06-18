@@ -61,7 +61,9 @@ import type {
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DataTableComponent<T extends Record<string, unknown> = Record<string, unknown>> {
+export class DataTableComponent<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> {
   private static nextId = 0;
 
   @Input({ required: true }) columns: DataTableColumn<T>[] = [];
@@ -81,14 +83,30 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   /** Message shown when data is empty and not loading. Defaults to "No data available" */
   @Input() emptyMessage = 'No data available';
 
-  private readonly skeletonWidths = ['72%', '55%', '80%', '45%', '65%', '50%', '38%', '70%'];
+  private readonly skeletonWidths = [
+    '72%',
+    '55%',
+    '80%',
+    '45%',
+    '65%',
+    '50%',
+    '38%',
+    '70%',
+  ];
 
   @Output() readonly selectionChange = new EventEmitter<Set<string>>();
-  @Output() readonly actionClick = new EventEmitter<{ rowId: string; actionKey: string }>();
+  @Output() readonly actionClick = new EventEmitter<{
+    rowId: string;
+    actionKey: string;
+  }>();
   @Output() readonly sortChange = new EventEmitter<SortConfig>();
 
-  @ViewChildren('actionMenu') private readonly actionMenus?: QueryList<ElementRef<HTMLUListElement>>;
-  @ViewChildren('actionTrigger') private readonly actionTriggers?: QueryList<ElementRef<HTMLButtonElement>>;
+  @ViewChildren('actionMenu') private readonly actionMenus?: QueryList<
+    ElementRef<HTMLUListElement>
+  >;
+  @ViewChildren('actionTrigger') private readonly actionTriggers?: QueryList<
+    ElementRef<HTMLButtonElement>
+  >;
 
   readonly captionId = `ui-data-table-caption-${DataTableComponent.nextId++}`;
   openActionRowId: string | null = null;
@@ -105,7 +123,10 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   get skeletonRows(): number[] {
-    return Array.from({ length: this.skeletonRowCount }, (_value, index) => index);
+    return Array.from(
+      { length: this.skeletonRowCount },
+      (_value, index) => index,
+    );
   }
 
   get selectionState(): SelectionState {
@@ -113,19 +134,28 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   get selectAllLabel(): string {
-    return getSelectAllAriaLabel(this.selectionState.allSelected, this.selectionState.someSelected);
+    return getSelectAllAriaLabel(
+      this.selectionState.allSelected,
+      this.selectionState.someSelected,
+    );
   }
 
-  trackByColumnKey = (_index: number, column: DataTableColumn<T>): string => column.key;
+  trackByColumnKey = (_index: number, column: DataTableColumn<T>): string =>
+    column.key;
   trackByRowId = (_index: number, row: DataTableRow<T>): string => row.id;
-  trackByActionKey = (_index: number, action: ActionMenuItem): string => action.key;
+  trackByActionKey = (_index: number, action: ActionMenuItem): string =>
+    action.key;
 
   isRowSelected(rowId: string): boolean {
     return this.effectiveSelectedIds.has(rowId);
   }
 
-  getAriaSort(column: DataTableColumn<T>): 'ascending' | 'descending' | 'none' | null {
-    return column.sortable ? getAriaSortValue(column.key, this.sortConfig) ?? 'none' : null;
+  getAriaSort(
+    column: DataTableColumn<T>,
+  ): 'ascending' | 'descending' | 'none' | null {
+    return column.sortable
+      ? (getAriaSortValue(column.key, this.sortConfig) ?? 'none')
+      : null;
   }
 
   getCellValue(column: DataTableColumn<T>, row: DataTableRow<T>): unknown {
@@ -136,7 +166,10 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     return typeof value === 'object' && value !== null && 'name' in value;
   }
 
-  getAvatarValue(column: DataTableColumn<T>, row: DataTableRow<T>): AvatarTextValue | null {
+  getAvatarValue(
+    column: DataTableColumn<T>,
+    row: DataTableRow<T>,
+  ): AvatarTextValue | null {
     const value = this.getCellValue(column, row);
     return this.isAvatarTextValue(value) ? value : null;
   }
@@ -153,12 +186,18 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
     return formatNumeric(value as number | null | undefined);
   }
 
-  getLabelVariant(column: DataTableColumn<T>, value: unknown): 'default' | 'active' {
+  getLabelVariant(
+    column: DataTableColumn<T>,
+    value: unknown,
+  ): 'default' | 'active' {
     return column.getLabelVariant?.(value) ?? 'default';
   }
 
   formatCurrencyValue(value: unknown, column: DataTableColumn<T>): string {
-    return formatCurrency(value as number | null | undefined, column.currencyConfig);
+    return formatCurrency(
+      value as number | null | undefined,
+      column.currencyConfig,
+    );
   }
 
   getProgressData(value: unknown): { percent: number; label: string } {
@@ -166,23 +205,42 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   isLinkValue(value: unknown): value is LinkValue {
-    return typeof value === 'object' && value !== null && 'href' in value && 'label' in value;
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'href' in value &&
+      'label' in value
+    );
   }
 
-  getLinkValue(column: DataTableColumn<T>, row: DataTableRow<T>): LinkValue | null {
+  getLinkValue(
+    column: DataTableColumn<T>,
+    row: DataTableRow<T>,
+  ): LinkValue | null {
     const value = this.getCellValue(column, row);
     return this.isLinkValue(value) ? value : null;
   }
 
-  getBooleanData(value: unknown, column: DataTableColumn<T>): { label: string; state: boolean } {
+  getBooleanData(
+    value: unknown,
+    column: DataTableColumn<T>,
+  ): { label: string; state: boolean } {
     return formatBoolean(value, column.booleanDisplay ?? 'text');
   }
 
   isIconTextValue(value: unknown): value is IconTextValue {
-    return typeof value === 'object' && value !== null && 'icon' in value && 'text' in value;
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'icon' in value &&
+      'text' in value
+    );
   }
 
-  getIconTextValue(column: DataTableColumn<T>, row: DataTableRow<T>): IconTextValue | null {
+  getIconTextValue(
+    column: DataTableColumn<T>,
+    row: DataTableRow<T>,
+  ): IconTextValue | null {
     const value = this.getCellValue(column, row);
     return this.isIconTextValue(value) ? value : null;
   }
@@ -207,7 +265,11 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
       if (column.type === 'avatar-text' && this.isAvatarTextValue(value)) {
         return value.name;
       }
-      if (column.type === 'text' && typeof value === 'string' && value.trim().length > 0) {
+      if (
+        column.type === 'text' &&
+        typeof value === 'string' &&
+        value.trim().length > 0
+      ) {
         return value;
       }
     }
@@ -216,7 +278,10 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   getCheckboxLabel(row: DataTableRow<T>): string {
-    return getCheckboxAriaLabel(this.getRowLabel(row), this.isRowSelected(row.id));
+    return getCheckboxAriaLabel(
+      this.getRowLabel(row),
+      this.isRowSelected(row.id),
+    );
   }
 
   getActionButtonLabel(row: DataTableRow<T>): string {
@@ -232,11 +297,15 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   toggleSelectAll(): void {
-    this.emitSelectionChange(toggleAllSelection(this.effectiveRows, this.effectiveSelectedIds));
+    this.emitSelectionChange(
+      toggleAllSelection(this.effectiveRows, this.effectiveSelectedIds),
+    );
   }
 
   toggleRow(rowId: string): void {
-    this.emitSelectionChange(toggleRowSelection(rowId, this.effectiveSelectedIds));
+    this.emitSelectionChange(
+      toggleRowSelection(rowId, this.effectiveSelectedIds),
+    );
   }
 
   handleSort(column: DataTableColumn<T>): void {
@@ -244,7 +313,10 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
       return;
     }
 
-    const currentDirection = this.sortConfig?.columnKey === column.key ? this.sortConfig.direction : 'none';
+    const currentDirection =
+      this.sortConfig?.columnKey === column.key
+        ? this.sortConfig.direction
+        : 'none';
     this.sortChange.emit({
       columnKey: column.key,
       direction: nextSortDirection(currentDirection),
@@ -274,7 +346,9 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   onActionMenuKeydown(event: KeyboardEvent, rowId: string): void {
     const action = getActionMenuKeyAction(event.key);
     const menuItems = this.getActionMenuItems(rowId);
-    const currentIndex = menuItems.findIndex((item) => item === this.document.activeElement);
+    const currentIndex = menuItems.findIndex(
+      (item) => item === this.document.activeElement,
+    );
 
     if (action === 'none' || action === 'activate' || menuItems.length === 0) {
       return;
@@ -296,7 +370,9 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
         menuItems[(currentIndex + 1) % menuItems.length]?.focus();
         break;
       case 'focus-prev':
-        menuItems[(currentIndex - 1 + menuItems.length) % menuItems.length]?.focus();
+        menuItems[
+          (currentIndex - 1 + menuItems.length) % menuItems.length
+        ]?.focus();
         break;
     }
   }
@@ -323,7 +399,9 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
   }
 
   getSkeletonWidth(rowIdx: number, colIdx: number): string {
-    return this.skeletonWidths[(rowIdx * this.columns.length + colIdx) % this.skeletonWidths.length];
+    return this.skeletonWidths[
+      (rowIdx * this.columns.length + colIdx) % this.skeletonWidths.length
+    ];
   }
 
   getSkeletonDelay(rowIdx: number, colIdx: number): string {
@@ -344,15 +422,23 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
 
   private getActionMenuItems(rowId: string): HTMLButtonElement[] {
     return Array.from(
-      this.getActionMenuElement(rowId)?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []
+      this.getActionMenuElement(rowId)?.querySelectorAll<HTMLButtonElement>(
+        '[role="menuitem"]',
+      ) ?? [],
     );
   }
 
   private getActionMenuElement(rowId: string): HTMLUListElement | undefined {
-    return this.actionMenus?.find((menu) => menu.nativeElement.dataset['rowId'] === rowId)?.nativeElement;
+    return this.actionMenus?.find(
+      (menu) => menu.nativeElement.dataset['rowId'] === rowId,
+    )?.nativeElement;
   }
 
-  private getActionTriggerElement(rowId: string): HTMLButtonElement | undefined {
-    return this.actionTriggers?.find((button) => button.nativeElement.dataset['rowId'] === rowId)?.nativeElement;
+  private getActionTriggerElement(
+    rowId: string,
+  ): HTMLButtonElement | undefined {
+    return this.actionTriggers?.find(
+      (button) => button.nativeElement.dataset['rowId'] === rowId,
+    )?.nativeElement;
   }
 }

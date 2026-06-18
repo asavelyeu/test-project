@@ -1,4 +1,10 @@
-import type { DataTableColumn, DataTableRow, SelectionState, SortConfig, CurrencyConfig } from './data-table.types';
+import type {
+  DataTableColumn,
+  DataTableRow,
+  SelectionState,
+  SortConfig,
+  CurrencyConfig,
+} from './data-table.types';
 
 export function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '';
@@ -17,15 +23,20 @@ export function formatNumeric(value: number | null | undefined): string {
 
 export function formatCurrency(
   value: number | null | undefined,
-  config?: CurrencyConfig
+  config?: CurrencyConfig,
 ): string {
   if (value === null || value === undefined) return '';
   const locale = config?.locale ?? 'en-US';
   const currency = config?.currency ?? 'USD';
-  return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(value);
+  return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(
+    value,
+  );
 }
 
-export function formatBoolean(value: unknown, display: 'text' | 'icon' = 'text'): { label: string; state: boolean } {
+export function formatBoolean(
+  value: unknown,
+  display: 'text' | 'icon' = 'text',
+): { label: string; state: boolean } {
   const state = Boolean(value);
   if (display === 'text') {
     return { label: state ? 'Yes' : 'No', state };
@@ -33,7 +44,10 @@ export function formatBoolean(value: unknown, display: 'text' | 'icon' = 'text')
   return { label: state ? 'Yes' : 'No', state };
 }
 
-export function clampProgress(value: number | null | undefined, max = 100): { percent: number; label: string } {
+export function clampProgress(
+  value: number | null | undefined,
+  max = 100,
+): { percent: number; label: string } {
   if (value === null || value === undefined) return { percent: 0, label: '0%' };
   const clamped = Math.min(max, Math.max(0, value));
   const percent = Math.round((clamped / max) * 100);
@@ -42,16 +56,17 @@ export function clampProgress(value: number | null | undefined, max = 100): { pe
 
 export function computeSelectionState<T>(
   rows: DataTableRow<T>[],
-  selectedIds: Set<string>
+  selectedIds: Set<string>,
 ): SelectionState {
-  const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+  const allSelected =
+    rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
   const someSelected = !allSelected && rows.some((r) => selectedIds.has(r.id));
   return { selectedIds, allSelected, someSelected };
 }
 
 export function toggleRowSelection(
   rowId: string,
-  currentSelectedIds: Set<string>
+  currentSelectedIds: Set<string>,
 ): Set<string> {
   const next = new Set(currentSelectedIds);
   if (next.has(rowId)) {
@@ -64,7 +79,7 @@ export function toggleRowSelection(
 
 export function toggleAllSelection<T>(
   rows: DataTableRow<T>[],
-  currentSelectedIds: Set<string>
+  currentSelectedIds: Set<string>,
 ): Set<string> {
   const allSelected = rows.every((r) => currentSelectedIds.has(r.id));
   if (allSelected) {
@@ -76,7 +91,7 @@ export function toggleAllSelection<T>(
 export function sortRows<T>(
   rows: DataTableRow<T>[],
   config: SortConfig,
-  getValue: (row: T) => unknown
+  getValue: (row: T) => unknown,
 ): DataTableRow<T>[] {
   if (config.direction === 'none') return rows;
   return [...rows].sort((a, b) => {
@@ -98,7 +113,9 @@ export function getInitials(name: string): string {
     .join('');
 }
 
-export function nextSortDirection(current: 'asc' | 'desc' | 'none'): 'asc' | 'desc' | 'none' {
+export function nextSortDirection(
+  current: 'asc' | 'desc' | 'none',
+): 'asc' | 'desc' | 'none' {
   if (current === 'none') return 'asc';
   if (current === 'asc') return 'desc';
   return 'none';
@@ -112,7 +129,7 @@ export function nextSortDirection(current: 'asc' | 'desc' | 'none'): 'asc' | 'de
  */
 export function getCellValue<T>(
   column: DataTableColumn<T>,
-  row: DataTableRow<T>
+  row: DataTableRow<T>,
 ): unknown {
   if (column.getValue) {
     return column.getValue(row.data);
@@ -127,7 +144,7 @@ export function getCellValue<T>(
  */
 export function normalizeRows<T>(
   data: T[],
-  getRowId?: (item: T, index: number) => string
+  getRowId?: (item: T, index: number) => string,
 ): DataTableRow<T>[] {
   return data.map((item, index) => ({
     id: getRowId ? getRowId(item, index) : String(index),
