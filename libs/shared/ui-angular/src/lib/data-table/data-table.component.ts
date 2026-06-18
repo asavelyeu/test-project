@@ -14,7 +14,10 @@ import {
 } from '@angular/core';
 
 import {
+  clampProgress,
   computeSelectionState,
+  formatBoolean,
+  formatCurrency,
   formatDate,
   formatNumeric,
   getCellValue as getCellValueCore,
@@ -35,6 +38,8 @@ import type {
   AvatarTextValue,
   DataTableColumn,
   DataTableRow,
+  IconTextValue,
+  LinkValue,
   SelectionState,
   SortConfig,
 } from '../../../../ui/src/core/data-table';
@@ -150,6 +155,46 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
 
   getLabelVariant(column: DataTableColumn<T>, value: unknown): 'default' | 'active' {
     return column.getLabelVariant?.(value) ?? 'default';
+  }
+
+  formatCurrencyValue(value: unknown, column: DataTableColumn<T>): string {
+    return formatCurrency(value as number | null | undefined, column.currencyConfig);
+  }
+
+  getProgressData(value: unknown): { percent: number; label: string } {
+    return clampProgress(value as number | null | undefined);
+  }
+
+  isLinkValue(value: unknown): value is LinkValue {
+    return typeof value === 'object' && value !== null && 'href' in value && 'label' in value;
+  }
+
+  getLinkValue(column: DataTableColumn<T>, row: DataTableRow<T>): LinkValue | null {
+    const value = this.getCellValue(column, row);
+    return this.isLinkValue(value) ? value : null;
+  }
+
+  getBooleanData(value: unknown, column: DataTableColumn<T>): { label: string; state: boolean } {
+    return formatBoolean(value, column.booleanDisplay ?? 'text');
+  }
+
+  isIconTextValue(value: unknown): value is IconTextValue {
+    return typeof value === 'object' && value !== null && 'icon' in value && 'text' in value;
+  }
+
+  getIconTextValue(column: DataTableColumn<T>, row: DataTableRow<T>): IconTextValue | null {
+    const value = this.getCellValue(column, row);
+    return this.isIconTextValue(value) ? value : null;
+  }
+
+  getTagsArray(column: DataTableColumn<T>, row: DataTableRow<T>): string[] {
+    const value = this.getCellValue(column, row);
+    return Array.isArray(value) ? value.map(String) : [];
+  }
+
+  getMultilineStyle(column: DataTableColumn<T>): Record<string, string> {
+    const maxLines = column.maxLines ?? 3;
+    return { '-webkit-line-clamp': String(maxLines) };
   }
 
   getHeaderText(column: DataTableColumn<T>): string {

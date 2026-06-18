@@ -64,6 +64,42 @@
   --ui-data-table-action-menu-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -2px rgba(0, 0, 0, 0.1);
 
+  /* Currency */
+  --ui-data-table-currency-text: var(--color-text-primary, #111827);
+
+  /* Progress bar */
+  --ui-data-table-progress-track-bg: var(--color-surface-subtle, #e5e7eb);
+  --ui-data-table-progress-fill-bg: var(--color-primary, #7c3aed);
+  --ui-data-table-progress-height: 6px;
+  --ui-data-table-progress-radius: 4px;
+
+  /* Link */
+  --ui-data-table-link-text: var(--color-link, #2563eb);
+  --ui-data-table-link-text-hover: var(--color-link-hover, #1d4ed8);
+  --ui-data-table-link-underline: none;
+
+  /* Boolean */
+  --ui-data-table-boolean-true: var(--color-success, #10b981);
+  --ui-data-table-boolean-false: var(--color-danger, #ef4444);
+  --ui-data-table-boolean-icon-size: 16px;
+
+  /* Icon + Text */
+  --ui-data-table-icon-size: 16px;
+  --ui-data-table-icon-gap: 8px;
+  --ui-data-table-icon-color: var(--color-text-secondary, #6b7280);
+
+  /* Multiline */
+  --ui-data-table-multiline-max-lines: 3;
+
+  /* Tags / chips */
+  --ui-data-table-tag-bg: var(--color-surface-subtle, #f3f4f6);
+  --ui-data-table-tag-text: var(--color-text-secondary, #374151);
+  --ui-data-table-tag-border: var(--color-border, #d1d5db);
+  --ui-data-table-tag-radius: 4px;
+  --ui-data-table-tag-padding-x: 8px;
+  --ui-data-table-tag-padding-y: 2px;
+  --ui-data-table-tag-gap: 4px;
+
   /* Focus */
   --ui-data-table-focus-ring: var(--focus-ring-color, #93c5fd);
 
@@ -379,6 +415,133 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Text cell with truncation */
+.ui-data-table .ui-data-table-text-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 0;
+}
+
+/* Currency cell */
+.ui-data-table .ui-data-table-currency {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-data-table-currency-text);
+}
+
+/* Progress cell */
+.ui-data-table .ui-data-table-progress-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ui-data-table .ui-data-table-progress-track {
+  flex: 1;
+  height: var(--ui-data-table-progress-height);
+  background-color: var(--ui-data-table-progress-track-bg);
+  border-radius: var(--ui-data-table-progress-radius);
+  overflow: hidden;
+}
+
+.ui-data-table .ui-data-table-progress-fill {
+  height: 100%;
+  background-color: var(--ui-data-table-progress-fill-bg);
+  border-radius: var(--ui-data-table-progress-radius);
+  transition: width 0.2s ease;
+}
+
+.ui-data-table .ui-data-table-progress-label {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-data-table-text-secondary);
+  min-width: 3ch;
+  text-align: right;
+}
+
+/* Link cell */
+.ui-data-table .ui-data-table-link {
+  color: var(--ui-data-table-link-text);
+  text-decoration: var(--ui-data-table-link-underline);
+}
+
+.ui-data-table .ui-data-table-link:hover {
+  color: var(--ui-data-table-link-text-hover);
+  text-decoration: underline;
+}
+
+.ui-data-table .ui-data-table-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ui-data-table-focus-ring);
+  border-radius: 2px;
+}
+
+/* Boolean cell */
+.ui-data-table .ui-data-table-boolean {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ui-data-table .ui-data-table-boolean-icon {
+  width: var(--ui-data-table-boolean-icon-size);
+  height: var(--ui-data-table-boolean-icon-size);
+}
+
+.ui-data-table .ui-data-table-boolean[data-state='true'] {
+  color: var(--ui-data-table-boolean-true);
+}
+
+.ui-data-table .ui-data-table-boolean[data-state='false'] {
+  color: var(--ui-data-table-boolean-false);
+}
+
+/* Icon + text cell */
+.ui-data-table .ui-data-table-icon-text {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-data-table-icon-gap);
+}
+
+.ui-data-table .ui-data-table-icon-text-icon {
+  width: var(--ui-data-table-icon-size);
+  height: var(--ui-data-table-icon-size);
+  color: var(--ui-data-table-icon-color);
+  flex-shrink: 0;
+}
+
+/* Multiline cell */
+.ui-data-table .ui-data-table-multiline {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--ui-data-table-multiline-max-lines);
+  overflow: hidden;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+/* Tags / chips cell */
+.ui-data-table .ui-data-table-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-data-table-tag-gap);
+}
+
+.ui-data-table .ui-data-table-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--ui-data-table-tag-padding-y) var(--ui-data-table-tag-padding-x);
+  border-radius: var(--ui-data-table-tag-radius);
+  background-color: var(--ui-data-table-tag-bg);
+  color: var(--ui-data-table-tag-text);
+  border: 1px solid var(--ui-data-table-tag-border);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
 }
 
 /* Reduced motion */

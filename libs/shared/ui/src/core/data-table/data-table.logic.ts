@@ -1,4 +1,4 @@
-import type { DataTableColumn, DataTableRow, SelectionState, SortConfig } from './data-table.types';
+import type { DataTableColumn, DataTableRow, SelectionState, SortConfig, CurrencyConfig } from './data-table.types';
 
 export function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '';
@@ -13,6 +13,31 @@ export function formatDate(value: Date | string | null | undefined): string {
 export function formatNumeric(value: number | null | undefined): string {
   if (value === null || value === undefined) return '';
   return value.toLocaleString();
+}
+
+export function formatCurrency(
+  value: number | null | undefined,
+  config?: CurrencyConfig
+): string {
+  if (value === null || value === undefined) return '';
+  const locale = config?.locale ?? 'en-US';
+  const currency = config?.currency ?? 'USD';
+  return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(value);
+}
+
+export function formatBoolean(value: unknown, display: 'text' | 'icon' = 'text'): { label: string; state: boolean } {
+  const state = Boolean(value);
+  if (display === 'text') {
+    return { label: state ? 'Yes' : 'No', state };
+  }
+  return { label: state ? 'Yes' : 'No', state };
+}
+
+export function clampProgress(value: number | null | undefined, max = 100): { percent: number; label: string } {
+  if (value === null || value === undefined) return { percent: 0, label: '0%' };
+  const clamped = Math.min(max, Math.max(0, value));
+  const percent = Math.round((clamped / max) * 100);
+  return { percent, label: `${percent}%` };
 }
 
 export function computeSelectionState<T>(

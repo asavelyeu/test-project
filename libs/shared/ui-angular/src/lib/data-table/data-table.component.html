@@ -180,6 +180,100 @@
                 }
               </td>
             }
+            @case ('text') {
+              <td class="ui-data-table-text-cell" [title]="getCellValue(column, row) ?? ''">
+                {{ getCellValue(column, row) ?? '' }}
+              </td>
+            }
+            @case ('currency') {
+              <td class="ui-data-table-currency">{{ formatCurrencyValue(getCellValue(column, row), column) }}</td>
+            }
+            @case ('progress') {
+              <td>
+                @let prog = getProgressData(getCellValue(column, row));
+                <div class="ui-data-table-progress-cell">
+                  <div
+                    class="ui-data-table-progress-track"
+                    role="progressbar"
+                    [attr.aria-valuenow]="prog.percent"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    [attr.aria-label]="column.header + ': ' + prog.label"
+                  >
+                    <div class="ui-data-table-progress-fill" [style.width.%]="prog.percent"></div>
+                  </div>
+                  @if (column.showProgressLabel !== false) {
+                    <span class="ui-data-table-progress-label">{{ prog.label }}</span>
+                  }
+                </div>
+              </td>
+            }
+            @case ('link') {
+              <td>
+                @if (getLinkValue(column, row); as link) {
+                  <a
+                    class="ui-data-table-link"
+                    [href]="link.href"
+                    [target]="column.linkTarget ?? '_blank'"
+                    [rel]="column.linkTarget === '_self' ? null : 'noopener noreferrer'"
+                  >
+                    {{ link.label }}
+                  </a>
+                } @else {
+                  {{ getCellValue(column, row) ?? '' }}
+                }
+              </td>
+            }
+            @case ('boolean') {
+              <td>
+                @let boolData = getBooleanData(getCellValue(column, row), column);
+                <span
+                  class="ui-data-table-boolean"
+                  [attr.data-state]="boolData.state"
+                  [attr.aria-label]="boolData.label"
+                >
+                  @if (column.booleanDisplay === 'icon') {
+                    <svg class="ui-data-table-boolean-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                      @if (boolData.state) {
+                        <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
+                      } @else {
+                        <path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z" />
+                      }
+                    </svg>
+                  } @else {
+                    <span>{{ boolData.label }}</span>
+                  }
+                </span>
+              </td>
+            }
+            @case ('icon-text') {
+              <td>
+                @if (getIconTextValue(column, row); as iconText) {
+                  <div class="ui-data-table-icon-text">
+                    <span class="ui-data-table-icon-text-icon" aria-hidden="true">{{ iconText.icon }}</span>
+                    <span>{{ iconText.text }}</span>
+                  </div>
+                } @else {
+                  {{ getCellValue(column, row) ?? '' }}
+                }
+              </td>
+            }
+            @case ('multiline') {
+              <td>
+                <div class="ui-data-table-multiline" [ngStyle]="getMultilineStyle(column)">
+                  {{ getCellValue(column, row) ?? '' }}
+                </div>
+              </td>
+            }
+            @case ('tags') {
+              <td>
+                <div class="ui-data-table-tags">
+                  @for (tag of getTagsArray(column, row); track tag) {
+                    <span class="ui-data-table-tag">{{ tag }}</span>
+                  }
+                </div>
+              </td>
+            }
             @default {
               <td>{{ getCellValue(column, row) ?? '' }}</td>
             }

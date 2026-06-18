@@ -7,9 +7,14 @@ import type {
   DataTableColumn,
   DataTableProps,
   DataTableRow,
+  LinkValue,
+  IconTextValue,
 } from '../../core/data-table/data-table.types';
 import {
+  clampProgress,
   computeSelectionState,
+  formatBoolean,
+  formatCurrency,
   formatDate,
   formatNumeric,
   getCellValue,
@@ -38,6 +43,14 @@ const SKELETON_WIDTHS = ['72%', '55%', '80%', '45%', '65%', '50%', '38%', '70%']
 
 function isAvatarTextValue(val: unknown): val is AvatarTextValue {
   return typeof val === 'object' && val !== null && 'name' in val;
+}
+
+function isLinkValue(val: unknown): val is LinkValue {
+  return typeof val === 'object' && val !== null && 'href' in val && 'label' in val;
+}
+
+function isIconTextValue(val: unknown): val is IconTextValue {
+  return typeof val === 'object' && val !== null && 'icon' in val && 'text' in val;
 }
 
 export function DataTable<T>({
@@ -257,6 +270,134 @@ export function DataTable<T>({
                 ))}
               </ul>
             )}
+          </td>
+        );
+      }
+
+      case 'text':
+        return (
+          <td key={column.key} className="ui-data-table-text-cell" title={String(rawValue ?? '')}>
+            {String(rawValue ?? '')}
+          </td>
+        );
+
+      case 'currency':
+        return (
+          <td key={column.key} className="ui-data-table-currency">
+            {formatCurrency(rawValue as number | null | undefined, column.currencyConfig)}
+          </td>
+        );
+
+      case 'progress': {
+        const prog = clampProgress(rawValue as number | null | undefined);
+        return (
+          <td key={column.key}>
+            <div className="ui-data-table-progress-cell">
+              <div
+                className="ui-data-table-progress-track"
+                role="progressbar"
+                aria-valuenow={prog.percent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${column.header}: ${prog.label}`}
+              >
+                <div
+                  className="ui-data-table-progress-fill"
+                  style={{ width: `${prog.percent}%` }}
+                />
+              </div>
+              {column.showProgressLabel !== false && (
+                <span className="ui-data-table-progress-label">{prog.label}</span>
+              )}
+            </div>
+          </td>
+        );
+      }
+
+      case 'link': {
+        if (isLinkValue(rawValue)) {
+          return (
+            <td key={column.key}>
+              <a
+                className="ui-data-table-link"
+                href={rawValue.href}
+                target={column.linkTarget ?? '_blank'}
+                rel={column.linkTarget === '_self' ? undefined : 'noopener noreferrer'}
+              >
+                {rawValue.label}
+              </a>
+            </td>
+          );
+        }
+        return <td key={column.key}>{String(rawValue ?? '')}</td>;
+      }
+
+      case 'boolean': {
+        const boolResult = formatBoolean(rawValue, column.booleanDisplay);
+        return (
+          <td key={column.key}>
+            <span
+              className="ui-data-table-boolean"
+              data-state={String(boolResult.state)}
+              aria-label={boolResult.label}
+            >
+              {column.booleanDisplay === 'icon' ? (
+                <svg className="ui-data-table-boolean-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  {boolResult.state ? (
+                    <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
+                  ) : (
+                    <path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z" />
+                  )}
+                </svg>
+              ) : (
+                <span>{boolResult.label}</span>
+              )}
+            </span>
+          </td>
+        );
+      }
+
+      case 'icon-text': {
+        if (isIconTextValue(rawValue)) {
+          return (
+            <td key={column.key}>
+              <div className="ui-data-table-icon-text">
+                <span className="ui-data-table-icon-text-icon" aria-hidden="true">
+                  {rawValue.icon}
+                </span>
+                <span>{rawValue.text}</span>
+              </div>
+            </td>
+          );
+        }
+        return <td key={column.key}>{String(rawValue ?? '')}</td>;
+      }
+
+      case 'multiline': {
+        const maxLines = column.maxLines ?? 3;
+        return (
+          <td key={column.key}>
+            <div
+              className="ui-data-table-multiline"
+              style={{ WebkitLineClamp: maxLines } as React.CSSProperties}
+            >
+              {String(rawValue ?? '')}
+            </div>
+          </td>
+        );
+      }
+
+      case 'tags': {
+        const tags = Array.isArray(rawValue) ? rawValue : [];
+        return (
+          <td key={column.key}>
+            <div className="ui-data-table-tags">
+              {tags.map((tag, i) => (
+                <span key={i} className="ui-data-table-tag">
+                  {String(tag)}
+                </span>
+              ))}
+            </div>
           </td>
         );
       }

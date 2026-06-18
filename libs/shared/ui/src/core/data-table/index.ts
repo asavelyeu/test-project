@@ -1,17 +1,24 @@
 export type {
   ActionMenuItem,
   AvatarTextValue,
+  CurrencyConfig,
   DataTableColumn,
   DataTableColumnType,
   DataTableProps,
   DataTableRow,
+  IconTextValue,
+  LinkValue,
+  ProgressValue,
   SelectionState,
   SortConfig,
   SortDirection,
 } from './data-table.types';
 
 export {
+  clampProgress,
   computeSelectionState,
+  formatBoolean,
+  formatCurrency,
   formatDate,
   formatNumeric,
   getCellValue,
