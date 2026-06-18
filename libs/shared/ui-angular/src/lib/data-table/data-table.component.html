@@ -264,7 +264,9 @@
                   <span
                     class="ui-data-table-boolean"
                     [attr.data-state]="boolData.state"
-                    [attr.role]="column.booleanDisplay === 'icon' ? 'img' : null"
+                    [attr.role]="
+                      column.booleanDisplay === 'icon' ? 'img' : null
+                    "
                     [attr.aria-label]="boolData.label"
                   >
                     @if (column.booleanDisplay === 'icon') {
