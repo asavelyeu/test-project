@@ -449,10 +449,9 @@ export function DataTable<T>({
           ))}
         </tr>
       </thead>
-      <tbody aria-busy={loading || undefined} aria-label={loading ? 'Loading data' : undefined}>
+      <tbody aria-busy={loading || undefined} aria-label={loading ? 'Loading data, please wait…' : undefined}>
         {loading ? (
           <>
-            <span className="sr-only">Loading data, please wait…</span>
             {Array.from({ length: skeletonRowCount }, (_, i) => i).map((rowIdx) => (
               <tr key={rowIdx} aria-hidden="true">
                 <td className="ui-data-table-checkbox-cell">

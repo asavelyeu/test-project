@@ -79,7 +79,7 @@
   --ui-data-table-link-underline: none;
 
   /* Boolean */
-  --ui-data-table-boolean-true: var(--color-success, #10b981);
+  --ui-data-table-boolean-true: var(--color-success, #059669);
   --ui-data-table-boolean-false: var(--color-danger, #ef4444);
   --ui-data-table-boolean-icon-size: 16px;
 
@@ -452,6 +452,12 @@
   background-color: var(--ui-data-table-progress-fill-bg);
   border-radius: var(--ui-data-table-progress-radius);
   transition: width 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-data-table .ui-data-table-progress-fill {
+    transition: none;
+  }
 }
 
 .ui-data-table .ui-data-table-progress-label {
