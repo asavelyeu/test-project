@@ -381,6 +381,7 @@ export function DataTable<T>({
             <span
               className="ui-data-table-boolean"
               data-state={String(boolResult.state)}
+              role={column.booleanDisplay === 'icon' ? 'img' : undefined}
               aria-label={boolResult.label}
             >
               {column.booleanDisplay === 'icon' ? (
