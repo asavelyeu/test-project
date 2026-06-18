@@ -20,6 +20,40 @@ Read `.github/copilot-instructions.md`, `AGENTS.md`,
 `.github/instructions/cross-framework-ui.instructions.md`, and
 `.github/instructions/wcag-aa.instructions.md`. All rules there are mandatory.
 
+### Batch mode awareness
+
+If `batch.enabled === true` in the context file, you are planning for
+MULTIPLE tickets at once. Read ALL tickets' requirements and designs from
+`tickets.{ID}.ticket` and `tickets.{ID}.design` for each ID in
+`batch.ticket_ids`.
+
+**Unified planning rules in batch mode:**
+
+1. Produce a SINGLE `architecture` covering the full scope of all tickets.
+2. Tag every entry in `architecture.file_plan` with `"ticket_id"` — the
+   ticket that owns that file's creation/modification. Files shared across
+   tickets (e.g. base types file) belong to the earliest ticket that needs
+   them.
+3. Produce `architecture.batch_scopes` — a map of ticket ID to
+   `{ summary, depends_on[] }` defining the implementation order.
+   Use topological ordering: if NGI-13 (pagination) depends on NGI-12's
+   types, then `batch_scopes["NGI-13"].depends_on = ["NGI-12"]`.
+4. WCAG requirements and semantic HTML apply to the combined output — plan
+   once, not per ticket.
+5. The theming token set is unified — no duplicate or conflicting tokens
+   across tickets.
+6. Use `batch.frameworks` as the authoritative framework list (NOT
+   per-ticket inferred `ticket.frameworks` — those may differ).
+
+Example `architecture.batch_scopes`:
+```jsonc
+{
+  "NGI-12": { "summary": "Base data table with columns and rows", "depends_on": [] },
+  "NGI-13": { "summary": "Pagination sub-component", "depends_on": ["NGI-12"] },
+  "NGI-14": { "summary": "Sticky header behaviour", "depends_on": ["NGI-12"] }
+}
+```
+
 ### Step 0 — Delta detection (MANDATORY when the subticket belongs to an epic)
 
 This step exists because a single component (e.g. data-table) is often

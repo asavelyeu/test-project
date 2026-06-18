@@ -7,22 +7,49 @@ tools: ['codebase', 'editFiles', 'runCommands']
 
 # Orchestrator
 
+The pipeline supports three modes:
+
+- **Single-ticket mode** — one Jira ticket, no parent epic.
+- **Epic mode** — one Jira ticket with a parent epic (shared memory).
+- **Batch mode** — multiple related Jira tickets implemented on one branch
+  with one commit per ticket, unified architecture, and a single QA + PR.
+
+## Input collection
+
 Ask the user the following questions before starting the pipeline:
 
-1. **Jira ticket ID** (required) — if not already provided.
+1. **Jira ticket ID(s)** (required) — if not already provided. Accept a
+   single ticket ID (e.g. `NGI-12`) OR a comma-separated list
+   (e.g. `NGI-12, NGI-13, NGI-14`).
+   - If multiple IDs are provided → **batch mode**. The first ticket in the
+     list is the **primary ticket** (used for branch naming and context path).
+   - If a single ID → single-ticket or epic mode (existing behaviour).
+
 2. **Frameworks** (required) — ask whether to build React only, Angular only,
-   or both. Do NOT assume a default; always ask.
-3. **Figma source for THIS subticket** (optional) — ALWAYS ask, even if a
-   sibling subticket already had one. Each subticket usually shows a
-   different state of the same component (e.g. NGI-12 = plain table,
-   NGI-13 = table with pagination), so we always need the design for the
-   current scope. Collect:
+   or both. Do NOT assume a default; always ask. In batch mode this applies
+   to ALL tickets in the batch.
+
+3. **Figma source** (optional) — collection depends on mode:
+
+   **Single-ticket / epic mode (existing behaviour):**
+   ALWAYS ask for the Figma source for THIS subticket. Each subticket usually
+   shows a different state of the same component. Collect:
    - **Figma URL** (file/frame URL — preferred), and/or
    - **Figma screenshot path** (local PNG fallback).
-     Both are optional. If neither is provided, Phase 1 (design inspection)
-     is skipped and the architect works from the Jira description alone.
-     If at least one is provided, the orchestrator caches it on the
-     **subticket** (not the epic) via `agent:epic set-design` in Phase 0.
+
+   **Batch mode:**
+   a. Ask for a **shared Figma source** first:
+      > "Provide a shared Figma URL/screenshot that covers all tickets in
+      > this batch (optional):"
+   b. Then for each ticket, ask:
+      > "Override Figma for {TICKET_ID}? (Enter URL/path, or skip to use
+      > the shared source):"
+   Each ticket's resolved `design_source` = its override if provided,
+   else the shared source, else null. Store resolved sources per ticket
+   in `batch.tickets[i].design_source`.
+
+   If no Figma sources are provided at all, Phase 1b (design inspection)
+   is skipped and the architect works from the Jira descriptions alone.
 
 The architect (Phase 2) is responsible for diff-detecting what already
 exists in the epic's `spec/component.json` vs what the new design shows,
@@ -60,6 +87,209 @@ The user can flip the decision later with `pnpm agent:epic unignore --epic {EPIC
 Run each phase in order, passing context via
 `.agent-run/{ticket_id}/context.json`. Load each prompt with
 `#file:.github/prompts/<filename>`.
+
+## Batch mode
+
+When the user provides multiple ticket IDs, the pipeline enters **batch mode**.
+The primary ticket (first in the list) determines the branch name and context
+path. All tickets MUST share the same parent epic OR all be parentless — do NOT
+mix epic and non-epic tickets in a batch.
+
+### Batch context structure
+
+State lives at `.agent-run/{primary_ticket_id}/context.json` with an additional
+`batch` slice:
+
+```jsonc
+{
+  "batch": {
+    "enabled": true,
+    "primary_ticket_id": "NGI-12",
+    "ticket_ids": ["NGI-12", "NGI-13", "NGI-14"],
+    "shared_design_source": { "figma_url": "...", "screenshot": "..." },  // or null
+    "frameworks": ["react"],
+    "current_ticket": "NGI-12",       // set before each implementer run
+    "current_ticket_index": 0
+  },
+  "tickets": {
+    "NGI-12": {
+      "ticket": { /* ... requirements output ... */ },
+      "design_source": { /* resolved: override or shared fallback */ },
+      "design": { /* ... design inspector output ... */ },
+      "confluence": { /* ... */ },
+      "fetch_status": { /* ... */ }
+    },
+    "NGI-13": { /* ... same structure ... */ },
+    "NGI-14": { /* ... same structure ... */ }
+  },
+  // These remain top-level (unified across all tickets):
+  "architecture": { /* ... unified plan with per-ticket sections ... */ },
+  // In batch mode, implementation is keyed by ticket_id:
+  "implementation": {
+    "NGI-12": {
+      "core": { "files_created": [], "files_modified": [] },
+      "react": { "files_created": [], "test_files": [] },
+      "angular": { "files_created": [] },
+      "commit_sha": "abc123..."
+    },
+    "NGI-13": { /* ... same structure ... */ }
+  },
+  "qa": { /* ... single QA pass result ... */ },
+  "pr": { /* ... single PR ... */ },
+  "review": { /* ... single review ... */ }
+}
+```
+
+### Batch phase flow
+
+The phases are identical to single-ticket mode except where noted below.
+Phases marked "(batch-aware)" have modified behaviour in batch mode.
+
+### Batch PHASE 0 — Setup (batch-aware)
+
+1. For each ticket ID in the list, fetch from Jira (Jira MCP).
+2. Validate all tickets share the same parent epic (or all lack one).
+   If mixed → HALT: "All tickets in a batch must share the same parent
+   epic (or all be parentless). Found: {ticket_id} → {parent}, ..."
+3. If the tickets have a shared parent epic, follow the normal epic opt-in
+   flow from the "Epic memory is OPT-IN" section above. If epic mode is
+   chosen, run `pnpm agent:epic start` only for the primary ticket — the
+   others will be marked `started` as implementation reaches them.
+4. Create the batch context at `.agent-run/{primary_ticket_id}/context.json`
+   with the `batch` slice populated.
+5. Store each ticket's resolved `design_source` under
+   `tickets.{TICKET_ID}.design_source` in the shared context.
+
+**IMPORTANT: All batch agents use `--ticket {primary_ticket_id}` for context
+I/O.** The `batch.current_ticket` key tells them which ticket's scope to
+work on. Secondary ticket IDs never get their own context files in batch mode.
+
+### Batch PHASE 1 — Requirements + Design (batch-aware)
+
+Run Phase 1a (requirements) for ALL tickets in parallel. Each stores its
+output under `tickets.{TICKET_ID}.ticket`, `tickets.{TICKET_ID}.confluence`,
+and `tickets.{TICKET_ID}.fetch_status` in the shared context.
+All agents use `--ticket {primary_ticket_id}` for context I/O.
+
+AFTER all requirements complete, run Phase 1b (design inspector) for each
+ticket that has a non-null `tickets.{TICKET_ID}.design_source`. Design
+inspection needs `ticket.title` / `ticket.title_kebab` from requirements,
+so it runs AFTER, not in parallel. Results go under
+`tickets.{TICKET_ID}.design`.
+
+Also populate the top-level `ticket` key with the primary ticket's data
+(for backward-compatibility with downstream prompts that read `ticket.*`).
+
+### Batch PHASE 1.5 — Fetch gate (batch-aware)
+
+Check `tickets.{ID}.fetch_status` for ALL tickets. HALT if ANY has
+`jira === "error"`. Log statuses for all tickets.
+
+### Batch PHASE 2 — Unified Architecture (batch-aware)
+
+The architect receives ALL tickets' requirements and designs at once.
+Instead of planning for one ticket, it produces a UNIFIED `architecture`
+that covers the full scope.
+
+The `architecture.file_plan` is extended with a `ticket_id` field on each
+entry so implementers know which files belong to which ticket's commit:
+
+```jsonc
+{
+  "architecture": {
+    "file_plan": [
+      { "path": "libs/shared/ui/src/core/data-table/data-table.types.ts",
+        "purpose": "Core types for table + pagination",
+        "ticket_id": "NGI-12", "type": "core" },
+      { "path": "libs/shared/ui/src/components/DataTable/TablePagination.tsx",
+        "purpose": "Pagination sub-component",
+        "ticket_id": "NGI-13", "type": "adapter" }
+    ],
+    // Per-ticket scopes for implementation ordering
+    "batch_scopes": {
+      "NGI-12": { "summary": "Base data table", "depends_on": [] },
+      "NGI-13": { "summary": "Pagination", "depends_on": ["NGI-12"] },
+      "NGI-14": { "summary": "Sticky header", "depends_on": ["NGI-12"] }
+    }
+  }
+}
+```
+
+The architect MUST resolve inter-ticket dependencies and set the
+`batch_scopes[].depends_on` order. Implementation proceeds in dependency
+order (topological sort), NOT necessarily the order the user listed them.
+
+### Batch PHASE 3 — Implementation with per-ticket commits (batch-aware)
+
+For each ticket in dependency order (`architecture.batch_scopes`):
+
+1. Set BOTH `batch.current_ticket` (the ticket ID string) AND
+   `batch.current_ticket_index` in context via:
+   `echo '{"current_ticket":"{ID}","current_ticket_index":{N}}' | pnpm agent:context merge --ticket {primary_id} --slice batch`
+2. Run the implementation prompts (core → react → angular) scoped to ONLY
+   the files tagged with this ticket's ID in `architecture.file_plan`.
+   Implementers read `batch.current_ticket` and scope their work.
+3. After all adapters are implemented for this ticket:
+   - `git add` only this ticket's files.
+   - `git commit -m "{ticket_id_lower}-{ticket_type}-{ticket_title_kebab}"`.
+   - Store commit SHA via:
+     `echo '{"commit_sha":"{SHA}"}' | pnpm agent:context merge --ticket {primary_id} --slice implementation.{ticket_id}`
+4. Move to the next ticket.
+
+The first ticket in the batch creates the branch:
+`git checkout -b {primary_ticket_id_lower}-{type}-{title_kebab}`
+
+Subsequent tickets commit on the same branch (no new checkout).
+
+Implementation prompts receive an extra context key `batch.current_ticket`
+indicating which ticket's scope they should implement. They MUST only
+touch files tagged with that ticket ID.
+
+### Batch PHASE 3.5 — Validate (batch-aware)
+
+Run `pnpm agent:context validate --ticket {primary_ticket_id}`. The
+validator checks all implementation slices.
+
+### Batch PHASE 4 — QA (batch-aware)
+
+QA runs ONCE on the final state (all commits applied). The QA agent
+receives `batch.ticket_ids` and validates the combined output. If QA
+fails, the fix loop targets the specific ticket whose files caused the
+failure (determined from `qa.feedback_for_*` mapped back via file paths
+to `architecture.file_plan[].ticket_id`).
+
+### Batch PHASE 5 — PR creator (batch-aware)
+
+- Branch already exists (created in Phase 3). All commits are already pushed.
+- `git push origin {branch_name}`.
+- PR title uses the primary ticket: `{PRIMARY_ID}: {type}({scope}): {title}`
+- PR body lists ALL tickets with links, groups files per ticket.
+- One PR for the entire batch.
+
+### Batch PHASE 6 — Code review
+
+Standard code review — no changes needed. The reviewer sees all commits.
+
+### Batch PHASE 7 — Epic update (batch-aware)
+
+If in epic mode, loop through each ticket in `batch.ticket_ids` and build
+a PER-TICKET `produced` payload from `implementation.{ticket_id}`:
+
+```jsonc
+{
+  "files": [...implementation.{ticket_id}.core.files_created, ...react, ...angular],
+  "exports": [...newly exported symbols from this ticket's files...],
+  "tokens_added": [...new --ui-* tokens introduced by this ticket...],
+  "types": [...new TS types from this ticket...]
+}
+```
+
+Then call for EACH ticket:
+`echo '{per_ticket_produced}' | pnpm agent:epic complete --epic {epic_id} \
+  --subticket {ticket_id} --pr-url {pr.pr_url} --produced -`
+
+This ensures each subticket's epic memory entry only claims ownership of
+its own artifacts — not the entire batch's output.
 
 All epic-level memory operations go through the deterministic CLI
 `tools/scripts/epic-sync.mjs` (invoked via `pnpm agent:epic <cmd>` or
@@ -195,6 +425,7 @@ run normally; Phase 7 (Epic Update) is SKIPPED.
 PHASE 1 — parallel:
 #file:.github/prompts/01-requirements.prompt.md
 #file:.github/prompts/02-design-inspector.prompt.md (skip if `context.json design_source` is null)
+In batch mode: run for EACH ticket in the batch (parallel). See "Batch PHASE 1" above.
 
 PHASE 1.5 — Fetch gate (deterministic, no LLM call):
 Read context.json. HALT and surface to user if ANY of these is true: - `fetch_status.jira === "error"` - `fetch_status.figma === "error"` (only when
@@ -204,11 +435,16 @@ Log: `"Fetch gate: jira={...} confluence={...} figma={...}"`.
 
 PHASE 2:
 #file:.github/prompts/03-architect.prompt.md
+In batch mode: the architect receives ALL tickets' requirements/designs and
+produces a unified plan. See "Batch PHASE 2" above.
 
 PHASE 3 — implementation (sequential, only run adapters the ticket needs):
 #file:.github/prompts/04-implement-core.prompt.md (always)
 #file:.github/prompts/05-implement-react.prompt.md (if frameworks includes react)
 #file:.github/prompts/06-implement-angular.prompt.md (if frameworks includes angular)
+In batch mode: loop through tickets in dependency order. For each ticket,
+run the implementation prompts scoped to that ticket's files, then commit.
+See "Batch PHASE 3" above.
 
 PHASE 3.5 — Implementation gate (deterministic, no LLM call):
 Run `pnpm agent:context validate --ticket {ticket_id}`.
@@ -218,6 +454,10 @@ This catches malformed architecture or missing implementation slices
 before the QA agent consumes them in a fresh context.
 
 PHASE 4 — QA loop (max 3 iterations across all implemented adapters):
+
+In batch mode: QA runs ONCE on the final state (all tickets' commits applied).
+The QA agent receives `batch.ticket_ids` so it can validate everything together.
+See "Batch PHASE 4" above.
 
 Spawn the `qa-verifier` agent via Task. This agent runs in a FRESH context
 (no accumulated tokens from Phases 0–3) and handles BOTH the base QA checks
@@ -244,6 +484,8 @@ For each iteration (1–3):
 
 PHASE 5:
 #file:.github/prompts/08-pr-creator.prompt.md
+In batch mode: branch already exists with N commits. Push and create a single
+PR listing all tickets. See "Batch PHASE 5" above.
 
 PHASE 6:
 #file:.github/prompts/09-code-reviewer.prompt.md

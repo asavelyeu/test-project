@@ -20,6 +20,18 @@ Apply the `frontend-react-best-practices` skill throughout.
 
 Read context.json. If `qa.feedback_for_react` exists, fix those first.
 
+### Batch mode awareness
+
+If `batch.enabled === true`, the orchestrator calls this prompt once per
+ticket in dependency order. The current ticket ID is in
+`batch.current_ticket`. You MUST only create/modify files whose
+`architecture.file_plan[].ticket_id` matches the current ticket. Read
+this ticket's requirements from `tickets.{current_ticket}.ticket` and
+design from `tickets.{current_ticket}.design`.
+
+After completing implementation for the current ticket, the orchestrator
+handles the git commit — do NOT run git commands yourself.
+
 ### Delta guard (MANDATORY when `architecture.delta_plan` exists)
 
 - Only create files in `delta_plan.create`, only edit files in
@@ -94,5 +106,6 @@ Start Storybook in background, open the `Default` story. Verify:
 
 Merge `implementation.react` { files_created[], files_modified[], test_files[] }
 into context.json.
+In batch mode: merge under `implementation.{batch.current_ticket}.react` instead.
 
 Output: "React adapter complete. Files: {count}. Tests/lint/build: clean."
